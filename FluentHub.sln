@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub", "FluentHub\FluentHub.csproj", "{31B51484-F77B-47FD-BC83-674E7E4D85C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.Sandbox", "FluentHub.Sandbox\FluentHub.Sandbox.csproj", "{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.SandboxClient", "FluentHub.SandboxClient\FluentHub.SandboxClient.csproj", "{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31B51484-F77B-47FD-BC83-674E7E4D85C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31B51484-F77B-47FD-BC83-674E7E4D85C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31B51484-F77B-47FD-BC83-674E7E4D85C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31B51484-F77B-47FD-BC83-674E7E4D85C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
