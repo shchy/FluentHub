@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub.TCP
+namespace FluentHub.TCP
 {
     public class TCPContextFactory : IRunnableFactory<IIOContext<byte>>
     {

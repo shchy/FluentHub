@@ -1,4 +1,4 @@
-﻿using FluentHub.Hub.TCP;
+﻿using FluentHub.TCP;
 using FluentHub.IO;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ namespace FluentHub.Hub
 {
     public static class ApplicationContainerBuilder
     {
+
         public static IContextApplication<T> MakeApp<T>(
             this IApplicationContainer @this
             , IEnumerable<IModelConverter<T>> converters
@@ -122,16 +123,17 @@ namespace FluentHub.Hub
         /// <param name="this"></param>
         /// <param name="sequence"></param>
         /// <returns></returns>
-        public static IApplicationContainer RegisterSequence<T, U>(
+        public static IApplicationContainer RegisterSequence<T, U, Ti>(
             this IApplicationContainer @this
-            , Action<T, IEnumerable<IIOContext<U>>> sequence)
+            , Action<IIOContext<T>, Ti, IEnumerable<IIOContext<U>>> sequence)
+            where Ti : class, T
         {
             var app = @this.GetApp<T>();
             var appTarg = @this.GetApp<U>();
             System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
             System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
 
-            var typeT = typeof(T);
+            var typeT = typeof(Ti);
 
             app.AddSequence(context =>
             {
@@ -143,7 +145,7 @@ namespace FluentHub.Hub
                         return;
                     }
                     var contexts = appTarg.Pool.Get().ToArray();
-                    sequence(model, contexts);
+                    sequence(context, model as Ti, contexts);
                 }
                 catch (Exception ex)
                 {

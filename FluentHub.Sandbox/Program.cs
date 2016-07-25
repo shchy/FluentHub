@@ -1,5 +1,5 @@
 ﻿using FluentHub.Hub;
-using FluentHub.Hub.TCP;
+using FluentHub.TCP;
 using FluentHub.IO;
 using FluentHub.Logger;
 using System;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentHub.UDP;
 
 namespace FluentHub.Sandbox
 {
@@ -16,21 +17,85 @@ namespace FluentHub.Sandbox
     {
         static void Main(string[] args)
         {
-
             var logger = new DebugLogger();
 
             var appContainer = MakeApps(logger, true);
 
             Task.Run((Action)appContainer.Run);
-
-            //// サーバーから開始するシーケンスの実行（3者間）
-            //var result = appContainer
-            //    .InstantSequence((IEnumerable<IIOContext<IModelMessageA>> xs, IEnumerable<IIOContext<IModelMessageB>> ys) =>
-            //    {
-            //        return 1;
-            //    });
-
+            
             Controller(appContainer,logger);
+        }
+
+        
+        public static IApplicationContainer MakeApps(ILogger logger, bool isServer)
+        {
+            var messageConvertersA = new IModelConverter<IModelMessageA>[] {
+                    new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
+                };
+            var messageConvertersB = new IModelConverter<IModelMessageB>[] {
+                    new BMessage0Converter(), new BMessage1Converter()
+                };
+            
+            // アプリケーションコンテナの生成
+            var appContainer = new ApplicationContainer(logger) as IApplicationContainer;
+
+            // TCPサーバーアプリケーションAを立てる
+            var appA = 
+                MakeApp(appContainer, isServer, 1244, messageConvertersA)
+                .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
+                // サーバーとクライアントの1:1シーケンスの登録(型指定)
+                .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
+                {
+                    logger.Info($"{model.GetType().Name}を受信");
+                    context.Write(new AMessage1());
+                });
+
+            // TCPサーバーアプリケーションBを立てる
+            var appB = 
+                MakeApp(appContainer, isServer, 1245, messageConvertersB)
+                .RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
+                // サーバーとクライアントの1:1シーケンスの登録(型指定)
+                .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>
+                {
+                    logger.Info($"{model.GetType().Name}を受信");
+                    context.Write(new BMessage1());
+                });
+
+            // 3者間シーケンスの登録
+            appContainer
+                // シーケンスの登録
+                .RegisterSequence((IIOContext<IModelMessageA> context, AMessage2 _, IEnumerable<IIOContext<IModelMessageB>> ts) =>
+                {
+                    foreach (var t in ts)
+                    {
+                        t.Write(new BMessage0());
+                        var res = t.Read(m => m is BMessage1, 50*1000);
+                        logger.Info($"{res.GetType().Name}を受信");
+                    }
+                });
+            return appContainer;
+        }
+
+        private static IContextApplication<T> MakeApp<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        {
+            //var f = 
+            //    isServer
+            //    ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(messageConverters, v) as IContextApplication<T>)
+            //    : () => container.MakeAppByTcpClient(messageConverters, "localhost", v);
+
+            var p1 = v;
+            var p2 = v - 100;
+            if (!isServer)
+            {
+                var a = p1;
+                p1 = p2;
+                p2 = a;
+            }
+
+            Func<IContextApplication<T>> f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
+
+            return f();
+
         }
 
         public static void Controller(IApplicationContainer appContainer, ILogger logger)
@@ -87,76 +152,12 @@ namespace FluentHub.Sandbox
                             break;
                     }
                 }
-                catch (Exception )
+                catch (Exception)
                 {
                 }
             }
         }
 
-        public static IApplicationContainer MakeApps(ILogger logger, bool isServer)
-        {
-            // アプリケーションコンテナの生成
-            var appContainer = new ApplicationContainer(logger) as IApplicationContainer;
-
-            var messageConvertersA = new IModelConverter<IModelMessageA>[] {
-                    new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
-                };
-
-
-            // TCPサーバーアプリケーションAを立てる
-            var appA = MakeApp(appContainer, isServer, 1244, messageConvertersA);
-                
-                
-            // サーバーとクライアントの1:1シーケンスの登録
-            appA.RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
-                // サーバーとクライアントの1:1シーケンスの登録(型指定)
-                .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
-                {
-                    logger.Info($"{model.GetType().Name}を受信");
-                    context.Write(new AMessage1());
-                });
-
-
-            var messageConvertersB = new IModelConverter<IModelMessageB>[] {
-                    new BMessage0Converter(), new BMessage1Converter()
-                };
-            // TCPサーバーアプリケーションBを立てる
-            var appB = MakeApp(appContainer, isServer, 1245, messageConvertersB);
-
-            // サーバーとクライアントの1:1シーケンスの登録
-            appB.RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
-                // サーバーとクライアントの1:1シーケンスの登録(型指定)
-                .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>
-                {
-                    logger.Info($"{model.GetType().Name}を受信");
-                    context.Write(new BMessage1());
-                });
-
-            // 3者間シーケンスの登録
-            appContainer
-                // シーケンスの登録
-                .RegisterSequence((IModelMessageA _, IEnumerable<IIOContext<IModelMessageB>> ts) =>
-                {
-                    foreach (var t in ts)
-                    {
-                        t.Write(new BMessage0());
-                        var res = t.Read(m => m is BMessage1, 50*1000);
-                        logger.Info($"{res.GetType().Name}を受信");
-                    }
-                });
-            return appContainer;
-        }
-
-        private static IContextApplication<T> MakeApp<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
-        {
-            var f = 
-                isServer
-                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(v, messageConverters) as IContextApplication<T>)
-                : () => container.MakeAppByTcpClient("localhost", v, messageConverters);
-
-            return f();
-
-        }
     }
 
 

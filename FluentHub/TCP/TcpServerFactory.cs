@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub.TCP
+namespace FluentHub.TCP
 {
     public class TcpServerFactory : TcpFactory
     {

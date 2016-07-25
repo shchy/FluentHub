@@ -1,4 +1,4 @@
-﻿using FluentHub.Hub.TCP;
+﻿using FluentHub.TCP;
 using FluentHub.IO;
 using FluentHub.Logger;
 using System;
