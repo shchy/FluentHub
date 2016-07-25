@@ -14,6 +14,7 @@ namespace FluentHub.IO.Extension
         private string realName;
 
         public bool IsAny => realContext.IsAny;
+        public bool CanUse => realContext.CanUse;
 
         public IOContextLoggerProxy(IIOContext<T> realContext, ILogger logger)
         {
@@ -83,11 +84,11 @@ namespace FluentHub.IO.Extension
             }
         }
 
-        public T ReadOne()
+        public T Read()
         {
             try
             {
-                return this.realContext.ReadOne();
+                return this.realContext.Read();
             }
             catch (Exception ex)
             {

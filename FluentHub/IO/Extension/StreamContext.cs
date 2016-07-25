@@ -30,6 +30,8 @@ namespace FluentHub.IO.Extension
                 }
             }
         }
+        public bool CanUse => stream != null && stream.CanRead && stream.CanWrite;
+
 
         public StreamContext(Stream stream, Action disposing)
         {
@@ -38,7 +40,16 @@ namespace FluentHub.IO.Extension
             this.readCancelToken = new System.Threading.CancellationTokenSource();
             this.cache = new List<byte>();
             this.readTask = Task.Run(() => TakeBuffer(this.stream));
+            this.readTask.ContinueWith(EndTakeBuffer);
 
+        }
+
+        private void EndTakeBuffer(Task task)
+        {
+            if (task.Exception != null)
+            {
+                this.Dispose();
+            }
         }
 
         private void TakeBuffer(Stream stream)
@@ -90,7 +101,10 @@ namespace FluentHub.IO.Extension
             }
             this.disposed = true;
             this.readCancelToken.Cancel();
-            this.readTask.Wait();
+            if (this.readTask.IsCompleted == false)
+            {
+                this.readTask.Wait();
+            }
             this.readTask.Dispose();
 
             lock ((this.cache as ICollection).SyncRoot)
@@ -124,7 +138,7 @@ namespace FluentHub.IO.Extension
             }
         }
 
-        public byte ReadOne()
+        public byte Read()
         {
             throw new NotImplementedException();
         }

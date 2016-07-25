@@ -1,4 +1,6 @@
-﻿using FluentHub.IO;
+﻿using FluentHub.Hub;
+using FluentHub.Hub.TCP;
+using FluentHub.IO;
 using FluentHub.Logger;
 using System;
 using System.Collections.Generic;
@@ -31,64 +33,70 @@ namespace FluentHub.Sandbox
             Controller(appContainer,logger);
         }
 
-        public static void Controller(ApplicationContainer appContainer, ILogger logger)
+        public static void Controller(IApplicationContainer appContainer, ILogger logger)
         {
             // Ctrl+Cで終了
             while (true)
             {
-                var line = Console.ReadLine();
-                switch (line)
+                try
                 {
-                    // Aクライアントにメッセージ0を送信
-                    case "a":
-                        appContainer
-                            .GetApp<IModelMessageA>()
-                            .InstantSequence(cx =>
-                            {
-                                foreach (var c in cx)
+                    var line = Console.ReadLine();
+                    switch (line)
+                    {
+                        // Aクライアントにメッセージ0を送信
+                        case "a":
+                            appContainer
+                                .GetApp<IModelMessageA>()
+                                .InstantSequence(cx =>
                                 {
-                                    c.Write(new AMessage0());
-                                    var res = c.Read(m => m is AMessage1, 50*1000);
-                                    logger.Info($"{res.GetType().Name}を受信");
-                                }
-                            });
-                        break;
-                    // Bクライアントにメッセージ0を送信
-                    case "b":
-                        appContainer
-                            .GetApp<IModelMessageB>()
-                            .InstantSequence(cx =>
-                            {
-                                foreach (var c in cx)
+                                    foreach (var c in cx)
+                                    {
+                                        c.Write(new AMessage0());
+                                        var res = c.Read(m => m is AMessage1, 50 * 1000);
+                                        logger.Info($"{res.GetType().Name}を受信");
+                                    }
+                                });
+                            break;
+                        // Bクライアントにメッセージ0を送信
+                        case "b":
+                            appContainer
+                                .GetApp<IModelMessageB>()
+                                .InstantSequence(cx =>
                                 {
-                                    c.Write(new BMessage0());
-                                    var res = c.Read(m => m is BMessage1, 50*1000);
-                                    logger.Info($"{res.GetType().Name}を受信");
-                                }
-                            });
-                        break;
-                    // Aクライアントにメッセージ2を送信
-                    case "ac":
-                        appContainer
-                            .GetApp<IModelMessageA>()
-                            .InstantSequence(cx =>
-                            {
-                                foreach (var c in cx)
+                                    foreach (var c in cx)
+                                    {
+                                        c.Write(new BMessage0());
+                                        var res = c.Read(m => m is BMessage1, 50 * 1000);
+                                        logger.Info($"{res.GetType().Name}を受信");
+                                    }
+                                });
+                            break;
+                        // Aクライアントにメッセージ2を送信
+                        case "ac":
+                            appContainer
+                                .GetApp<IModelMessageA>()
+                                .InstantSequence(cx =>
                                 {
-                                    c.Write(new AMessage2());
-                                }
-                            });
-                        break;
-                    default:
-                        break;
+                                    foreach (var c in cx)
+                                    {
+                                        c.Write(new AMessage2());
+                                    }
+                                });
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception )
+                {
                 }
             }
         }
 
-        public static ApplicationContainer MakeApps(ILogger logger, bool isServer)
+        public static IApplicationContainer MakeApps(ILogger logger, bool isServer)
         {
             // アプリケーションコンテナの生成
-            var appContainer = new ApplicationContainer(logger);
+            var appContainer = new ApplicationContainer(logger) as IApplicationContainer;
 
             var messageConvertersA = new IModelConverter<IModelMessageA>[] {
                     new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
@@ -96,11 +104,9 @@ namespace FluentHub.Sandbox
 
 
             // TCPサーバーアプリケーションAを立てる
-            var appA =
-                isServer
-                ? appContainer.MakeAppByTcpServer(1244, messageConvertersA)
-                : appContainer.MakeAppByTcpClient("localhost", 1244, messageConvertersA);
-            
+            var appA = MakeApp(appContainer, isServer, 1244, messageConvertersA);
+                
+                
             // サーバーとクライアントの1:1シーケンスの登録
             appA.RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
@@ -115,10 +121,7 @@ namespace FluentHub.Sandbox
                     new BMessage0Converter(), new BMessage1Converter()
                 };
             // TCPサーバーアプリケーションBを立てる
-            var appB =
-                isServer
-                ? appContainer.MakeAppByTcpServer(1245, messageConvertersB)
-                : appContainer.MakeAppByTcpClient("localhost", 1245, messageConvertersB);
+            var appB = MakeApp(appContainer, isServer, 1245, messageConvertersB);
 
             // サーバーとクライアントの1:1シーケンスの登録
             appB.RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
@@ -132,9 +135,8 @@ namespace FluentHub.Sandbox
             // 3者間シーケンスの登録
             appContainer
                 // シーケンスの登録
-                .RegisterSequence((IIOContext<IModelMessageA> x, IEnumerable<IIOContext<IModelMessageB>> ts) =>
+                .RegisterSequence((IModelMessageA _, IEnumerable<IIOContext<IModelMessageB>> ts) =>
                 {
-                    var a = x.Read(m => m is AMessage2);
                     foreach (var t in ts)
                     {
                         t.Write(new BMessage0());
@@ -143,6 +145,17 @@ namespace FluentHub.Sandbox
                     }
                 });
             return appContainer;
+        }
+
+        private static IContextApplication<T> MakeApp<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        {
+            var f = 
+                isServer
+                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(v, messageConverters) as IContextApplication<T>)
+                : () => container.MakeAppByTcpClient("localhost", v, messageConverters);
+
+            return f();
+
         }
     }
 
@@ -191,7 +204,7 @@ namespace FluentHub.Sandbox
             return model is AMessage0;
         }
 
-        public byte[] ToByte(IModelMessageA model)
+        public byte[] ToBytes(IModelMessageA model)
         {
             var m = model as AMessage0;
             using (var ms = new MemoryStream(MESSAGESIZE))
@@ -243,7 +256,7 @@ namespace FluentHub.Sandbox
         }
 
         const int MESSAGESIZE = 8;
-        public byte[] ToByte(IModelMessageA model)
+        public byte[] ToBytes(IModelMessageA model)
         {
             var m = model as AMessage1;
             using (var ms = new MemoryStream(MESSAGESIZE))
@@ -296,7 +309,7 @@ namespace FluentHub.Sandbox
         }
 
         const int MESSAGESIZE = 8;
-        public byte[] ToByte(IModelMessageA model)
+        public byte[] ToBytes(IModelMessageA model)
         {
             var m = model as AMessage2;
             using (var ms = new MemoryStream(MESSAGESIZE))
@@ -369,7 +382,7 @@ namespace FluentHub.Sandbox
         }
 
         const int MESSAGESIZE = 8;
-        public byte[] ToByte(IModelMessageB model)
+        public byte[] ToBytes(IModelMessageB model)
         {
             var m = model as BMessage0;
             using (var ms = new MemoryStream(MESSAGESIZE))
@@ -421,7 +434,7 @@ namespace FluentHub.Sandbox
         }
 
         const int MESSAGESIZE = 8;
-        public byte[] ToByte(IModelMessageB model)
+        public byte[] ToBytes(IModelMessageB model)
         {
             var m = model as BMessage1;
             using (var ms = new MemoryStream(MESSAGESIZE))

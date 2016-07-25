@@ -30,6 +30,8 @@ namespace FluentHub.IO
                 }
             }
         }
+        public bool CanUse => byteContext.CanUse;
+
 
         public ModelContext(IIOContext<byte> byteContext
             , IEnumerable<IModelConverter<T>> converters)
@@ -110,7 +112,7 @@ namespace FluentHub.IO
             }
         }
 
-        public T ReadOne()
+        public T Read()
         {
             lock ((this.modelcache as ICollection).SyncRoot)
             {
@@ -130,7 +132,7 @@ namespace FluentHub.IO
             {
                 var converter = this.converters.FirstOrDefault(c => c.CanModelToBytes(model));
                 System.Diagnostics.Debug.Assert(converter != null, $"can not convert model {model.GetType().Name}");
-                var bytes = converter.ToByte(model);
+                var bytes = converter.ToBytes(model);
                 this.byteContext.WriteAll(bytes);
             }
         }
@@ -158,17 +160,15 @@ namespace FluentHub.IO
 
     public static class ModelContext
     {
-        public static IIOContext<T> BuildContextByTcp<T>(
-            this TcpClient @this
+        public static IIOContext<T> BuildContext<T>(
+            this IIOContext<byte> @this
             , IEnumerable<IModelConverter<T>> converters
             , ILogger logger)
         {
             return
                 new ModelContext<T>(
                     new IOContextLoggerProxy<byte>(
-                        new StreamContext(
-                            @this.GetStream()
-                            , () => @this.Close())
+                        @this
                         , logger)
                     , converters);
         }

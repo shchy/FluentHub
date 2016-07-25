@@ -40,15 +40,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hub\ApplicationContainer.cs" />
+    <Compile Include="Hub\ApplicationContainerBuilder.cs" />
+    <Compile Include="Hub\IApplicationContainer.cs" />
+    <Compile Include="Hub\IContextApplication.cs" />
+    <Compile Include="Hub\Application.cs" />
+    <Compile Include="Hub\TCP\TCPBuilder.cs" />
+    <Compile Include="Hub\TCP\TcpClientFactory.cs" />
+    <Compile Include="Hub\TCP\TcpFactory.cs" />
+    <Compile Include="Hub\TCP\TCPContextFactory.cs" />
+    <Compile Include="Hub\TCP\TcpServerFactory.cs" />
+    <Compile Include="Hub\ContextPool.cs" />
     <Compile Include="IO\Extension\IOContextLoggerProxy.cs" />
     <Compile Include="IO\Extension\StreamContext.cs" />
-    <Compile Include="IO\IClientPool.cs" />
+    <Compile Include="Hub\IContextPool.cs" />
     <Compile Include="IO\IIOContext.cs" />
+    <Compile Include="IO\IRunnableFactory.cs" />
     <Compile Include="IO\IModelConverter.cs" />
+    <Compile Include="IO\IOContextExtension.cs" />
     <Compile Include="IO\ModelContext.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

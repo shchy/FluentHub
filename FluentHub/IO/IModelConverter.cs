@@ -10,7 +10,7 @@ namespace FluentHub.IO
     {
         bool CanModelToBytes(object model);
         bool CanBytesToModel(IEnumerable<byte> bytes);
-        byte[] ToByte(T model);
+        byte[] ToBytes(T model);
         Tuple<T, int> ToModel(IEnumerable<byte> bytes);
     }
 }
