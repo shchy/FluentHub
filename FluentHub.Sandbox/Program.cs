@@ -43,7 +43,7 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションAを立てる
             var appA = 
-                MakeAppTCP(appContainer, isServer, 1244, messageConvertersA)
+                MakeAppUDP(appContainer, isServer, 1244, messageConvertersA)
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
@@ -54,7 +54,7 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションBを立てる
             var appB = 
-                MakeAppUDP(appContainer, isServer, 1245, messageConvertersB)
+                MakeAppSerial(appContainer, isServer, 5, messageConvertersB)
                 .RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>

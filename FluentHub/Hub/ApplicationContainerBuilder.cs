@@ -14,7 +14,7 @@ namespace FluentHub.Hub
         public static IContextApplication<T> MakeApp<T>(
             this IApplicationContainer @this
             , IEnumerable<IModelConverter<T>> converters
-            , IRunnableFactory<IIOContext<byte>> streamContextFactory)
+            , IIOContextMaker<byte> streamContextFactory)
         {
             var app =
                 new Application<T>(

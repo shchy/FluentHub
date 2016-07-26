@@ -11,7 +11,7 @@ namespace FluentHub.Hub
     public class Application<T> : IContextApplication<T>
     {
         private List<Action<IIOContext<T>>> sequences;
-        private IRunnableFactory<IIOContext<byte>> streamContextFactory;
+        private IIOContextMaker<byte> streamContextFactory;
         private IEnumerable<IModelConverter<T>> modelConverters;
 
         public IContextPool<T> Pool { get;  }
@@ -19,7 +19,7 @@ namespace FluentHub.Hub
 
         public Application(
             IContextPool<T> pool
-            , IRunnableFactory<IIOContext<byte>> sreamContextFactory
+            , IIOContextMaker<byte> sreamContextFactory
             , IEnumerable<IModelConverter<T>> modelConverters
             , ILogger logger)
         {

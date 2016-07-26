@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.IO
+namespace FluentHub.Hub
 {
-    public interface IRunnableFactory<T> : IDisposable
+    public interface INativeIOFactory<T> : IDisposable
     {
-        Action<T> Maked { get; set; }
-        void Run();
+        T Make();
     }
 }

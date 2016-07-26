@@ -4,35 +4,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public interface INativeIOFactory<T> : IDisposable
+    public class NativeIOToContextMaker<T> : IIOContextMaker<byte>
     {
-        T Make();
-    }
-
-    public class NativeIORunnableFactory<T> : IRunnableFactory<T>
-    {
-        protected bool isDisporsed;
+        private Func<T, IIOContext<byte>> convert;
         private INativeIOFactory<T> makeNativeIO;
         private Action<T> missedMakeNotify;
+        private bool isDisposed;
 
-        public Action<T> Maked { get; set; }
+        public Action<IIOContext<byte>> Maked { get; set; }
 
-        public NativeIORunnableFactory(
+        public NativeIOToContextMaker(
             INativeIOFactory<T> makeNativeIO
-            , Action<T> missedMakeNotify)
+            , Func<T, IIOContext<byte>> convert
+            , Action<T> missedMakeNotify
+            )
         {
             this.makeNativeIO = makeNativeIO;
+            this.convert = convert;
             this.missedMakeNotify = missedMakeNotify;
+        }
+        
+        public void Dispose()
+        {
+            this.isDisposed = true;
+            makeNativeIO.Dispose();
         }
 
         public void Run()
         {
-            while (this.isDisporsed == false)
+            while (this.isDisposed == false)
             {
                 var client = this.makeNativeIO.Make();
                 if (client == null)
@@ -49,12 +53,8 @@ namespace FluentHub.Hub
             {
                 this.missedMakeNotify(client);
             }
-            Maked(client);
-        }
-        public virtual void Dispose()
-        {
-            this.isDisporsed = true;
-            this.makeNativeIO.Dispose();
+            var context = convert(client);
+            Maked(context);
         }
     }
 
@@ -69,5 +69,4 @@ namespace FluentHub.Hub
         }
 
     }
-
 }

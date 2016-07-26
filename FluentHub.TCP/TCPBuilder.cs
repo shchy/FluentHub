@@ -28,11 +28,10 @@ namespace FluentHub.TCP
             return
                 @this.MakeApp(
                     converters
-                    , new DelegateContextFactory<TcpClient>(
-                        new NativeIORunnableFactory<TcpClient>(
-                            new TcpServerFactory(port)
-                            , c => c.Close())
-                        , (TcpClient client) => client.BuildContextByTcp()));
+                    , new NativeIOToContextMaker<TcpClient>(
+                        new TcpServerFactory(port)
+                        , (TcpClient client) => client.BuildContextByTcp()
+                        , c => c.Close()));
         }
 
         public static IContextApplication<T> MakeAppByTcpClient<T>(
@@ -44,11 +43,10 @@ namespace FluentHub.TCP
             return
                @this.MakeApp(
                    converters
-                   , new DelegateContextFactory<TcpClient>(
-                       new NativeIORunnableFactory<TcpClient>(
-                            new TcpClientFactory(host, port)
-                            , c=>c.Close())
-                       , (TcpClient client) => client.BuildContextByTcp()));
+                   , new NativeIOToContextMaker<TcpClient>(
+                        new TcpClientFactory(host, port)
+                        , (TcpClient client) => client.BuildContextByTcp()
+                        , c=>c.Close()));
         }
 
         public static IIOContext<byte> BuildContextByTcp(

@@ -27,7 +27,10 @@ namespace FluentHub.UDP
             return
                 @this.MakeApp(
                     converters
-                    , new FakeContextFactory(new UDPIO(host, sendPort, recvPort)));
+                    , new NativeIOToContextMaker<Stream>(
+                        new UDPFactory(host, sendPort, recvPort)
+                        , (Stream x) => x.BuildContextByStream()
+                        , c => c.Close()));
         }        
     }
 }

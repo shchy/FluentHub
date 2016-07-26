@@ -23,11 +23,10 @@ namespace FluentHub.Serial
             return
                @this.MakeApp(
                    converters
-                   , new DelegateContextFactory<SerialPort>(
-                       new NativeIORunnableFactory<SerialPort>(
-                            new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
-                            , c => c.Close())
-                       , (SerialPort x) => x.BuildContextBySerialPort()));
+                   , new NativeIOToContextMaker<SerialPort>(
+                        new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
+                        , (SerialPort x) => x.BuildContextBySerialPort()
+                        , c => c.Close()));
         }
 
         public static IIOContext<byte> BuildContextBySerialPort(
