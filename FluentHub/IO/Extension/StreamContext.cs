@@ -160,4 +160,16 @@ namespace FluentHub.IO.Extension
             }
         }
     }
+
+    public static class StreamExtension
+    {
+        public static IIOContext<byte> BuildContextByStream(
+           this Stream @this)
+        {
+            return
+                new StreamContext(
+                    @this
+                    , () => @this.Close());
+        }
+    }
 }

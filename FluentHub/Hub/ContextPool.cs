@@ -25,6 +25,18 @@ namespace FluentHub.Hub
             this.updateCallEvent = new ManualResetEvent(true);
         }
 
+
+        public void Dispose()
+        {
+            lock ((pool as ICollection).SyncRoot)
+            {
+                foreach (var item in pool)
+                {
+                    Remove(item);
+                }
+            }
+        }
+
         public void Add(IIOContext<T> modelContext)
         {
             this.logger.Debug($"add context to pool typeof:{typeof(T).Name}");
@@ -46,6 +58,7 @@ namespace FluentHub.Hub
                 }
                 this.logger.Debug($"remove context to pool typeof:{typeof(T).Name}");
                 modelContext.Received -= ModelContext_Received;
+                modelContext.Dispose();
                 pool.Remove(modelContext);
             }
         }
@@ -77,10 +90,8 @@ namespace FluentHub.Hub
                         return;
                     }
                 }
-                OnUpdate(context);
+                logger.TrySafe(() => OnUpdate(context));
             } while (true);
-
-
         }
 
         void OnUpdate(IIOContext<T> context)
@@ -97,7 +108,6 @@ namespace FluentHub.Hub
             lock ((pool as ICollection).SyncRoot)
             {
                 CleaningPool(pool);
-
                 return pool.ToArray();
             }
         }
@@ -113,6 +123,7 @@ namespace FluentHub.Hub
                 Remove(item);
             }
         }
+
     }
 
 }

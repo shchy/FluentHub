@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace FluentHub.Hub
 {
@@ -17,9 +18,7 @@ namespace FluentHub.Hub
         private IEnumerable<IModelConverter<T>> modelConverters;
 
         public IContextPool<T> Pool { get;  }
-
         public ILogger Logger { get; }
-
 
         public Application(
             IContextPool<T> pool
@@ -45,17 +44,16 @@ namespace FluentHub.Hub
         private void UpdatedContext(IIOContext<T> context)
         {
             // todo 非同期にする？
-            foreach (var seq in sequences)
+            var ss = null as Action<IIOContext<T>>[];
+
+            lock ((sequences as ICollection).SyncRoot)
             {
-                try
-                {
-                    seq(context);
-                }
-                catch (Exception ex)
-                {
-                    this.Logger.Exception(ex);
-                    throw;
-                }
+                ss = sequences.ToArray();
+            }
+
+            foreach (var seq in ss)
+            {
+                Logger.TrySafe(() => seq(context));
             }
         }
 
@@ -70,11 +68,20 @@ namespace FluentHub.Hub
         public void Dispose()
         {
             this.streamContextFactory.Dispose();
+            this.Pool.Dispose();
+            lock ((sequences as ICollection).SyncRoot)
+            {
+                sequences.Clear();
+            }
+            this.modelConverters = null;
         }
 
         public void AddSequence(Action<IIOContext<T>> sequence)
         {
-            this.sequences.Add(sequence);
+            lock ((sequences as ICollection).SyncRoot)
+            {
+                this.sequences.Add(sequence);
+            }
         }
     }
 

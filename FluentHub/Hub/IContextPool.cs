@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public interface IContextPool<T>
+    public interface IContextPool<T> : IDisposable
     {
         void Add(IIOContext<T> modelContext);
         void Remove(IIOContext<T> modelContext);

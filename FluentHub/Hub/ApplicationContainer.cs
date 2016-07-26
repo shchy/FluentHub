@@ -1,6 +1,7 @@
 ﻿using FluentHub.IO;
 using FluentHub.Logger;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace FluentHub.Hub
 {
     public class ApplicationContainer : IApplicationContainer
     {
-        private Dictionary<Type, IContextApplication> applicationList;
+        private Dictionary<Type, IContextApplication> appList;
         private List<Task> runningTasks;
 
         public ILogger Logger { get; private set; }
@@ -19,27 +20,34 @@ namespace FluentHub.Hub
         public ApplicationContainer(ILogger logger)
         {
             this.Logger = logger;
-            this.applicationList = new Dictionary<Type, IContextApplication>();
+            // todo 同じタイプを登録できるようにする？Dictionaryやめる？
+            this.appList = new Dictionary<Type, IContextApplication>();
             this.runningTasks = new List<Task>();
         }
 
         public void Add<T>(IContextApplication<T> app)
         {
+            // todo problem when after Run
             var tType = typeof(T);
-            System.Diagnostics.Debug.Assert(!this.applicationList.ContainsKey(tType), $"already exists {tType.Name}");
-            this.applicationList.Add(tType, app);
+            lock ((appList as ICollection).SyncRoot)
+            {
+                this.appList.Add(tType, app);
+            }
         }
 
         public IContextApplication<T> GetApp<T>()
         {
             var tType = typeof(T);
-            if (this.applicationList.ContainsKey(tType) == false)
-            {
-                return null;
-            }
 
-            return
-                this.applicationList[tType] as IContextApplication<T>;
+            lock ((appList as ICollection).SyncRoot)
+            {
+                if (this.appList.ContainsKey(tType) == false)
+                {
+                    return null;
+                }
+                return
+                    this.appList[tType] as IContextApplication<T>;
+            }
         }
 
         public virtual IContextPool<T> MakeContextPool<T>()
@@ -49,22 +57,34 @@ namespace FluentHub.Hub
 
         public void Run()
         {
-            foreach (var app in applicationList.Values)
+            var apps = null as IContextApplication[];
+            lock ((appList as ICollection).SyncRoot)
+            {
+                apps = appList.Values.ToArray();
+            }
+
+            foreach (var app in apps)
             {
                 var runningTask =
                     Task.Run((Action)app.Run)
                     .ContinueWith(t => this.runningTasks.Remove(t));    // todo 要テストtがrunningTaskとイコールかどうか
-                this.runningTasks.Add(runningTask);
+                lock ((runningTasks as ICollection).SyncRoot)
+                {
+                    this.runningTasks.Add(runningTask);
+                }
             }
         }
 
         public void Dispose()
         {
-            foreach (var app in applicationList.Values)
+            lock ((appList as ICollection).SyncRoot)
             {
-                app.Dispose();
+                foreach (var app in appList.Values)
+                {
+                    app.Dispose();
+                }
+                appList.Clear();
             }
-            applicationList.Clear();
 
             while (IsRunning())
             {
@@ -74,8 +94,11 @@ namespace FluentHub.Hub
 
         bool IsRunning()
         {
-            return
-                this.runningTasks.Any(t => !t.Wait(0));
+            lock ((runningTasks as ICollection).SyncRoot)
+            {
+                return
+                    this.runningTasks.Any(t => !t.Wait(0));
+            }
         }
     }
 }

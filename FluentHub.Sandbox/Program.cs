@@ -78,21 +78,21 @@ namespace FluentHub.Sandbox
 
         private static IContextApplication<T> MakeApp<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
         {
-            //var f = 
-            //    isServer
-            //    ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(messageConverters, v) as IContextApplication<T>)
-            //    : () => container.MakeAppByTcpClient(messageConverters, "localhost", v);
+            var f =
+                isServer
+                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(messageConverters, v) as IContextApplication<T>)
+                : () => container.MakeAppByTcpClient(messageConverters, "localhost", v);
 
-            var p1 = v;
-            var p2 = v - 100;
-            if (!isServer)
-            {
-                var a = p1;
-                p1 = p2;
-                p2 = a;
-            }
+            //var p1 = v;
+            //var p2 = v - 100;
+            //if (!isServer)
+            //{
+            //    var a = p1;
+            //    p1 = p2;
+            //    p2 = a;
+            //}
 
-            Func<IContextApplication<T>> f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
+            //Func<IContextApplication<T>> f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
 
             return f();
 
@@ -493,7 +493,7 @@ namespace FluentHub.Sandbox
 
         private void Log(string type, string message)
         {
-            Console.WriteLine($"{type} {message}");
+            Console.WriteLine($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}][{type}][{Thread.CurrentThread.ManagedThreadId.ToString("X4")}]:{message}");
         }
     }
 }

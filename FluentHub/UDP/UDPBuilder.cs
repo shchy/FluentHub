@@ -27,16 +27,7 @@ namespace FluentHub.UDP
             return
                 @this.MakeApp(
                     converters
-                    , new UDPContextFactory(host, sendPort, recvPort));
-        }
-
-        public static IIOContext<byte> BuildContextByUdp(
-           this UdpStream @this)
-        {
-            return
-                new StreamContext(
-                    @this
-                    , () => @this.Close());
-        }
+                    , new FakeContextFactory(new UDPIO(host, sendPort, recvPort)));
+        }        
     }
 }

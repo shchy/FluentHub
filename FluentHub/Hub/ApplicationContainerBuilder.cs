@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentHub.Logger;
 
 namespace FluentHub.Hub
 {
@@ -59,20 +60,12 @@ namespace FluentHub.Hub
 
             @this.AddSequence(context =>
             {
-                try
+                var model = context.Read(x => typeT.IsInstanceOfType(x));
+                if (model == null)
                 {
-                    var model = context.Read(x => typeT.IsInstanceOfType(x));
-                    if (model == null)
-                    {
-                        return;
-                    }
-                    sequence(context, model as U);
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    @this.Logger.Exception(ex);
-                    throw;
-                }
+                sequence(context, model as U);
             });
             return @this;
         }
@@ -99,17 +92,8 @@ namespace FluentHub.Hub
 
             app.AddSequence(context =>
             {
-
-                try
-                {
-                    var contexts = appTarg.Pool.Get().ToArray();
-                    sequence(context, contexts);
-                }
-                catch (Exception ex)
-                {
-                    @this.Logger.Exception(ex);
-                    throw;
-                }
+                var contexts = appTarg.Pool.Get().ToArray();
+                sequence(context, contexts);
             });
 
             return @this;
@@ -137,21 +121,13 @@ namespace FluentHub.Hub
 
             app.AddSequence(context =>
             {
-                try
+                var model = context.Read(x => typeT.IsInstanceOfType(x));
+                if (model == null)
                 {
-                    var model = context.Read(x => typeT.IsInstanceOfType(x));
-                    if (model == null)
-                    {
-                        return;
-                    }
-                    var contexts = appTarg.Pool.Get().ToArray();
-                    sequence(context, model as Ti, contexts);
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    @this.Logger.Exception(ex);
-                    throw;
-                }
+                var contexts = appTarg.Pool.Get().ToArray();
+                sequence(context, model as Ti, contexts);
             });
 
             return @this;
@@ -169,15 +145,10 @@ namespace FluentHub.Hub
             this IContextApplication<T> @this
             , Func<IEnumerable<IIOContext<T>>, Return> sequence)
         {
-            try
-            {
-                return sequence(@this.Pool.Get().ToArray());
-            }
-            catch (Exception ex)
-            {
-                @this.Logger.Exception(ex);
-                throw;
-            }
+            // todo 例外起こす方がいい？
+            return
+                @this.Logger.TrySafe(
+                    () => sequence(@this.Pool.Get().ToArray())).Item2;
         }
 
         /// <summary>
@@ -190,16 +161,8 @@ namespace FluentHub.Hub
             this IContextApplication<T> @this
             , Action<IEnumerable<IIOContext<T>>> sequence)
         {
-
-            try
-            {
-                sequence(@this.Pool.Get().ToArray());
-            }
-            catch (Exception ex)
-            {
-                @this.Logger.Exception(ex);
-                throw;
-            }
+            @this.Logger.TrySafe(
+                () => sequence(@this.Pool.Get().ToArray()));
         }
 
         /// <summary>
@@ -215,24 +178,19 @@ namespace FluentHub.Hub
             this IApplicationContainer @this
             , Func<IEnumerable<IIOContext<T>>, IEnumerable<IIOContext<U>>, Return> sequence)
         {
+            return
+                @this.Logger.TrySafe(() =>
+                {
+                    var app = @this.GetApp<T>();
+                    var appTarg = @this.GetApp<U>();
+                    System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
+                    System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
 
-            try
-            {
-                var app = @this.GetApp<T>();
-                var appTarg = @this.GetApp<U>();
-                System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
-                System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
-
-                return
-                    sequence(
-                        app.Pool.Get().ToArray()
-                        , appTarg.Pool.Get().ToArray());
-            }
-            catch (Exception ex)
-            {
-                @this.Logger.Exception(ex);
-                throw;
-            }
+                    return
+                        sequence(
+                            app.Pool.Get().ToArray()
+                            , appTarg.Pool.Get().ToArray());
+                }).Item2;
         }
 
         /// <summary>
@@ -246,8 +204,7 @@ namespace FluentHub.Hub
            this IApplicationContainer @this
            , Action<IEnumerable<IIOContext<T>>, IEnumerable<IIOContext<U>>> sequence)
         {
-
-            try
+            @this.Logger.TrySafe(() =>
             {
                 var app = @this.GetApp<T>();
                 var appTarg = @this.GetApp<U>();
@@ -256,12 +213,7 @@ namespace FluentHub.Hub
                 sequence(
                     app.Pool.Get().ToArray()
                     , appTarg.Pool.Get().ToArray());
-            }
-            catch (Exception ex)
-            {
-                @this.Logger.Exception(ex);
-                throw;
-            }
+            });
         }
     }
 
