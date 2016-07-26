@@ -6,24 +6,27 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.TCP
+namespace FluentHub.Hub
 {
-    public class TCPContextFactory : IRunnableFactory<IIOContext<byte>>
+    public class DelegateContextFactory<T> : IRunnableFactory<IIOContext<byte>>
     {
-        private IRunnableFactory<TcpClient> factory;
+        private IRunnableFactory<T> factory;
+        private Func<T, IIOContext<byte>> convert;
 
         public Action<IIOContext<byte>> Maked { get; set; }
 
-        public TCPContextFactory(
-            IRunnableFactory<TcpClient> factory)
+        public DelegateContextFactory(
+            IRunnableFactory<T> factory
+            , Func<T, IIOContext<byte>> convert)
         {
             this.factory = factory;
-            factory.Maked = MakedClient;
+            this.convert = convert;
+            factory.Maked = MakeConvert;
         }
 
-        private void MakedClient(TcpClient client)
+        private void MakeConvert(T baseContext)
         {
-            var context = client.BuildContextByTcp();
+            var context = convert(baseContext);
             if (Maked == null)
             {
                 context.Dispose();

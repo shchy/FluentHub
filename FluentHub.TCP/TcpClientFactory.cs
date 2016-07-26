@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentHub.Hub;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -8,11 +9,12 @@ using System.Threading.Tasks;
 
 namespace FluentHub.TCP
 {
-    public class TcpClientFactory : TcpFactory
+    public class TcpClientFactory : INativeIOFactory<TcpClient>
     {
         private int port;
         private string host;
         private TcpClient connectedClient;
+        private bool isDisposed;
 
         public TcpClientFactory(string host, int port)
         {
@@ -20,8 +22,13 @@ namespace FluentHub.TCP
             this.port = port;
         }
 
+        public void Dispose()
+        {
+            this.isDisposed = true;
+        }
+
         // todo 接続したのに何度もいっちゃうよね
-        protected override TcpClient GetTcpClient()
+        public TcpClient Make()
         {
             // 接続済だったら接続しない
             if (this.connectedClient != null && this.connectedClient.Connected)
@@ -34,12 +41,17 @@ namespace FluentHub.TCP
             var client = new TcpClient();
             var connectTask = client.ConnectAsync(host, port);
 
-            while (this.isDisporsed == false && IsEnd(connectTask) == false)
+            while (this.isDisposed == false && connectTask.IsEnd() == false)
             {
                 Thread.Sleep(10);
             }
 
-            if (isDisporsed || connectTask.IsFaulted || connectTask.Exception != null)
+            if (this.isDisposed)
+            {
+                return null;
+            }
+
+            if (connectTask.IsFaulted)
             {
                 Thread.Sleep(1000);
                 return null;

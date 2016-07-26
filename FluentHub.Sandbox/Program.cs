@@ -1,5 +1,6 @@
 ﻿using FluentHub.Hub;
 using FluentHub.TCP;
+using FluentHub.Serial;
 using FluentHub.IO;
 using FluentHub.Logger;
 using System;
@@ -10,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentHub.UDP;
+using System.IO.Ports;
 
 namespace FluentHub.Sandbox
 {
@@ -41,7 +43,7 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションAを立てる
             var appA = 
-                MakeApp(appContainer, isServer, 1244, messageConvertersA)
+                MakeAppTCP(appContainer, isServer, 1244, messageConvertersA)
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
@@ -52,7 +54,7 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションBを立てる
             var appB = 
-                MakeApp(appContainer, isServer, 1245, messageConvertersB)
+                MakeAppUDP(appContainer, isServer, 1245, messageConvertersB)
                 .RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>
@@ -76,26 +78,40 @@ namespace FluentHub.Sandbox
             return appContainer;
         }
 
-        private static IContextApplication<T> MakeApp<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        private static IContextApplication<T> MakeAppTCP<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
         {
-            var f =
+            Func<IContextApplication<T>> f = null;
+            // TCP
+            f =
                 isServer
                 ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(messageConverters, v) as IContextApplication<T>)
                 : () => container.MakeAppByTcpClient(messageConverters, "localhost", v);
-
-            //var p1 = v;
-            //var p2 = v - 100;
-            //if (!isServer)
-            //{
-            //    var a = p1;
-            //    p1 = p2;
-            //    p2 = a;
-            //}
-
-            //Func<IContextApplication<T>> f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
-
             return f();
 
+        }
+
+        private static IContextApplication<T> MakeAppUDP<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        {
+            Func<IContextApplication<T>> f = null;
+            // UDP
+            var p1 = v;
+            var p2 = v - 100;
+            if (!isServer)
+            {
+                var a = p1;
+                p1 = p2;
+                p2 = a;
+            }
+            f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
+            return f();
+        }
+        private static IContextApplication<T> MakeAppSerial<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        {
+            Func<IContextApplication<T>> f = null;
+            // SerialPort
+            var comName = isServer ? $"COM{v}" : $"COM{v + 1}";
+            f = () => container.MakeAppBySerialPort(messageConverters, comName, 2400, Parity.None, 8, StopBits.One);
+            return f();
         }
 
         public static void Controller(IApplicationContainer appContainer, ILogger logger)

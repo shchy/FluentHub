@@ -42,16 +42,13 @@
   <ItemGroup>
     <Compile Include="Hub\ApplicationContainer.cs" />
     <Compile Include="Hub\ApplicationContainerBuilder.cs" />
+    <Compile Include="Hub\DelegateContextFactory.cs" />
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
     <Compile Include="Hub\Application.cs" />
+    <Compile Include="Hub\NativeFactory.cs" />
     <Compile Include="IO\Extension\FakeStream.cs" />
     <Compile Include="IO\Extension\IIO.cs" />
-    <Compile Include="TCP\TCPBuilder.cs" />
-    <Compile Include="TCP\TcpClientFactory.cs" />
-    <Compile Include="TCP\TcpFactory.cs" />
-    <Compile Include="TCP\TCPContextFactory.cs" />
-    <Compile Include="TCP\TcpServerFactory.cs" />
     <Compile Include="Hub\ContextPool.cs" />
     <Compile Include="IO\Extension\IOContextLoggerProxy.cs" />
     <Compile Include="IO\Extension\StreamContext.cs" />
@@ -63,9 +60,7 @@
     <Compile Include="IO\ModelContext.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UDP\UDPBuilder.cs" />
     <Compile Include="Hub\FakeContextFactory.cs" />
-    <Compile Include="UDP\UDPIO.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

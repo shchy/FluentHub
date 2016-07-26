@@ -1,5 +1,4 @@
-﻿using FluentHub.IO;
-using FluentHub.Logger;
+﻿using FluentHub.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
