@@ -10,11 +10,11 @@
     <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Make server application fluently</description>
-    <releaseNotes>1.0.0</releaseNotes>
+    <releaseNotes>$version$</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>Server Tcp</tags>
     <dependencies>
-      <dependency id="FluentHub" version="1.0" />
+      <dependency id="FluentHub" version="$version$" />
     </dependencies>
   </metadata>
 </package>
