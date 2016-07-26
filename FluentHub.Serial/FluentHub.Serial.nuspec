@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>FluentHub.Serial</id>
-    <version>1.0.0</version>
+    <version>$version$</version>
     <authors>shch</authors>
     <owners>shch</owners>
     <licenseUrl>https://raw.githubusercontent.com/shchy/FluentHub/master/LICENSE</licenseUrl>

@@ -41,6 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
     <Compile Include="Hub\ApplicationContainer.cs" />
     <Compile Include="Hub\ApplicationContainerBuilder.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />

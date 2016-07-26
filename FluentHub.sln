@@ -15,6 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.UDP", "FluentHub.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.Serial", "FluentHub.Serial\FluentHub.Serial.csproj", "{333EFA6E-9984-4B2D-9C85-2E21A94565BC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VersionInfo", "VersionInfo", "{D25C477E-3D32-4BBC-9E7F-9DF6ECC49838}"
+	ProjectSection(SolutionItems) = preProject
+		VersionInfo.cs = VersionInfo.cs
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
