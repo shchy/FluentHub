@@ -12,7 +12,7 @@ namespace FluentHub.Hub
     {
         private List<Action<IIOContext<T>>> sequences;
         private IIOContextMaker<byte> streamContextFactory;
-        private IEnumerable<IModelConverter<T>> modelConverters;
+        private List<IModelConverter<T>> modelConverters;
 
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
@@ -20,13 +20,12 @@ namespace FluentHub.Hub
         public Application(
             IContextPool<T> pool
             , IIOContextMaker<byte> sreamContextFactory
-            , IEnumerable<IModelConverter<T>> modelConverters
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
             this.Pool = pool;
             this.streamContextFactory = sreamContextFactory;
-            this.modelConverters = modelConverters;
+            this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
         }
 
@@ -58,7 +57,7 @@ namespace FluentHub.Hub
         {
             this.Pool.Add(
                 context.BuildContext(
-                    this.modelConverters
+                    this.modelConverters.ToArray()
                     , this.Logger));
         }
 
@@ -78,6 +77,14 @@ namespace FluentHub.Hub
             lock ((sequences as ICollection).SyncRoot)
             {
                 this.sequences.Add(sequence);
+            }
+        }
+
+        public void AddConverter(IModelConverter<T> converter)
+        {
+            lock ((modelConverters as ICollection).SyncRoot)
+            {
+                modelConverters.Add(converter);
             }
         }
     }

@@ -23,13 +23,11 @@ namespace FluentHub.Hub
         /// <returns></returns>
         public static IContextApplication<T> MakeAppByTcpServer<T>(
             this IApplicationContainer @this
-            , IEnumerable<IModelConverter<T>> converters
             , int port)
         {
             return
-                @this.MakeApp(
-                    converters
-                    , new NativeIOToContextMaker<TcpClient>(
+                @this.MakeApp<T>(
+                    new NativeIOToContextMaker<TcpClient>(
                         new TcpServerFactory(port)
                         , (TcpClient client) => client.BuildContextByTcp()
                         , c => c.Close()));
@@ -37,14 +35,12 @@ namespace FluentHub.Hub
 
         public static IContextApplication<T> MakeAppByTcpClient<T>(
             this IApplicationContainer @this
-            , IEnumerable<IModelConverter<T>> converters
             , string host
             , int port)
         {
             return
-               @this.MakeApp(
-                   converters
-                   , new NativeIOToContextMaker<TcpClient>(
+               @this.MakeApp<T>(
+                   new NativeIOToContextMaker<TcpClient>(
                         new TcpClientFactory(host, port)
                         , (TcpClient client) => client.BuildContextByTcp()
                         , c=>c.Close()));

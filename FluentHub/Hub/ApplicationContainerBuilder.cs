@@ -13,18 +13,34 @@ namespace FluentHub.Hub
 
         public static IContextApplication<T> MakeApp<T>(
             this IApplicationContainer @this
-            , IEnumerable<IModelConverter<T>> converters
             , IIOContextMaker<byte> streamContextFactory)
         {
             var app =
                 new Application<T>(
                     @this.MakeContextPool<T>()
                     , streamContextFactory
-                    , converters
                     , @this.Logger
                     );
             @this.Add(app);
             return app;
+        }
+
+        public static IContextApplication<T> RegisterConverter<T>(
+            this IContextApplication<T> @this
+            , IModelConverter<T> converter)
+        {
+            @this.AddConverter(converter);
+            return @this;
+        }
+
+        public static IContextApplication<T> RegisterConverter<T,U>(
+            this IContextApplication<T> @this)
+            where U : class,T, new()
+            where T : class
+        {
+            var defaultConverter = new DefaultModelConverter<T,U>();
+            @this.AddConverter(defaultConverter);
+            return @this;
         }
 
         /// <summary>

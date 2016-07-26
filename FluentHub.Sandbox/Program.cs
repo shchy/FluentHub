@@ -29,12 +29,12 @@ namespace FluentHub.Sandbox
         
         public static IApplicationContainer MakeApps(bool isServer)
         {
-            var messageConvertersA = new IModelConverter<IModelMessageA>[] {
-                    new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
-                };
-            var messageConvertersB = new IModelConverter<IModelMessageB>[] {
-                    new BMessage0Converter(), new BMessage1Converter()
-                };
+            //var messageConvertersA = new IModelConverter<IModelMessageA>[] {
+            //        new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
+            //    };
+            //var messageConvertersB = new IModelConverter<IModelMessageB>[] {
+            //        new BMessage0Converter(), new BMessage1Converter()
+            //    };
             
             // アプリケーションコンテナの生成
             var appContainer = new ApplicationContainer() as IApplicationContainer;
@@ -42,7 +42,10 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションAを立てる
             var appA = 
-                MakeAppUDP(appContainer, isServer, 1244, messageConvertersA)
+                MakeAppUDP<IModelMessageA>(appContainer, isServer, 1244)
+                .RegisterConverter<IModelMessageA, AMessage0>()
+                .RegisterConverter<IModelMessageA, AMessage1>()
+                .RegisterConverter<IModelMessageA, AMessage2>()
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
@@ -53,7 +56,9 @@ namespace FluentHub.Sandbox
 
             // TCPサーバーアプリケーションBを立てる
             var appB = 
-                MakeAppSerial(appContainer, isServer, 5, messageConvertersB)
+                MakeAppTCP<IModelMessageB>(appContainer, isServer, 1245)
+                .RegisterConverter<IModelMessageB, BMessage0>()
+                .RegisterConverter<IModelMessageB, BMessage1>()
                 .RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>
@@ -77,19 +82,19 @@ namespace FluentHub.Sandbox
             return appContainer;
         }
 
-        private static IContextApplication<T> MakeAppTCP<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        private static IContextApplication<T> MakeAppTCP<T>(IApplicationContainer container, bool isServer, int v)
         {
             Func<IContextApplication<T>> f = null;
             // TCP
             f =
                 isServer
-                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer(messageConverters, v) as IContextApplication<T>)
-                : () => container.MakeAppByTcpClient(messageConverters, "localhost", v);
+                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer<T>(v) as IContextApplication<T>)
+                : () => container.MakeAppByTcpClient<T>("localhost", v);
             return f();
 
         }
 
-        private static IContextApplication<T> MakeAppUDP<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        private static IContextApplication<T> MakeAppUDP<T>(IApplicationContainer container, bool isServer, int v)
         {
             Func<IContextApplication<T>> f = null;
             // UDP
@@ -101,15 +106,15 @@ namespace FluentHub.Sandbox
                 p1 = p2;
                 p2 = a;
             }
-            f = () => container.MakeAppByUdp(messageConverters, "localhost", p1, p2);
+            f = () => container.MakeAppByUdp<T>("localhost", p1, p2);
             return f();
         }
-        private static IContextApplication<T> MakeAppSerial<T>(IApplicationContainer container, bool isServer, int v, IModelConverter<T>[] messageConverters)
+        private static IContextApplication<T> MakeAppSerial<T>(IApplicationContainer container, bool isServer, int v)
         {
             Func<IContextApplication<T>> f = null;
             // SerialPort
             var comName = isServer ? $"COM{v}" : $"COM{v + 1}";
-            f = () => container.MakeAppBySerialPort(messageConverters, comName, 2400, Parity.None, 8, StopBits.One);
+            f = () => container.MakeAppBySerialPort<T>(comName, 2400, Parity.None, 8, StopBits.One);
             return f();
         }
 
@@ -183,18 +188,19 @@ namespace FluentHub.Sandbox
     {
         int ID { get; set; }
     }
-
+    [Serializable]
     public class AMessage0 : IModelMessageA
     {
         public int ID { get; set; } = 0x00;
         public int Foo { get; set; }
     }
-
+    [Serializable]
     public class AMessage1 : IModelMessageA
     {
         public int ID { get; set; } = 0x01;
         public int Bar { get; set; }
     }
+    [Serializable]
     public class AMessage2 : IModelMessageA
     {
         public int ID { get; set; } = 0x02;
@@ -366,13 +372,13 @@ namespace FluentHub.Sandbox
     {
         int ID { get; set; }
     }
-
+    [Serializable]
     public class BMessage0 : IModelMessageB
     {
         public int ID { get; set; } = 0x00;
         public int Hoge { get; set; }
     }
-
+    [Serializable]
     public class BMessage1 : IModelMessageB
     {
         public int ID { get; set; } = 0x01;

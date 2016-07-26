@@ -20,15 +20,13 @@ namespace FluentHub.Hub
     {
         public static IContextApplication<T> MakeAppByUdp<T>(
             this IApplicationContainer @this
-            , IEnumerable<IModelConverter<T>> converters
             , string host
             , int sendPort
             , int recvPort)
         {
             return
-                @this.MakeApp(
-                    converters
-                    , new NativeIOToContextMaker<Stream>(
+                @this.MakeApp<T>(
+                    new NativeIOToContextMaker<Stream>(
                         new UDPFactory(host, sendPort, recvPort)
                         , (Stream x) => x.BuildContextByStream()
                         , c => c.Close()));

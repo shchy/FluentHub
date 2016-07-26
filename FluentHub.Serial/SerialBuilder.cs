@@ -18,13 +18,11 @@ namespace FluentHub.Hub
     {
         public static IContextApplication<T> MakeAppBySerialPort<T>(
             this IApplicationContainer @this
-            , IEnumerable<IModelConverter<T>> converters
             , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
             return
-               @this.MakeApp(
-                   converters
-                   , new NativeIOToContextMaker<SerialPort>(
+               @this.MakeApp<T>(
+                   new NativeIOToContextMaker<SerialPort>(
                         new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
                         , (SerialPort x) => x.BuildContextBySerialPort()
                         , c => c.Close()));
