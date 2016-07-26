@@ -1,6 +1,7 @@
 ﻿using FluentHub.Hub;
 using FluentHub.IO;
 using FluentHub.IO.Extension;
+using FluentHub.Serial;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluentHub.Serial
+namespace FluentHub.Hub
 {
     public static class SerialBuilder
     {

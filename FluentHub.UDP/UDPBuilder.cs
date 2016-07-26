@@ -2,6 +2,7 @@
 using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
+using FluentHub.UDP;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluentHub.UDP
+namespace FluentHub.Hub
 {
     public static class UDPBuilder
     {

@@ -19,17 +19,15 @@ namespace FluentHub.Sandbox
     {
         static void Main(string[] args)
         {
-            var logger = new DebugLogger();
-
-            var appContainer = MakeApps(logger, true);
+            var appContainer = MakeApps(true);
 
             Task.Run((Action)appContainer.Run);
             
-            Controller(appContainer,logger);
+            Controller(appContainer);
         }
 
         
-        public static IApplicationContainer MakeApps(ILogger logger, bool isServer)
+        public static IApplicationContainer MakeApps(bool isServer)
         {
             var messageConvertersA = new IModelConverter<IModelMessageA>[] {
                     new AMessage0Converter(), new AMessage1Converter(), new AMessage2Converter()
@@ -39,7 +37,8 @@ namespace FluentHub.Sandbox
                 };
             
             // アプリケーションコンテナの生成
-            var appContainer = new ApplicationContainer(logger) as IApplicationContainer;
+            var appContainer = new ApplicationContainer() as IApplicationContainer;
+            var logger = appContainer.Logger;
 
             // TCPサーバーアプリケーションAを立てる
             var appA = 
@@ -114,8 +113,9 @@ namespace FluentHub.Sandbox
             return f();
         }
 
-        public static void Controller(IApplicationContainer appContainer, ILogger logger)
+        public static void Controller(IApplicationContainer appContainer)
         {
+            var logger = appContainer.Logger;
             // Ctrl+Cで終了
             while (true)
             {
@@ -484,32 +484,5 @@ namespace FluentHub.Sandbox
         }
     }
     #endregion
-
-    public class DebugLogger : ILogger
-    {
-        public void Debug(string message)
-        {
-            Log("D", message);
-        }
-
-        public void Exception(Exception ex)
-        {
-            Log("E", ex.Message);
-        }
-
-        public void Info(string message)
-        {
-            Log("I", message);
-        }
-
-        public void Warn(string message)
-        {
-            Log("W", message);
-        }
-
-        private void Log(string type, string message)
-        {
-            Console.WriteLine($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}][{type}][{Thread.CurrentThread.ManagedThreadId.ToString("X4")}]:{message}");
-        }
-    }
+    
 }

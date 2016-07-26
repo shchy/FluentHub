@@ -2,6 +2,7 @@
 using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
+using FluentHub.TCP;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.TCP
+namespace FluentHub.Hub
 {
     public static class TCPBuilder
     {

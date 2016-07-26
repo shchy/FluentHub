@@ -59,6 +59,7 @@
     <Compile Include="IO\IModelConverter.cs" />
     <Compile Include="IO\IOContextExtension.cs" />
     <Compile Include="IO\ModelContext.cs" />
+    <Compile Include="Logger\DefaultLogger.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

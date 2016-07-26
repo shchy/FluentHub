@@ -16,9 +16,9 @@ namespace FluentHub.Hub
 
         public ILogger Logger { get; private set; }
 
-        public ApplicationContainer(ILogger logger)
+        public ApplicationContainer(ILogger logger = null)
         {
-            this.Logger = logger;
+            this.Logger = logger ?? new DefaultLogger();
             // todo 同じタイプを登録できるようにする？Dictionaryやめる？
             this.appList = new Dictionary<Type, IContextApplication>();
             this.runningTasks = new List<Task>();

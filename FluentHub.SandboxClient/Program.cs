@@ -13,13 +13,11 @@ namespace FluentHub.SandboxClient
         static void Main(string[] args)
         {
             // ログ出力用
-            var logger = new DebugLogger();
-
-            var appContainer = FluentHub.Sandbox.Program.MakeApps(logger, false);
+            var appContainer = FluentHub.Sandbox.Program.MakeApps( false);
 
             Task.Run((Action)appContainer.Run);
 
-            FluentHub.Sandbox.Program.Controller(appContainer, logger);
+            FluentHub.Sandbox.Program.Controller(appContainer);
 
         }
     }
