@@ -59,6 +59,7 @@ namespace FluentHub.ModelConverter
             return @this;
         }
 
+        // todo 型推論が働くようにするArrayを置き換えればいいと思う。IEnumerable とIListと配列くらいに対応しておけばいいかなあ
         public static ModelBuilder<T> Array<T, Array, VModel>(
             this ModelBuilder<T> @this
             , string loopCountName
