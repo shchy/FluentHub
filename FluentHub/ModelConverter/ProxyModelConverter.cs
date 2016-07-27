@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.ModelConverter
 {
+    // todo ラッパーは型変換はクラスを分ける
     public abstract class WrapperModelConverter<P,T> : IModelConverter<P>
         where T : P
     {
