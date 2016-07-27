@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentHub.UDP;
 using System.IO.Ports;
+using FluentHub.ModelConverter;
 
 namespace FluentHub.Sandbox
 {
@@ -19,6 +20,32 @@ namespace FluentHub.Sandbox
     {
         static void Main(string[] args)
         {
+            //var a = new TestModel()
+            //    .ToModelBuilder()
+            //    .Init(m=> m.InnerModel = new InnerModel())
+            //    .Constant(0x03)
+            //    .Constant(0x99)
+            //    .Property(m=>m.Value)
+            //    .Property(m => m.InnerModel.A)
+            //    .GetProperty(m=>m.Array.Count()).AsTag("InnerCount")
+            //    .Array<TestModel, IEnumerable<InnerModel>, InnerModel>("InnerCount", m=>m.Array, b=>b.Property(mi=>mi.A))
+            //    .ToConverter();
+            //var t = new TestModel();
+            //t.Value = 0x07;
+            //t.InnerModel = new InnerModel();
+            //t.InnerModel.A = 0x08;
+            //t.Array = new List<InnerModel>
+            //{
+            //    new InnerModel { A = 0x09 },
+            //    new InnerModel { A = 0x0A },
+            //    new InnerModel { A = 0x0B },
+            //    new InnerModel { A = 0x0C },
+            //};
+
+            //var data = a.ToBytes(t);
+            //var tt = a.ToModel(data);
+
+
             var appContainer = MakeApps(true);
 
             Task.Run((Action)appContainer.Run);
@@ -43,8 +70,8 @@ namespace FluentHub.Sandbox
             // TCPサーバーアプリケーションAを立てる
             var appA = 
                 MakeAppUDP<IModelMessageA>(appContainer, isServer, 1244)
-                .RegisterConverter<IModelMessageA, AMessage0>()
-                .RegisterConverter<IModelMessageA, AMessage1>()
+                .RegisterConverter( new AMessage0Converter())
+                .RegisterConverter( new AMessage1Converter())
                 .RegisterConverter<IModelMessageA, AMessage2>()
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
@@ -206,111 +233,99 @@ namespace FluentHub.Sandbox
         public int ID { get; set; } = 0x02;
         public int Bar { get; set; }
     }
-    public class AMessage0Converter : IModelConverter<IModelMessageA>
+
+    public class TestModel : IModelMessageA
     {
-        const int MESSAGESIZE = 8;
-
-        public bool CanBytesToModel(IEnumerable<byte> bytes)
-        {
-            var header = bytes.Take(MESSAGESIZE).ToArray();
-            if (header.Length != MESSAGESIZE)
-            {
-                return false;
-            }
-
-            var id = header[0];
-            return id == 0x00;
-        }
-
-        public bool CanModelToBytes(object model)
-        {
-            return model is AMessage0;
-        }
-
-        public byte[] ToBytes(IModelMessageA model)
-        {
-            var m = model as AMessage0;
-            using (var ms = new MemoryStream(MESSAGESIZE))
-            using (var w = new BinaryWriter(ms))
-            {
-                w.Write(m.ID);
-                w.Write(m.Foo);
-                w.Flush();
-                return ms.ToArray();
-            }
-        }
-
-        public Tuple<IModelMessageA, int> ToModel(IEnumerable<byte> bytes)
-        {
-            var data = bytes.ToArray();
-            if (data.Length < MESSAGESIZE)
-            {
-                return Tuple.Create(default(IModelMessageA), 0);
-            }
-
-            using (var ms = new MemoryStream(data))
-            using (var r = new BinaryReader(ms))
-            {
-                var model = new AMessage0();
-                model.ID = r.ReadInt32();
-                model.Foo = r.ReadInt32();
-                return 
-                    Tuple.Create(model as IModelMessageA, MESSAGESIZE);
-            }
-        }
+        public int ID { get; set; } = 0x03;
+        public int GetOnly { get; } = 0x99;
+        public int Value { get; set; }
+        public IInnerModel InnerModel { get; set; }
+        public IEnumerable<InnerModel> Array { get; set; }
     }
-    public class AMessage1Converter : IModelConverter<IModelMessageA>
+
+    public interface IInnerModel
     {
-        public bool CanBytesToModel(IEnumerable<byte> bytes)
-        {
-            var header = bytes.Take(MESSAGESIZE).ToArray();
-            if (header.Length != MESSAGESIZE)
-            {
-                return false;
-            }
+        int A { get; set; }
+    }
 
-            var id = header[0];
-            return id == 0x01;
+    public class InnerModel : IInnerModel
+    {
+        public int A { get; set; }
+
+    }
+
+    public class AMessage0Converter : WrapperModelConverter<IModelMessageA, AMessage0>
+    {
+        protected override IModelConverter<AMessage0> MakeConverter()
+        {
+            return
+                new AMessage0().ToModelBuilder()
+                .Constant(0x00)
+                .Property(m => m.Foo)
+                .ToConverter();
+        }
+        //const int MESSAGESIZE = 8;
+
+        //public bool CanBytesToModel(IEnumerable<byte> bytes)
+        //{
+        //    var header = bytes.Take(MESSAGESIZE).ToArray();
+        //    if (header.Length != MESSAGESIZE)
+        //    {
+        //        return false;
+        //    }
+
+        //    var id = header[0];
+        //    return id == 0x00;
+        //}
+
+        //public bool CanModelToBytes(object model)
+        //{
+        //    return model is AMessage0;
+        //}
+
+        //public byte[] ToBytes(IModelMessageA model)
+        //{
+        //    var m = model as AMessage0;
+        //    using (var ms = new MemoryStream(MESSAGESIZE))
+        //    using (var w = new BinaryWriter(ms))
+        //    {
+        //        w.Write(m.ID);
+        //        w.Write(m.Foo);
+        //        w.Flush();
+        //        return ms.ToArray();
+        //    }
+        //}
+
+        //public Tuple<IModelMessageA, int> ToModel(IEnumerable<byte> bytes)
+        //{
+        //    var data = bytes.ToArray();
+        //    if (data.Length < MESSAGESIZE)
+        //    {
+        //        return Tuple.Create(default(IModelMessageA), 0);
+        //    }
+
+        //    using (var ms = new MemoryStream(data))
+        //    using (var r = new BinaryReader(ms))
+        //    {
+        //        var model = new AMessage0();
+        //        model.ID = r.ReadInt32();
+        //        model.Foo = r.ReadInt32();
+        //        return 
+        //            Tuple.Create(model as IModelMessageA, MESSAGESIZE);
+        //    }
+        //}
+    }
+    public class AMessage1Converter : WrapperModelConverter<IModelMessageA, AMessage1>
+    {
+        protected override IModelConverter<AMessage1> MakeConverter()
+        {
+            return
+                new AMessage1().ToModelBuilder()
+                .Constant(0x01)
+                .Property(m => m.Bar)
+                .ToConverter();
         }
 
-        public bool CanModelToBytes(object model)
-        {
-            return model is AMessage1;
-        }
-
-        const int MESSAGESIZE = 8;
-        public byte[] ToBytes(IModelMessageA model)
-        {
-            var m = model as AMessage1;
-            using (var ms = new MemoryStream(MESSAGESIZE))
-            using (var w = new BinaryWriter(ms))
-            {
-                w.Write(m.ID);
-                w.Write(m.Bar);
-                w.Flush();
-                return ms.ToArray();
-            }
-        }
-
-        public Tuple<IModelMessageA, int> ToModel(IEnumerable<byte> bytes)
-        {
-            var data = bytes.ToArray();
-            if (data.Length < MESSAGESIZE)
-            {
-                return Tuple.Create(default(IModelMessageA), 0);
-            }
-
-            using (var ms = new MemoryStream(data))
-            using (var r = new BinaryReader(ms))
-            {
-                var model = new AMessage1();
-                model.ID = r.ReadInt32();
-                model.Bar = r.ReadInt32();
-                return
-                    Tuple.Create(model as IModelMessageA, MESSAGESIZE);
-            }
-        }
-        
     }
     public class AMessage2Converter : IModelConverter<IModelMessageA>
     {

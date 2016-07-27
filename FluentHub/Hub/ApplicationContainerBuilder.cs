@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentHub.Logger;
+using FluentHub.ModelConverter;
 
 namespace FluentHub.Hub
 {

@@ -7,7 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.IO
+namespace FluentHub.ModelConverter
 {
     public class DefaultModelConverter<T,U> : IModelConverter<T>
         where U : class, T, new()

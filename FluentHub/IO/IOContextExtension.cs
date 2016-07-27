@@ -1,4 +1,7 @@
-﻿using System;
+﻿using FluentHub.IO.Extension;
+using FluentHub.Logger;
+using FluentHub.ModelConverter;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,6 +28,22 @@ namespace FluentHub.IO
 
             } while (DateTime.Now < target);
             return null;
+        }
+    }
+
+    public static class ModelContext
+    {
+        public static IIOContext<T> BuildContext<T>(
+            this IIOContext<byte> @this
+            , IEnumerable<IModelConverter<T>> converters
+            , ILogger logger)
+        {
+            return
+                new ModelContext<T>(
+                    new IOContextLoggerProxy<byte>(
+                        @this
+                        , logger)
+                    , converters);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluentHub.IO;
 using FluentHub.Logger;
+using FluentHub.ModelConverter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
