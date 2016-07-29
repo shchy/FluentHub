@@ -16,6 +16,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 
         public ModelBuilder()
         {
+            // default converter
             this.Converter = new BinaryConverter() as IBinaryConverter;
             this.buildItems = new List<IBuildItem<TModel>>();
             this.init = _ => { };

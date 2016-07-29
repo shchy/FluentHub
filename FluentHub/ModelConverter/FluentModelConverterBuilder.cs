@@ -14,8 +14,45 @@ namespace FluentHub.ModelConverter
         public static ModelBuilder<T> ToModelBuilder<T>(this T _)
             where T : class, new()
         {
-            return new ModelBuilder<T>();
+            var builder = new ModelBuilder<T>();
+            // default type converter
+            builder.Converter.RegisterConverter(typeof(bool), m => BitConverter.GetBytes((bool)m), data => BitConverter.ToBoolean(data, 0));
+            builder.Converter.RegisterConverter(typeof(char), m => BitConverter.GetBytes((char)m), data => BitConverter.ToChar(data, 0));
+            builder.Converter.RegisterConverter(typeof(short), m => BitConverter.GetBytes((short)m), data => BitConverter.ToInt16(data, 0));
+            builder.Converter.RegisterConverter(typeof(int), m => BitConverter.GetBytes((int)m), data => BitConverter.ToInt32(data, 0));
+            builder.Converter.RegisterConverter(typeof(long), m => BitConverter.GetBytes((long)m), data => BitConverter.ToInt64(data, 0));
+            builder.Converter.RegisterConverter(typeof(ushort), m => BitConverter.GetBytes((ushort)m), data => BitConverter.ToUInt16(data, 0));
+            builder.Converter.RegisterConverter(typeof(uint), m => BitConverter.GetBytes((uint)m), data => BitConverter.ToUInt32(data, 0));
+            builder.Converter.RegisterConverter(typeof(ulong), m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0));
+            builder.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
+            builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
+            return builder;
         }
+
+        public static ModelBuilder<T> ToBigEndian<T>(this ModelBuilder<T> @this)
+            where T : class, new()
+        {
+            // default type converter
+            if (BitConverter.IsLittleEndian == false)
+            {
+                return @this;
+            }
+            // override
+            @this.Converter.RegisterConverter(typeof(bool), m => BitConverter.GetBytes((bool)m).Reverse().ToArray(), data => BitConverter.ToBoolean(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(char), m => BitConverter.GetBytes((char)m).Reverse().ToArray(), data => BitConverter.ToChar(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(short), m => BitConverter.GetBytes((short)m).Reverse().ToArray(), data => BitConverter.ToInt16(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(int), m => BitConverter.GetBytes((int)m).Reverse().ToArray(), data => BitConverter.ToInt32(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(long), m => BitConverter.GetBytes((long)m).Reverse().ToArray(), data => BitConverter.ToInt64(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(ushort), m => BitConverter.GetBytes((ushort)m).Reverse().ToArray(), data => BitConverter.ToUInt16(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(uint), m => BitConverter.GetBytes((uint)m).Reverse().ToArray(), data => BitConverter.ToUInt32(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(ulong), m => BitConverter.GetBytes((ulong)m).Reverse().ToArray(), data => BitConverter.ToUInt64(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m).Reverse().ToArray(), data => BitConverter.ToSingle(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m).Reverse().ToArray(), data => BitConverter.ToDouble(data.Reverse().ToArray(), 0));
+
+            return @this;
+        }
+
+
 
         public static ModelBuilder<T> Init<T>(this ModelBuilder<T> @this, Action<T> init)
             where T : class, new()
@@ -105,6 +142,11 @@ namespace FluentHub.ModelConverter
             return new FluentModelConverter<T>(@this);
         }
 
+        public static IModelConverter<P> ToBaseTypeConverter<T,P>(this IModelConverter<T> @this)
+            where T : P
+        {
+            return new BaseTypeModelConverter<P,T>(@this);
+        }
 
 
         public static IEnumerable<PropertyInfo> GetPropertyInfo<T, _>(this Expression<Func<T, _>> lambda)

@@ -257,76 +257,32 @@ namespace FluentHub.Sandbox
 
     }
 
-    public class AMessage0Converter : WrapperModelConverter<IModelMessageA, AMessage0>
+    public class AMessage0Converter : WrapperModelConverter<IModelMessageA>
     {
-        protected override IModelConverter<AMessage0> MakeConverter()
+        protected override IModelConverter<IModelMessageA> MakeConverter()
         {
             return
                 new AMessage0().ToModelBuilder()
+                .ToBigEndian()
                 .Constant(0x00)
                 .Property(m => m.Foo)
-                .ToConverter();
+                .ToConverter()
+                .ToBaseTypeConverter<AMessage0, IModelMessageA>();
+
         }
-        //const int MESSAGESIZE = 8;
-
-        //public bool CanBytesToModel(IEnumerable<byte> bytes)
-        //{
-        //    var header = bytes.Take(MESSAGESIZE).ToArray();
-        //    if (header.Length != MESSAGESIZE)
-        //    {
-        //        return false;
-        //    }
-
-        //    var id = header[0];
-        //    return id == 0x00;
-        //}
-
-        //public bool CanModelToBytes(object model)
-        //{
-        //    return model is AMessage0;
-        //}
-
-        //public byte[] ToBytes(IModelMessageA model)
-        //{
-        //    var m = model as AMessage0;
-        //    using (var ms = new MemoryStream(MESSAGESIZE))
-        //    using (var w = new BinaryWriter(ms))
-        //    {
-        //        w.Write(m.ID);
-        //        w.Write(m.Foo);
-        //        w.Flush();
-        //        return ms.ToArray();
-        //    }
-        //}
-
-        //public Tuple<IModelMessageA, int> ToModel(IEnumerable<byte> bytes)
-        //{
-        //    var data = bytes.ToArray();
-        //    if (data.Length < MESSAGESIZE)
-        //    {
-        //        return Tuple.Create(default(IModelMessageA), 0);
-        //    }
-
-        //    using (var ms = new MemoryStream(data))
-        //    using (var r = new BinaryReader(ms))
-        //    {
-        //        var model = new AMessage0();
-        //        model.ID = r.ReadInt32();
-        //        model.Foo = r.ReadInt32();
-        //        return 
-        //            Tuple.Create(model as IModelMessageA, MESSAGESIZE);
-        //    }
-        //}
     }
-    public class AMessage1Converter : WrapperModelConverter<IModelMessageA, AMessage1>
+    public class AMessage1Converter : WrapperModelConverter<IModelMessageA>
     {
-        protected override IModelConverter<AMessage1> MakeConverter()
+        protected override IModelConverter<IModelMessageA> MakeConverter()
         {
             return
                 new AMessage1().ToModelBuilder()
+                .ToBigEndian()
                 .Constant(0x01)
                 .Property(m => m.Bar)
-                .ToConverter();
+                .ToConverter()
+                .ToBaseTypeConverter<AMessage1, IModelMessageA>();
+
         }
 
     }
