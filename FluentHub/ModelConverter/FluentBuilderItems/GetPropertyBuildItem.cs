@@ -12,14 +12,16 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public class GetPropertyBuildItem<T, V> : IBuildItem<T>
     {
         private Func<T, V> getter;
+        private IBinaryConverter converter;
 
         // todo ちゃんとintは4とかになるかな？
         public int Size { get; } = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
 
         public string Tag { get; set; }
 
-        public GetPropertyBuildItem(Func<T, V> getter)
+        public GetPropertyBuildItem(Func<T, V> getter, IBinaryConverter converter)
         {
+            this.converter = converter;
             this.getter = getter;
         }
 
@@ -27,14 +29,14 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         {
             var v = getter(model);
             var data =
-                BinaryConverter.Instance.ToBytes(v);
+                converter.ToBytes(v);
             w.Write(data);
         }
 
         public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var data = r.ReadBytes(Size);
-            var v = BinaryConverter.Instance.ToModel<V>(data);
+            var v = converter.ToModel<V>(data);
             if (string.IsNullOrWhiteSpace(Tag) == false)
             {
                 context[Tag] = v;

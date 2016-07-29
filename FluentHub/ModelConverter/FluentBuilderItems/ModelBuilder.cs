@@ -12,9 +12,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     {
         private List<IBuildItem<TModel>> buildItems;
         private Action<TModel> init;
+        public IBinaryConverter Converter { get; set; }
 
         public ModelBuilder()
         {
+            this.Converter = new BinaryConverter() as IBinaryConverter;
             this.buildItems = new List<IBuildItem<TModel>>();
             this.init = _ => { };
         }

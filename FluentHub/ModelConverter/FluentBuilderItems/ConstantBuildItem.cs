@@ -12,14 +12,16 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         where V : struct
     {
         private V value;
+        private IBinaryConverter converter;
 
         // todo ちゃんとintは4とかになるかな？
         public int Size { get; } = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
 
         public string Tag { get; set; }
 
-        public ConstantBuildItem(V value)
+        public ConstantBuildItem(V value, IBinaryConverter converter)
         {
+            this.converter = converter;
             this.value = value;
         }
 
@@ -28,7 +30,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             // 固定値なのでmodel使わない
             // todo BinaryConverterには死ぬほど依存するけどしょうがない
             var data =
-                BinaryConverter.Instance.ToBytes(value);
+                converter.ToBytes(value);
             w.Write(data);
         }
 
@@ -36,7 +38,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         {
             // 固定値なのでmodel使わない読み捨てる
             var data = r.ReadBytes(Size);
-            var v = BinaryConverter.Instance.ToModel<V>(data);
+            var v = converter.ToModel<V>(data);
             // 一応固定値と照合する
             if (v.Equals(value) == false)
             {

@@ -10,13 +10,18 @@ namespace FluentHub.ModelConverter
     using ToValue = Func<byte[], object>;
     using Converter = Tuple<Func<object, byte[]>, Func<byte[], object>>;
 
-    public class BinaryConverter
+    public interface IBinaryConverter
     {
-        public static BinaryConverter Instance { get; private set; } = new BinaryConverter();
+        void RegisterConverter(Type t, ToBytes toBytes, ToValue toValue);
+        byte[] ToBytes<T>(T v);
+        T ToModel<T>(byte[] data);
+    }
 
+    public class BinaryConverter : IBinaryConverter
+    {
         private Dictionary<Type, Tuple<ToBytes, ToValue>> converters;
 
-        private BinaryConverter()
+        public BinaryConverter()
         {
             this.converters = new Dictionary<Type, Converter>();
 

@@ -40,14 +40,14 @@ namespace FluentHub.ModelConverter
                 var lastone = chain.Last();
                 lastone.SetValue(y, v);
             });
-            @this.AddBuildItem(new PropertyBuildItem<T, V>(getter, setter));
+            @this.AddBuildItem(new PropertyBuildItem<T, V>(getter, setter, @this.Converter));
             return @this;
         }
 
         public static ModelBuilder<T> GetProperty<T, V>(this ModelBuilder<T> @this, Func<T, V> getter)
             where T : class, new()
         {
-            @this.AddBuildItem(new GetPropertyBuildItem<T, V>(getter));
+            @this.AddBuildItem(new GetPropertyBuildItem<T, V>(getter, @this.Converter));
             return @this;
         }
 
@@ -55,7 +55,7 @@ namespace FluentHub.ModelConverter
             where T : class, new()
             where V : struct
         {
-            @this.AddBuildItem(new ConstantBuildItem<T, V>(v));
+            @this.AddBuildItem(new ConstantBuildItem<T, V>(v, @this.Converter));
             return @this;
         }
 
