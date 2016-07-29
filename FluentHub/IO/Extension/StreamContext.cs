@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentHub.Hub;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +14,7 @@ namespace FluentHub.IO.Extension
     {
         private object syncObj = new object();
         private bool disposed;
-        private Task readTask;
+        private Task takingTask;
         private List<byte> cache;
         private Stream stream;
         private CancellationTokenSource readCancelToken;
@@ -39,24 +40,23 @@ namespace FluentHub.IO.Extension
             this.stream = stream;
             this.readCancelToken = new System.Threading.CancellationTokenSource();
             this.cache = new List<byte>();
-            this.readTask = Task.Run(() => TakeBuffer(this.stream));
-            this.readTask.ContinueWith(EndTakeBuffer);
+            this.takingTask = Task.Run(() => { try { TakeBuffer(this.stream); } catch (Exception) { this.Dispose(); } });
 
         }
 
-        private void EndTakeBuffer(Task task)
-        {
-            if (task.Exception != null)
-            {
-                this.Dispose();
-            }
-        }
+        //private void EndTakeBuffer(Task task)
+        //{
+        //    if (task.Exception != null)
+        //    {
+        //        this.Dispose();
+        //    }
+        //}
 
         private void TakeBuffer(Stream stream)
         {
             var buff = new byte[1024];
             while (this.disposed == false)
-            {
+            {   
                 var readTask = null as Task<int>;
                 lock (this.syncObj)
                 {
@@ -64,10 +64,11 @@ namespace FluentHub.IO.Extension
                 }
 
                 // disposeでキャンセル可能にする
-                readTask.Wait(this.readCancelToken.Token);
+                readTask.SafeWait(this.readCancelToken.Token);
                 // キャンセルを判定する
-                if (readTask.IsCanceled || readTask.IsFaulted)
+                if (readTask.IsCanceled || readTask.IsFaulted || this.readCancelToken.IsCancellationRequested)
                 {
+                    this.readCancelToken = new System.Threading.CancellationTokenSource();
                     continue;
                 }
                 var readedLength = readTask.Result;
@@ -101,11 +102,11 @@ namespace FluentHub.IO.Extension
             }
             this.disposed = true;
             this.readCancelToken.Cancel();
-            if (this.readTask.IsCompleted == false)
+            if (this.takingTask.IsCompleted == false)
             {
-                this.readTask.Wait();
+                this.takingTask.Wait();
             }
-            this.readTask.Dispose();
+            this.takingTask.Dispose();
 
             lock ((this.cache as ICollection).SyncRoot)
             {

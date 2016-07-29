@@ -196,6 +196,9 @@ namespace FluentHub.Sandbox
                                     }
                                 });
                             break;
+                        case "x":
+                            appContainer.Dispose();
+                            return;
                         default:
                             break;
                     }

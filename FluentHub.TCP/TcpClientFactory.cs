@@ -27,7 +27,7 @@ namespace FluentHub.TCP
             this.isDisposed = true;
         }
 
-        // todo 接続したのに何度もいっちゃうよね
+        
         public TcpClient Make()
         {
             // 接続済だったら接続しない

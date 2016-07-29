@@ -64,13 +64,28 @@ namespace FluentHub.Hub
 
             foreach (var app in apps)
             {
-                var runningTask =
+                var runningTask = null as Task;
+                runningTask =
                     Task.Run((Action)app.Run)
-                    .ContinueWith(t => this.runningTasks.Remove(t));    // todo 要テストtがrunningTaskとイコールかどうか
-                lock ((runningTasks as ICollection).SyncRoot)
-                {
-                    this.runningTasks.Add(runningTask);
-                }
+                    .ContinueWith(_ => DelTask(runningTask));
+                AddTask(runningTask);
+            }
+        }
+
+        void AddTask(Task task)
+        {
+            lock ((runningTasks as ICollection).SyncRoot)
+            {
+                this.runningTasks.Add(task);
+            }
+        }
+
+
+        void DelTask(Task task)
+        {
+            lock ((runningTasks as ICollection).SyncRoot)
+            {
+                this.runningTasks.Remove(task);
             }
         }
 

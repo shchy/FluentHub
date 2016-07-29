@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentHub.Hub
@@ -66,6 +67,20 @@ namespace FluentHub.Hub
                 @this.IsCanceled
                 || @this.IsCompleted
                 || @this.IsFaulted;
+        }
+
+        public static bool SafeWait(this Task @this, CancellationToken token)
+        {
+            try
+            {
+                @this.Wait(token);
+            }
+            catch (OperationCanceledException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
+            return true;
+
         }
 
     }

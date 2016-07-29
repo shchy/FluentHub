@@ -30,7 +30,7 @@ namespace FluentHub.Hub
         {
             lock ((pool as ICollection).SyncRoot)
             {
-                foreach (var item in pool)
+                foreach (var item in pool.ToArray())
                 {
                     Remove(item);
                 }
@@ -64,8 +64,6 @@ namespace FluentHub.Hub
         }
 
         // todo ModelContextが非同期でこのイベントを挙げてくるなら成り立つ？
-        // todo 誰もメッセージを食べなかったら？
-        // todo 受信済モデルが残っている限りUpdateを呼び出さないととまっちゃうね
         private void ModelContext_Received(object sender, EventArgs e)
         {
             lock (sender)
