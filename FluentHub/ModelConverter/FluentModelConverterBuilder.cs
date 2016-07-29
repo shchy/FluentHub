@@ -97,13 +97,12 @@ namespace FluentHub.ModelConverter
         }
 
         // todo 型推論が働くようにするArrayを置き換えればいいと思う。IEnumerable とIListと配列くらいに対応しておけばいいかなあ
-        public static ModelBuilder<T> Array<T, Array, VModel>(
+        public static ModelBuilder<T> Array<T, VModel>(
             this ModelBuilder<T> @this
             , string loopCountName
-            , Expression<Func<T, Array>> f
+            , Expression<Func<T, IEnumerable<VModel>>> f
             , Action<ModelBuilder<VModel>> childModelBuilderFactory)
             where T : class, new()
-            where Array : IEnumerable<VModel>
             where VModel : class, new()
         {
             var getter = f.Compile();
@@ -123,9 +122,10 @@ namespace FluentHub.ModelConverter
 
             // 配列の型のビルダーを生成
             var childModelBuilder = new ModelBuilder<VModel>();
+            childModelBuilder.Converter = @this.Converter;
             childModelBuilderFactory(childModelBuilder);
 
-            @this.AddBuildItem(new ArrayBuildItem<T, Array, VModel>(childModelBuilder, getter, setter, loopCountName));
+            @this.AddBuildItem(new ArrayBuildItem<T, VModel>(childModelBuilder, getter, setter, loopCountName));
             return @this;
         }
 

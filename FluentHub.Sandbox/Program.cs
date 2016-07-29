@@ -22,13 +22,18 @@ namespace FluentHub.Sandbox
         {
             //var a = new TestModel()
             //    .ToModelBuilder()
-            //    .Init(m=> m.InnerModel = new InnerModel())
-            //    .Constant(0x03)
-            //    .Constant(0x99)
-            //    .Property(m=>m.Value)
-            //    .Property(m => m.InnerModel.A)
-            //    .GetProperty(m=>m.Array.Count()).AsTag("InnerCount")
-            //    .Array<TestModel, IEnumerable<InnerModel>, InnerModel>("InnerCount", m=>m.Array, b=>b.Property(mi=>mi.A))
+            //    // byte -> model の時に生成するモデルのメンバがnullだと困るのでここで初期化などしてもらう
+            //    .Init(m => m.InnerModel = new InnerModel()) 
+            //    .Constant(0x03) // 定数値電文の識別子など
+            //    .Constant(0x99) // 定数値電文の識別子など
+            //    .Property(m => m.Value) // メンバアクセス
+            //    .Property(m => m.InnerModel.A)  // メンバアクセスがチェーンになっていても復元するよ
+            //    // 配列の数が電文に含まれてたりするよね。書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。っていうときはGetProperty。
+            //    .GetProperty(m => m.Array.Count())
+            //    // そして読んだ値を覚えておきたいよねって時にAsTag
+            //    .AsTag("InnerCount")  
+            //    // さらにN個分配列を復元するときのNに割り当てたいよね
+            //    .Array("InnerCount", m => m.Array, b => b.Property(mi => mi.A))
             //    .ToConverter();
             //var t = new TestModel();
             //t.Value = 0x07;

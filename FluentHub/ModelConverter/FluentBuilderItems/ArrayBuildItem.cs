@@ -7,19 +7,18 @@ using System.Threading.Tasks;
 
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
-    public class ArrayBuildItem<T, Array, VModel> : IBuildItem<T>
+    public class ArrayBuildItem<T, VModel> : IBuildItem<T>
         where VModel : class, new()
-        where Array : IEnumerable<VModel>
     {
         private ModelBuilder<VModel> childBuilder;
-        private Func<T, Array> getter;
+        private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private string loopCountName;
 
         public int Size { get; }
         public string Tag { get; set; }
 
-        public ArrayBuildItem(ModelBuilder<VModel> childBuilder, Func<T, Array> getter, Action<T, IEnumerable<VModel>> setter, string loopCountName)
+        public ArrayBuildItem(ModelBuilder<VModel> childBuilder, Func<T, IEnumerable<VModel>> getter, Action<T, IEnumerable<VModel>> setter, string loopCountName)
         {
             this.childBuilder = childBuilder;
             this.getter = getter;
