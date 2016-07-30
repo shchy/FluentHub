@@ -32,7 +32,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public void Write(T model, BinaryWriter w)
         {
             // 変換する配列をもらう
-            var query = getter(model);
+            var query = getter(model) ?? Enumerable.Empty<VModel>();
             var array = query.ToArray();
             for (int i = 0; i < loopCount; i++)
             {

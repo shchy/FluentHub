@@ -52,9 +52,7 @@ namespace FluentHub.ModelConverter
 
             return @this;
         }
-
-
-
+        
         public static ModelBuilder<T> Init<T>(this ModelBuilder<T> @this, Action<T> init)
             where T : class, new()
         {
@@ -73,7 +71,6 @@ namespace FluentHub.ModelConverter
             return @this;
         }
 
-        
         public static ModelBuilder<T> GetProperty<T, V>(
             this ModelBuilder<T> @this
             , Func<T, V> getter)
@@ -173,7 +170,17 @@ namespace FluentHub.ModelConverter
                 var visitMemberAccess = chain.Take(chain.Length - 1);
                 var y =
                    visitMemberAccess
-                   .Aggregate(m as object, (x, pi) => pi.GetValue(x));
+                   .Aggregate(m as object, (x, pi) =>
+                   {
+                       var value = pi.GetValue(x);
+                       // 途中でnullメンバを見つけたら勝手にインスタンス作ってみる
+                       if (value == null)
+                       {
+                           value = Activator.CreateInstance(pi.PropertyType);
+                           pi.SetValue(x, value);
+                       }
+                       return value;
+                   });
 
                 var lastone = chain.Last();
                 lastone.SetValue(y, v);

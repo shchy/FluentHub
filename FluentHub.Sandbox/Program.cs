@@ -39,10 +39,12 @@ namespace FluentHub.Sandbox
                 .Array("InnerCount", m => m.Array, b => b.Property(mi => mi.A))
                 // 固定長の配列もあるよね
                 .FixedArray(5, m => m.FixedArray, b => b.Property(mi => mi.A))
+                .Property(m => m.InnerModel2.A)
                 .ToConverter();
             var t = new TestModel();
             t.Value = 0x07;
             t.InnerModel = new InnerModel();
+            t.InnerModel2 = new InnerModel();
             t.InnerModel.A = 0x08;
             t.Array = new List<InnerModel>
             {
@@ -259,7 +261,8 @@ namespace FluentHub.Sandbox
         public int Value { get; set; }
         public IInnerModel InnerModel { get; set; }
         public IEnumerable<InnerModel> Array { get; set; }
-        public InnerModel[] FixedArray { get; set; } = new Sandbox.InnerModel[0];
+        public InnerModel[] FixedArray { get; set; }
+        public InnerModel InnerModel2 { get; set; }
     }
 
     public interface IInnerModel
