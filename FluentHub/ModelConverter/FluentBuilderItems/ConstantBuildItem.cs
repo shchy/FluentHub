@@ -34,7 +34,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public void Read(T _, BinaryReader r, IDictionary<string, object> context)
+        public object Read(T _, BinaryReader r, IDictionary<string, object> context)
         {
             // 固定値なのでmodel使わない読み捨てる
             var data = r.ReadBytes(Size);
@@ -44,10 +44,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             {
                 throw new Exception($"{v} != { value }");
             }
-            if (string.IsNullOrWhiteSpace(Tag) == false)
-            {
-                context[Tag] = v;
-            }
+            return v;
         }
     }
 

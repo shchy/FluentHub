@@ -33,14 +33,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var data = r.ReadBytes(Size);
             var v = converter.ToModel<V>(data);
-            if (string.IsNullOrWhiteSpace(Tag) == false)
-            {
-                context[Tag] = v;
-            }
+            return v;
         }
     }
 }

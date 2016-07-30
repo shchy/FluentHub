@@ -61,6 +61,7 @@
     <Compile Include="Hub\IContextPool.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ArrayBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ConstantBuildItem.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\FixedArrayBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\GetPropertyBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ModelBuilder.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\PropertyBuildItem.cs" />

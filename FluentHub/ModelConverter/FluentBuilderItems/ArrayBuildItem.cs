@@ -18,7 +18,10 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public int Size { get; }
         public string Tag { get; set; }
 
-        public ArrayBuildItem(ModelBuilder<VModel> childBuilder, Func<T, IEnumerable<VModel>> getter, Action<T, IEnumerable<VModel>> setter, string loopCountName)
+        public ArrayBuildItem(ModelBuilder<VModel> childBuilder
+            , Func<T, IEnumerable<VModel>> getter
+            , Action<T, IEnumerable<VModel>> setter
+            , string loopCountName)
         {
             this.childBuilder = childBuilder;
             this.getter = getter;
@@ -35,9 +38,8 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 this.childBuilder.ToBytes(w, item);
             }
         }
-
-        // todo 長さを外からもらうことにしてみるModelBuilderと結合しちゃうね。Setで一律変数もらう？
-        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
+        
+        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var loopCount = GetLoopCount(this.loopCountName, context);
             var list = new List<VModel>();
@@ -47,11 +49,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 list.Add(vModel);
             }
             setter(model, list);
-
-            if (string.IsNullOrWhiteSpace(Tag) == false)
-            {
-                context[Tag] = list;
-            }
+            return list;
         }
 
         ulong GetLoopCount(string keyName, IDictionary<string, object> _context)

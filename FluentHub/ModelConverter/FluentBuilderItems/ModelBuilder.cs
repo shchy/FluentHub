@@ -50,7 +50,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             foreach (var item in buildItems)
             {
                 // 構築
-                item.Read(model, r, context);
+                var result = item.Read(model, r, context);
+                if (string.IsNullOrWhiteSpace(item.Tag) == false)
+                {
+                    context[item.Tag] = result;
+                }
             }
             return model;
         }

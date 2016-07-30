@@ -1,5 +1,6 @@
 ﻿using FluentHub.ModelConverter.FluentBuilderItems;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -61,27 +62,21 @@ namespace FluentHub.ModelConverter
             return @this;
         }
 
-        public static ModelBuilder<T> Property<T, V>(this ModelBuilder<T> @this, Expression<Func<T, V>> f)
+        public static ModelBuilder<T> Property<T, V>(
+            this ModelBuilder<T> @this
+            , Expression<Func<T, V>> getterExpression)
             where T : class, new()
         {
-            var getter = f.Compile();
-            var chain = f.GetPropertyInfo().ToArray();
-            var setter = (Action<T, V>)((T m, V v) =>
-            {
-                // 最後の1つ手前メンバアクセスがx.y.zだとしたらyまで進む
-                var visitMemberAccess = chain.Take(chain.Length - 1);
-                var y =
-                   visitMemberAccess
-                   .Aggregate(m as object, (x, pi) => pi.GetValue(x));
-
-                var lastone = chain.Last();
-                lastone.SetValue(y, v);
-            });
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
             @this.AddBuildItem(new PropertyBuildItem<T, V>(getter, setter, @this.Converter));
             return @this;
         }
 
-        public static ModelBuilder<T> GetProperty<T, V>(this ModelBuilder<T> @this, Func<T, V> getter)
+        
+        public static ModelBuilder<T> GetProperty<T, V>(
+            this ModelBuilder<T> @this
+            , Func<T, V> getter)
             where T : class, new()
         {
             @this.AddBuildItem(new GetPropertyBuildItem<T, V>(getter, @this.Converter));
@@ -96,36 +91,52 @@ namespace FluentHub.ModelConverter
             return @this;
         }
 
-        // todo 型推論が働くようにするArrayを置き換えればいいと思う。IEnumerable とIListと配列くらいに対応しておけばいいかなあ
-        public static ModelBuilder<T> Array<T, VModel>(
+        
+
+        public static ModelBuilder<T> Array<T, V>(
             this ModelBuilder<T> @this
             , string loopCountName
-            , Expression<Func<T, IEnumerable<VModel>>> f
+            , Expression<Func<T, IEnumerable<V>>> getterExpression
+            , Action<ModelBuilder<V>> childModelBuilderFactory)
+            where T : class, new()
+            where V : class, new()
+        {
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
+            var childModelBuilder = @this.MakeChildModelBuilder(childModelBuilderFactory);
+
+            var arrayMember = getterExpression.GetPropertyInfo().Last();
+            var tryArrayConvert = MakeArrayConvert<V>(arrayMember.PropertyType);
+
+            @this.AddBuildItem(
+                new ArrayBuildItem<T, V>(
+                    childModelBuilder
+                    , getter
+                    , (m, xs) => setter(m, tryArrayConvert(xs))
+                    , loopCountName));
+            return @this;
+        }
+
+        public static ModelBuilder<T> FixedArray<T, VModel>(
+            this ModelBuilder<T> @this
+            , int loopCount
+            , Expression<Func<T, IEnumerable<VModel>>> getterExpression
             , Action<ModelBuilder<VModel>> childModelBuilderFactory)
             where T : class, new()
             where VModel : class, new()
         {
-            var getter = f.Compile();
-            var chain = f.GetPropertyInfo().ToArray();
-            // todo 自分でsetter定義するバージョンもほしいね。
-            var setter = (Action<T, IEnumerable<VModel>>)((T m, IEnumerable<VModel> array) =>
-            {
-                // 最後の1つ手前メンバアクセスがx.y.zだとしたらyまで進む
-                var visitMemberAccess = chain.Take(chain.Length - 1);
-                var y =
-                   visitMemberAccess
-                   .Aggregate(m as object, (x, pi) => pi.GetValue(x));
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
+            var childModelBuilder = @this.MakeChildModelBuilder(childModelBuilderFactory);
 
-                var lastone = chain.Last();
-                lastone.SetValue(y, array);
-            });
+            var arrayMember = getterExpression.GetPropertyInfo().Last();
+            var tryArrayConvert = MakeArrayConvert<VModel>(arrayMember.PropertyType);
 
-            // 配列の型のビルダーを生成
-            var childModelBuilder = new ModelBuilder<VModel>();
-            childModelBuilder.Converter = @this.Converter;
-            childModelBuilderFactory(childModelBuilder);
-
-            @this.AddBuildItem(new ArrayBuildItem<T, VModel>(childModelBuilder, getter, setter, loopCountName));
+            @this.AddBuildItem(new FixedArrayBuildItem<T, VModel>(
+                childModelBuilder
+                , getter
+                , (m, xs) => setter(m, tryArrayConvert(xs))
+                , loopCount));
             return @this;
         }
 
@@ -148,6 +159,58 @@ namespace FluentHub.ModelConverter
             return new BaseTypeModelConverter<P,T>(@this);
         }
 
+
+
+
+
+
+        static Action<T, V> MakeSetter<T, V>(Expression<Func<T, V>> getterExpression)
+        {
+            var chain = getterExpression.GetPropertyInfo().ToArray();
+            var setter = (Action<T, V>)((T m, V v) =>
+            {
+                // 最後の1つ手前メンバアクセスがx.y.zだとしたらyまで進む
+                var visitMemberAccess = chain.Take(chain.Length - 1);
+                var y =
+                   visitMemberAccess
+                   .Aggregate(m as object, (x, pi) => pi.GetValue(x));
+
+                var lastone = chain.Last();
+                lastone.SetValue(y, v);
+            });
+            return setter;
+        }
+
+
+        private static Func<IEnumerable<VModel>, IEnumerable<VModel>> MakeArrayConvert<VModel>(Type arrayType)
+        {
+            // todo add other array
+            if (arrayType.Equals(typeof(VModel[])))
+            {
+                return xs => xs.ToArray();
+            }
+            else if (arrayType.Equals(typeof(List<VModel>)))
+            {
+                return xs => xs.ToList();
+            }
+            else
+            {
+                return xs => xs;
+            }
+        }
+
+
+        static ModelBuilder<ChildModel> MakeChildModelBuilder<T, ChildModel>(
+            this ModelBuilder<T> @this
+            , Action<ModelBuilder<ChildModel>> childModelBuilderFactory)
+            where T : class, new()
+            where ChildModel : class, new()
+        {
+            var childModelBuilder = new ModelBuilder<ChildModel>();
+            childModelBuilder.Converter = @this.Converter;
+            childModelBuilderFactory(childModelBuilder);
+            return childModelBuilder;
+        }
 
         public static IEnumerable<PropertyInfo> GetPropertyInfo<T, _>(this Expression<Func<T, _>> lambda)
         {

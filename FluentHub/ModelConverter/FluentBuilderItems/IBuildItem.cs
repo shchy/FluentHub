@@ -16,7 +16,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     {
         int Size { get; }
         void Write(T model, BinaryWriter w);
-        void Read(T model, BinaryReader r, IDictionary<string, object> _context);
+        object Read(T model, BinaryReader r, IDictionary<string, object> _context);
         // todo そもそも_contextがダサいけどTag作るのとReadの戻りをobjectにするのとどっちがマシか
         string Tag { get; set; }
     }
