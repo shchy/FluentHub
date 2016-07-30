@@ -65,6 +65,7 @@
     <Compile Include="ModelConverter\FluentBuilderItems\GetPropertyBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ModelBuilder.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\PropertyBuildItem.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\ProxyModelBuildItem.cs" />
     <Compile Include="ModelConverter\FluentModelConverter.cs" />
     <Compile Include="IO\IIOContext.cs" />
     <Compile Include="Hub\IIOContextFactory.cs" />

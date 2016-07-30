@@ -14,7 +14,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     // todo メンバに所属すらしない情報（ヘッダーの識別値とか）上と一緒か？
     public interface IBuildItem<T>
     {
-        int Size { get; }
         void Write(T model, BinaryWriter w);
         object Read(T model, BinaryReader r, IDictionary<string, object> _context);
         // todo そもそも_contextがダサいけどTag作るのとReadの戻りをobjectにするのとどっちがマシか

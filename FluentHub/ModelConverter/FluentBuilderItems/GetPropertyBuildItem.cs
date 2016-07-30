@@ -14,8 +14,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private Func<T, V> getter;
         private IBinaryConverter converter;
 
-        // todo ちゃんとintは4とかになるかな？
-        public int Size { get; } = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
 
         public string Tag { get; set; }
 
@@ -35,7 +33,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 
         public object Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
-            var data = r.ReadBytes(Size);
+            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
             var v = converter.ToModel<V>(data);
             return v;
         }

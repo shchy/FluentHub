@@ -14,9 +14,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private V value;
         private IBinaryConverter converter;
 
-        // todo ちゃんとintは4とかになるかな？
-        public int Size { get; } = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
-
         public string Tag { get; set; }
 
         public ConstantBuildItem(V value, IBinaryConverter converter)
@@ -37,7 +34,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public object Read(T _, BinaryReader r, IDictionary<string, object> context)
         {
             // 固定値なのでmodel使わない読み捨てる
-            var data = r.ReadBytes(Size);
+            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
             var v = converter.ToModel<V>(data);
             // 一応固定値と照合する
             if (v.Equals(value) == false)

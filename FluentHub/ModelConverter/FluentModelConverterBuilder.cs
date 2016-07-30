@@ -67,9 +67,33 @@ namespace FluentHub.ModelConverter
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
-            @this.AddBuildItem(new PropertyBuildItem<T, V>(getter, setter, @this.Converter));
+            @this.AddBuildItem(
+                new PropertyBuildItem<T, V>(
+                    getter
+                    , setter
+                    , @this.Converter));
             return @this;
         }
+
+        public static ModelBuilder<T> Property<T, V>(
+            this ModelBuilder<T> @this
+            , Expression<Func<T, V>> getterExpression
+            , Action<ModelBuilder<V>> childModelBuilderFactory)
+            where T : class, new()
+            where V : class, new()
+        {
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
+            var childModelBuilder = @this.MakeChildModelBuilder(childModelBuilderFactory);
+
+            @this.AddBuildItem(
+                new ProxyModelBuildItem<T, V>(
+                    getter
+                    , setter
+                    , childModelBuilder));
+            return @this;
+        }
+
 
         public static ModelBuilder<T> GetProperty<T, V>(
             this ModelBuilder<T> @this

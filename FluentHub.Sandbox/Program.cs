@@ -21,41 +21,42 @@ namespace FluentHub.Sandbox
     {
         static void Main(string[] args)
         {
-            var a = new TestModel()
-                .ToModelBuilder()
-                // byte -> model の時に生成するモデルのメンバがnullだと困るのでここで初期化などしてもらう
-                .Init(m => m.InnerModel = new InnerModel())
-                // 定数値電文の識別子など
-                .Constant(0x03) 
-                .Constant(0x99)
-                // メンバアクセス
-                .Property(m => m.Value) 
-                // メンバアクセスがチェーンになっていても復元するよ
-                .Property(m => m.InnerModel.A)
-                // 配列の数が電文に含まれてたりするよね。書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。っていうときはGetProperty。
-                // そして読んだ値を覚えておきたいよねって時にAsTag
-                .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
-                // さらにN個分配列を復元するときのNに割り当てたいよね
-                .Array("InnerCount", m => m.Array, b => b.Property(mi => mi.A))
-                // 固定長の配列もあるよね
-                .FixedArray(5, m => m.FixedArray, b => b.Property(mi => mi.A))
-                .Property(m => m.InnerModel2.A)
-                .ToConverter();
-            var t = new TestModel();
-            t.Value = 0x07;
-            t.InnerModel = new InnerModel();
-            t.InnerModel2 = new InnerModel();
-            t.InnerModel.A = 0x08;
-            t.Array = new List<InnerModel>
-            {
-                new InnerModel { A = 0x09 },
-                new InnerModel { A = 0x0A },
-                new InnerModel { A = 0x0B },
-                new InnerModel { A = 0x0C },
-            };
+            //var a = new TestModel()
+            //    .ToModelBuilder()
+            //    // byte -> model の時に生成するモデルのメンバがnullだと困るのでここで初期化などしてもらう
+            //    .Init(m => m.InnerModel = new InnerModel())
+            //    // 定数値電文の識別子など
+            //    .Constant(0x03) 
+            //    .Constant(0x99)
+            //    // メンバアクセス
+            //    .Property(m => m.Value) 
+            //    // メンバアクセスがチェーンになっていても復元するよ
+            //    .Property(m => m.InnerModel.A)
+            //    // 配列の数が電文に含まれてたりするよね。書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。っていうときはGetProperty。
+            //    // そして読んだ値を覚えておきたいよねって時にAsTag
+            //    .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
+            //    // さらにN個分配列を復元するときのNに割り当てたいよね
+            //    .Array("InnerCount", m => m.Array, b => b.Property(mi => mi.A))
+            //    // 固定長の配列もあるよね
+            //    .FixedArray(5, m => m.FixedArray, b => b.Property(mi => mi.A))
+            //    // InnerClass Builder
+            //    .Property(m => m.InnerModel2, b => b.Property(mi=>mi.A))
+            //    .ToConverter();
+            //var t = new TestModel();
+            //t.Value = 0x07;
+            //t.InnerModel = new InnerModel();
+            //t.InnerModel.A = 0x08;
+            //t.Array = new List<InnerModel>
+            //{
+            //    new InnerModel { A = 0x09 },
+            //    new InnerModel { A = 0x0A },
+            //    new InnerModel { A = 0x0B },
+            //    new InnerModel { A = 0x0C },
+            //};
+            //t.InnerModel2 = new InnerModel() { A = 0x0D };
 
-            var data = a.ToBytes(t);
-            var tt = a.ToModel(data);
+            //var data = a.ToBytes(t);
+            //var tt = a.ToModel(data);
 
 
             var appContainer = MakeApps(true);

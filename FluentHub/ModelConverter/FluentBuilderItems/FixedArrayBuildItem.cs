@@ -15,7 +15,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private Action<T, IEnumerable<VModel>> setter;
         private int loopCount;
 
-        public int Size { get; }
         public string Tag { get; set; }
 
         public FixedArrayBuildItem(ModelBuilder<VModel> childBuilder
