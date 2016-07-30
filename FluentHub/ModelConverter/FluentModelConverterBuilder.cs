@@ -27,6 +27,7 @@ namespace FluentHub.ModelConverter
             builder.Converter.RegisterConverter(typeof(ulong), m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0));
             builder.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
             builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
+            builder.Converter.RegisterConverter(typeof(byte[]), m => (byte[])m, data => data);
             return builder;
         }
 
@@ -106,7 +107,6 @@ namespace FluentHub.ModelConverter
 
         public static ModelBuilder<T> Constant<T, V>(this ModelBuilder<T> @this, V v)
             where T : class, new()
-            where V : struct
         {
             @this.AddBuildItem(new ConstantBuildItem<T, V>(v, @this.Converter));
             return @this;

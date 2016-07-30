@@ -9,7 +9,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     // 固定値
     public class ConstantBuildItem<T, V> : IBuildItem<T>
-        where V : struct
     {
         private V value;
         private IBinaryConverter converter;
