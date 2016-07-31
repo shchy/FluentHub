@@ -30,10 +30,10 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public object Read(T _, BinaryReader r, IDictionary<string, object> context)
+        public object Read(T _, BinaryReader r, IDictionary<string, object> __)
         {
             // 固定値なのでmodel使わない読み捨てる
-            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
+            var data = r.ReadBytes(GetReadSize(__));
             var v = converter.ToModel<V>(data);
             // 一応固定値と照合する
             if (v.Equals(value) == false)
@@ -41,6 +41,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 throw new Exception($"{v} != { value }");
             }
             return v;
+        }
+
+        public int GetReadSize(IDictionary<string, object> _)
+        {
+            return 
+                System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
         }
     }
 

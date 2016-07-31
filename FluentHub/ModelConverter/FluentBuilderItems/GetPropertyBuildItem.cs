@@ -31,11 +31,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public object Read(T _, BinaryReader r, IDictionary<string, object> __)
         {
-            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
+            var data = r.ReadBytes(GetReadSize(__));
             var v = converter.ToModel<V>(data);
             return v;
+        }
+
+        public int GetReadSize(IDictionary<string, object> _)
+        {
+            return
+                System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
         }
     }
 }

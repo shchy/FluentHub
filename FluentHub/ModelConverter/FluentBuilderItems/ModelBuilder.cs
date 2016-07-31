@@ -13,6 +13,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private List<IBuildItem<TModel>> buildItems;
         private Action<TModel> init;
         public IBinaryConverter Converter { get; set; }
+        
 
         public ModelBuilder()
         {
@@ -38,7 +39,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             var lastOne = buildItems.Last();
             lastOne.Tag = tagName;
         }
-
+        
         public TModel ToModel(BinaryReader r)
         {
             var context = new Dictionary<string, object>();
@@ -49,8 +50,15 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             // 登録したビルド情報に従って電文からモデルを構築する
             foreach (var item in buildItems)
             {
+                // 必要なサイズ
+                var size = item.GetReadSize(context);
+                if (r.BaseStream.Length - r.BaseStream.Position < size)
+                {
+                    return null;
+                }
                 // 構築
                 var result = item.Read(model, r, context);
+                // AsTagされてたらコンテキストに生成した値を入れておく
                 if (string.IsNullOrWhiteSpace(item.Tag) == false)
                 {
                     context[item.Tag] = result;

@@ -224,6 +224,10 @@ namespace FluentHub.ModelConverter
             {
                 return xs => xs.ToList();
             }
+            else if (arrayType.Equals(typeof(Queue<VModel>)))
+            {
+                return xs => new Queue<VModel>(xs);
+            }
             else
             {
                 return xs => xs;

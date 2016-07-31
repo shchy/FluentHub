@@ -36,5 +36,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             setter(model, v);
             return v;
         }
+
+        public int GetReadSize(IDictionary<string, object> _context)
+        {
+            return
+                builder.
+        }
     }
 }
