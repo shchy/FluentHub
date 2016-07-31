@@ -66,7 +66,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             return loopcount;
         }
 
-        public int GetReadSize(IDictionary<string, object> context)
+        public int GetReadSize(IDictionary<stringgit, object> context)
         {
             var loopCount = GetLoopCount(this.loopCountName, context);
 
