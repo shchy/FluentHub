@@ -23,15 +23,16 @@ namespace FluentHub.Sandbox
         {
             var a = new TestModel()
                 .ToModelBuilder()
+                .ToBigEndian()
                 // byte -> model の時に生成するモデルのメンバがnullだと困るのでここで初期化などしてもらう
                 .Init(m => m.InnerModel = new InnerModel())
                 // 定数値電文の識別子など
-                .Constant(0x03) 
+                .Constant(0x03)
                 .Constant(0x99)
                 // padding
                 .Constant(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 })
                 // メンバアクセス
-                .Property(m => m.Value) 
+                .Property(m => m.Value)
                 // メンバアクセスがチェーンになっていても復元するよ
                 .Property(m => m.InnerModel.A)
                 // 配列の数が電文に含まれてたりするよね。書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。っていうときはGetProperty。
@@ -42,7 +43,7 @@ namespace FluentHub.Sandbox
                 // 固定長の配列もあるよね
                 .FixedArray(5, m => m.FixedArray, b => b.Property(mi => mi.A))
                 // InnerClass Builder
-                .Property(m => m.InnerModel2, b => b.Property(mi=>mi.A))
+                .Property(m => m.InnerModel2, b => b.Property(mi => mi.A))
                 .ToConverter();
             var t = new TestModel();
             t.Value = 0x07;
@@ -59,7 +60,6 @@ namespace FluentHub.Sandbox
 
             var data = a.ToBytes(t);
             var tt = a.ToModel(data);
-
 
             var appContainer = MakeApps(true);
 
@@ -290,7 +290,6 @@ namespace FluentHub.Sandbox
                 .Property(m => m.Foo)
                 .ToConverter()
                 .ToBaseTypeConverter<AMessage0, IModelMessageA>();
-
         }
     }
     public class AMessage1Converter : WrapperModelConverter<IModelMessageA>
@@ -306,7 +305,6 @@ namespace FluentHub.Sandbox
                 .ToBaseTypeConverter<AMessage1, IModelMessageA>();
 
         }
-
     }
     public class AMessage2Converter : IModelConverter<IModelMessageA>
     {

@@ -7,42 +7,40 @@ using System.Threading.Tasks;
 
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
-    public class ModelBuilder<TModel>
+    public interface IModelBuilder<TModel> : IBuildItemChain<TModel, IBuildItem<TModel>>
         where TModel : class, new()
     {
-        private List<IBuildItem<TModel>> buildItems;
+        void RegisterInit(Action<TModel> init);
+        bool CanToModel(BinaryReader r, IDictionary<string, object> context = null);
+        TModel ToModel(BinaryReader r, IDictionary<string, object> context = null);
+        void ToBytes(BinaryWriter w, TModel model);
+    }
+
+    public class ModelBuilder<TModel> : IModelBuilder<TModel>
+        where TModel : class, new()
+    {
         private Action<TModel> init;
 
         public IBinaryConverter Converter { get; set; }
+
+        #region IBuildItemChain
+        public IModelBuilder<TModel> Builder => this;
+
+        public IBuildItem<TModel> Value { get; } = null;
+
+        public IChain<IBuildItem<TModel>> Next { get; set; }
+        #endregion
 
         public ModelBuilder()
         {
             // default converter
             this.Converter = new BinaryConverter() as IBinaryConverter;
-            this.buildItems = new List<IBuildItem<TModel>>();
             this.init = _ => { };
         }
 
         public void RegisterInit(Action<TModel> init)
         {
             this.init = init;
-        }
-
-        public void AddBuildItem(IBuildItem<TModel> item)
-        {
-            this.buildItems.Add(item);
-        }
-
-
-        // todo buildItemをチェーンにしておけばいいのか。
-        public void SetTagForLastOne(string tagName)
-        {
-            var lastOne = buildItems.Last() as ITaggedBuildItem<TModel>;
-            if (lastOne == null)
-            {
-                return;
-            }
-            lastOne.Tag = tagName;
         }
         
         public bool CanToModel(BinaryReader r, IDictionary<string, object> context = null)
@@ -62,7 +60,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
              });
 
             // 登録したビルド情報に従って電文からモデルを構築する
-            foreach (var item in buildItems)
+            foreach (var item in this.GetEnumerable())
             {
                 var taggedItem = item as ITaggedBuildItem<TModel>;
                 if (taggedItem != null)
@@ -103,7 +101,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             });
 
             // 登録したビルド情報に従って電文からモデルを構築する
-            foreach (var item in buildItems)
+            foreach (var item in this.GetEnumerable())
             {
                 var taggedItem = item as ITaggedBuildItem<TModel>;
                 if (taggedItem != null)
@@ -122,7 +120,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public void ToBytes(BinaryWriter w, TModel model)
         {
             // 登録したビルド情報に従って分解する
-            foreach (var item in buildItems)
+            foreach (var item in this.GetEnumerable())
             {
                 // パーツ分をwに書き込み
                 item.Write(model, w);

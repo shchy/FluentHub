@@ -13,9 +13,9 @@ namespace FluentHub.ModelConverter
     public class FluentModelConverter<T> : IModelConverter<T>
         where T : class, new()
     {
-        private ModelBuilder<T> builder;
+        private IModelBuilder<T> builder;
 
-        public FluentModelConverter(ModelBuilder<T> builder)
+        public FluentModelConverter(IModelBuilder<T> builder)
         {
             this.builder = builder;
         }

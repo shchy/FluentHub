@@ -60,9 +60,14 @@
     <Compile Include="IO\Extension\StreamContext.cs" />
     <Compile Include="Hub\IContextPool.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ArrayBuildItem.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\BuildItemChain.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\BuildItemChainExtension.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ConstantBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\FixedArrayBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\GetPropertyBuildItem.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\IBuildItemChain.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\IChain.cs" />
+    <Compile Include="ModelConverter\FluentBuilderItems\ITaggedBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ModelBuilder.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\PropertyBuildItem.cs" />
     <Compile Include="ModelConverter\FluentBuilderItems\ProxyModelBuildItem.cs" />

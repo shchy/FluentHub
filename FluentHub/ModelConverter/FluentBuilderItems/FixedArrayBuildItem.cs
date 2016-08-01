@@ -10,12 +10,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public class FixedArrayBuildItem<T, VModel> : IBuildItem<T>
         where VModel : class, new()
     {
-        private ModelBuilder<VModel> childBuilder;
+        private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private int loopCount;
 
-        public FixedArrayBuildItem(ModelBuilder<VModel> childBuilder
+        public FixedArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
             , int loopCount)

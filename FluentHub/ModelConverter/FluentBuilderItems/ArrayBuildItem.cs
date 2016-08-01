@@ -10,12 +10,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public class ArrayBuildItem<T, VModel> : IBuildItem<T>
         where VModel : class, new()
     {
-        private ModelBuilder<VModel> childBuilder;
+        private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private string loopCountName;
 
-        public ArrayBuildItem(ModelBuilder<VModel> childBuilder
+        public ArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
             , string loopCountName)
