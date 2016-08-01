@@ -43,7 +43,8 @@ namespace FluentHub.IO
                     new IOContextLoggerProxy<byte>(
                         @this
                         , logger)
-                    , converters);
+                    , converters
+                    , logger);
         }
     }
 }

@@ -28,7 +28,6 @@ namespace FluentHub.IO.Extension
         {
             try
             {
-                this.logger.Debug($"recv {this.realName} {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}");
                 if (Received == null)
                 {
                     return;
@@ -102,7 +101,6 @@ namespace FluentHub.IO.Extension
             try
             {
                 this.realContext.Write(model);
-                this.logger.Debug($"send {this.realName} {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}");
             }
             catch (Exception ex)
             {
@@ -116,7 +114,6 @@ namespace FluentHub.IO.Extension
             try
             {
                 this.realContext.WriteAll(models);
-                this.logger.Debug($"send {this.realName} {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}");
             }
             catch (Exception ex)
             {

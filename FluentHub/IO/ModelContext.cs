@@ -18,6 +18,7 @@ namespace FluentHub.IO
         private List<T> modelcache;
         private bool isDisposed;
         private object syncObj = new object();
+        private ILogger logger;
 
         public event EventHandler Received;
         public bool IsAny
@@ -34,8 +35,10 @@ namespace FluentHub.IO
 
 
         public ModelContext(IIOContext<byte> byteContext
-            , IEnumerable<IModelConverter<T>> converters)
+            , IEnumerable<IModelConverter<T>> converters
+            , ILogger logger)
         {
+            this.logger = logger;
             this.byteContext = byteContext;
             this.converters = converters;
             this.bytecache = new List<byte>();
@@ -83,6 +86,7 @@ namespace FluentHub.IO
                 return false;
             }
             models.Add(result.Item1);
+            this.logger.Debug($"recv {result.Item1.GetType().Name}");
             bytes.RemoveRange(0, result.Item2);
             return true;
         }
@@ -135,6 +139,8 @@ namespace FluentHub.IO
                 var bytes = converter.ToBytes(model);
                 this.byteContext.WriteAll(bytes);
             }
+            this.logger.Debug($"send {model.GetType().Name}");
+
         }
 
         public void WriteAll(IEnumerable<T> models)

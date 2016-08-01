@@ -44,14 +44,6 @@ namespace FluentHub.IO.Extension
 
         }
 
-        //private void EndTakeBuffer(Task task)
-        //{
-        //    if (task.Exception != null)
-        //    {
-        //        this.Dispose();
-        //    }
-        //}
-
         private void TakeBuffer(Stream stream)
         {
             var buff = new byte[1024];

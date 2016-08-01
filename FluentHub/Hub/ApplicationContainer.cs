@@ -70,6 +70,8 @@ namespace FluentHub.Hub
                     .ContinueWith(_ => DelTask(runningTask));
                 AddTask(runningTask);
             }
+
+            Task.WaitAll(GetRunningTasks().ToArray());
         }
 
         void AddTask(Task task)
@@ -77,6 +79,14 @@ namespace FluentHub.Hub
             lock ((runningTasks as ICollection).SyncRoot)
             {
                 this.runningTasks.Add(task);
+            }
+        }
+
+        IEnumerable<Task> GetRunningTasks()
+        {
+            lock ((runningTasks as ICollection).SyncRoot)
+            {
+                return this.runningTasks.ToArray();
             }
         }
 

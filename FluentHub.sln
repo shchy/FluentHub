@@ -5,9 +5,9 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub", "FluentHub\FluentHub.csproj", "{31B51484-F77B-47FD-BC83-674E7E4D85C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.Sandbox", "FluentHub.Sandbox\FluentHub.Sandbox.csproj", "{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "FluentHub.Sandbox\Sandbox.csproj", "{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.SandboxClient", "FluentHub.SandboxClient\FluentHub.SandboxClient.csproj", "{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox2nd", "FluentHub.SandboxClient\Sandbox2nd.csproj", "{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentHub.TCP", "FluentHub.TCP\FluentHub.TCP.csproj", "{0CF176FC-F984-47A4-A7E6-DF1EC4C35AA1}"
 EndProject
@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VersionInfo", "VersionInfo"
 	ProjectSection(SolutionItems) = preProject
 		VersionInfo.cs = VersionInfo.cs
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandBox3rd", "SandBox3rd\SandBox3rd.csproj", "{3A0BF40B-AA6E-4556-B81B-0333EB418642}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{333EFA6E-9984-4B2D-9C85-2E21A94565BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{333EFA6E-9984-4B2D-9C85-2E21A94565BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{333EFA6E-9984-4B2D-9C85-2E21A94565BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A0BF40B-AA6E-4556-B81B-0333EB418642}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A0BF40B-AA6E-4556-B81B-0333EB418642}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A0BF40B-AA6E-4556-B81B-0333EB418642}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A0BF40B-AA6E-4556-B81B-0333EB418642}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

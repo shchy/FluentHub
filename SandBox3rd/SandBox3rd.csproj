@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5E2358C5-C40F-4470-9695-F7FB64E4DFB7}</ProjectGuid>
+    <ProjectGuid>{3A0BF40B-AA6E-4556-B81B-0333EB418642}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FluentHub.Sandbox</RootNamespace>
-    <AssemblyName>FluentHub.Sandbox</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>SandBox3rd</RootNamespace>
+    <AssemblyName>SandBox3rd</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,21 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FluentHub.Serial\FluentHub.Serial.csproj">
-      <Project>{333efa6e-9984-4b2d-9c85-2e21a94565bc}</Project>
-      <Name>FluentHub.Serial</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FluentHub.TCP\FluentHub.TCP.csproj">
-      <Project>{0cf176fc-f984-47a4-a7e6-df1ec4c35aa1}</Project>
-      <Name>FluentHub.TCP</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FluentHub.UDP\FluentHub.UDP.csproj">
-      <Project>{3314f7f6-5dab-46a5-80f2-5772910414c6}</Project>
-      <Name>FluentHub.UDP</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FluentHub\FluentHub.csproj">
-      <Project>{31b51484-f77b-47fd-bc83-674e7e4d85c2}</Project>
-      <Name>FluentHub</Name>
+    <ProjectReference Include="..\FluentHub.Sandbox\Sandbox.csproj">
+      <Project>{5e2358c5-c40f-4470-9695-f7fb64e4dfb7}</Project>
+      <Name>Sandbox</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
