@@ -37,10 +37,10 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             return v;
         }
 
-        public int GetReadSize(IDictionary<string, object> _context)
+        public Tuple<bool, object> CanRead(BinaryReader r, IDictionary<string, object> context)
         {
             return
-                builder.
+                builder.CanToModel(r, context);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 {
                     // todo 要素数が足りなかったら？
                     item = new VModel();
-                } 
+                }
                 this.childBuilder.ToBytes(w, item);
             }
         }
@@ -59,6 +59,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             }
             setter(model, list);
             return list;
+        }
+
+        public Tuple<bool, object> CanRead(BinaryReader r, IDictionary<string, object> context)
+        {
+            for (var i = 0; i < loopCount; i++)
+            {
+                var result = this.childBuilder.CanToModel(r, context);
+                if (result.Item1 == false)
+                    return result;
+            }
+            return Tuple.Create(true, null as object);
         }
     }
 }

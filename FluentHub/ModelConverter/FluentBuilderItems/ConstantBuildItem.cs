@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,20 +34,56 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public object Read(T _, BinaryReader r, IDictionary<string, object> __)
         {
             // 固定値なのでmodel使わない読み捨てる
-            var data = r.ReadBytes(GetReadSize(__));
+            var data = r.ReadBytes(Size);
             var v = converter.ToModel<V>(data);
             // 一応固定値と照合する
-            if (v.Equals(value) == false)
+            if (converter.Equal(v, value) == false)
             {
                 throw new Exception($"{v} != { value }");
             }
             return v;
         }
 
-        public int GetReadSize(IDictionary<string, object> _)
+        // todo move in converter
+        int Size
         {
-            return 
-                System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
+            get
+            {
+                if (typeof(V).IsArray)
+                {
+                    var gType = typeof(V).GetElementType();
+                    var count = (this.value as Array).Length;
+                    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
+                }
+                if (typeof(IEnumerable).IsAssignableFrom(typeof(V)))
+                {
+
+                    var gType = typeof(V).GetGenericArguments()[0];
+                    var count = (this.value as IEnumerable).OfType<object>().Count();
+                    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
+
+                }
+                else
+                {
+                    return System.Runtime.InteropServices.Marshal.SizeOf(this.value);
+                }
+            }
+        }
+
+        public Tuple<bool,object> CanRead(BinaryReader r, IDictionary<string, object> __)
+        {
+            var remain = r.BaseStream.Length - r.BaseStream.Position;
+            if (remain < Size)
+            {
+                return Tuple.Create(false, null as object);
+            }
+
+            // 固定値なのでmodel使わない読み捨てる
+            var data = r.ReadBytes(Size);
+            var v = converter.ToModel<V>(data);
+            // 一応固定値と照合する
+            var isEqual = converter.Equal(v, value);
+            return Tuple.Create(isEqual, v as object);
         }
     }
 

@@ -27,7 +27,8 @@ namespace FluentHub.ModelConverter
                 using (var ms = new MemoryStream(bytes.ToArray()))
                 using (var r = new BinaryReader(ms))
                 {
-                    return builder.PreToModel(r);
+                    var result = builder.CanToModel(r);
+                    return result.Item1;
                 }
             }
             catch (Exception)

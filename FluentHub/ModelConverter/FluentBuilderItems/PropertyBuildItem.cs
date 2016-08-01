@@ -34,14 +34,27 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 
         public object Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
-            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
+            var data = r.ReadBytes(Size);
             var v = converter.ToModel<V>(data);
             setter(model, v);
             return v;
         }
+
+        int Size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
+
+        public Tuple<bool, object> CanRead(BinaryReader r, IDictionary<string, object> context)
+        {
+            var remain = r.BaseStream.Length - r.BaseStream.Position;
+            if (remain < Size)
+            {
+                return Tuple.Create(false, null as object);
+            }
+
+            var data = r.ReadBytes(Size);
+            var v = converter.ToModel<V>(data);
+
+            return Tuple.Create(true, v as object);
+
+        }
     }
-
-    
-
-
 }

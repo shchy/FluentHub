@@ -40,9 +40,41 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             lastOne.Tag = tagName;
         }
         
-        public TModel ToModel(BinaryReader r)
+        public Tuple<bool, object> CanToModel(BinaryReader r, IDictionary<string, object> context = null)
         {
-            var context = new Dictionary<string, object>();
+            if (context == null)
+            {
+                context = new Dictionary<string, object>();
+            }
+
+            // 登録したビルド情報に従って電文からモデルを構築する
+            foreach (var item in buildItems)
+            {
+                //var position = r.BaseStream.Position;
+                var result = item.CanRead(r, context);
+                if (result.Item1 == false)
+                {
+                    return result;
+                }
+                //r.BaseStream.Position = position;
+                //// 構築
+                //var result = item.Read(model, r, context);
+                // AsTagされてたらコンテキストに生成した値を入れておく
+                if (string.IsNullOrWhiteSpace(item.Tag) == false)
+                {
+                    context[item.Tag] = result.Item2;
+                }
+            }
+            return Tuple.Create(true, null as object);
+        }
+        
+
+        public TModel ToModel(BinaryReader r, IDictionary<string,object> context = null)
+        {
+            if (context == null)
+            {
+                context = new Dictionary<string, object>();
+            }
             var model = new TModel();
             // ここでメンバのインナークラスなどを初期化してもらう
             this.init(model);
@@ -50,12 +82,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             // 登録したビルド情報に従って電文からモデルを構築する
             foreach (var item in buildItems)
             {
-                // 必要なサイズ
-                var size = item.GetReadSize(context);
-                if (r.BaseStream.Length - r.BaseStream.Position < size)
-                {
-                    return null;
-                }
                 // 構築
                 var result = item.Read(model, r, context);
                 // AsTagされてたらコンテキストに生成した値を入れておく

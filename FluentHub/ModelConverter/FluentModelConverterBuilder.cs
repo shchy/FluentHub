@@ -28,6 +28,8 @@ namespace FluentHub.ModelConverter
             builder.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
             builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
             builder.Converter.RegisterConverter(typeof(byte[]), m => (byte[])m, data => data);
+            builder.Converter.RegisterConverter(typeof(IEnumerable<byte>), m => (m as IEnumerable<byte>).ToArray(), data => data);
+            builder.Converter.RegisterEqual(typeof(Array), (x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>())); 
             return builder;
         }
 

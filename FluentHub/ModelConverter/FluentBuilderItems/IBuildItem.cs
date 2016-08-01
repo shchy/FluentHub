@@ -10,10 +10,9 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public interface IBuildItem<T>
     {
         void Write(T model, BinaryWriter w);
-
-        int GetReadSize(IDictionary<string, object> _context);
+        Tuple<bool,object> CanRead(BinaryReader r, IDictionary<string, object> _context);
         object Read(T model, BinaryReader r, IDictionary<string, object> _context);
-        // todo そもそも_contextがダサいけどTag作るのとReadの戻りをobjectにするのとどっちがマシか
+        // todo なんとかここから削除したい
         string Tag { get; set; }
     }
 }

@@ -66,13 +66,18 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             return loopcount;
         }
 
-        public int GetReadSize(IDictionary<stringgit, object> context)
+        public Tuple<bool,object> CanRead(BinaryReader r, IDictionary<string, object> context)
         {
             var loopCount = GetLoopCount(this.loopCountName, context);
-
-            
-
+            for (var i = 0ul; i < loopCount; i++)
+            {
+                var result = this.childBuilder.CanToModel(r, context);
+                if (result.Item1 == false)
+                    return result;
+            }
+            return Tuple.Create(true, null as object);
         }
+        
     }
 
 }
