@@ -15,8 +15,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private Action<T, IEnumerable<VModel>> setter;
         private int loopCount;
 
-        public string Tag { get; set; }
-
         public FixedArrayBuildItem(ModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
@@ -49,7 +47,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             }
         }
 
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var list = new List<VModel>();
             for (var i = 0; i < loopCount; i++)
@@ -58,18 +56,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 list.Add(vModel);
             }
             setter(model, list);
-            return list;
         }
 
-        public Tuple<bool, object> CanRead(BinaryReader r, IDictionary<string, object> context)
+        public bool CanRead(BinaryReader r, IDictionary<string, object> context)
         {
             for (var i = 0; i < loopCount; i++)
             {
                 var result = this.childBuilder.CanToModel(r, context);
-                if (result.Item1 == false)
+                if (result == false)
                     return result;
             }
-            return Tuple.Create(true, null as object);
+            return true;
         }
     }
 }

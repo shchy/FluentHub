@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     // 固定値
-    public class ConstantBuildItem<T, V> : IBuildItem<T>
+    public class ConstantBuildItem<T, V> : ITaggedBuildItem<T>
     {
         private V value;
         private IBinaryConverter converter;
+
+        public event Action<string, object> SetContextValue;
 
         public string Tag { get; set; }
 
@@ -31,7 +33,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public object Read(T _, BinaryReader r, IDictionary<string, object> __)
+        public void Read(T _, BinaryReader r, IDictionary<string, object> __)
         {
             // 固定値なのでmodel使わない読み捨てる
             var data = r.ReadBytes(Size);
@@ -41,7 +43,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             {
                 throw new Exception($"{v} != { value }");
             }
-            return v;
+            SetContextValue(Tag, v);
         }
 
         // todo move in converter
@@ -70,12 +72,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             }
         }
 
-        public Tuple<bool,object> CanRead(BinaryReader r, IDictionary<string, object> __)
+        public bool CanRead(BinaryReader r, IDictionary<string, object> __)
         {
             var remain = r.BaseStream.Length - r.BaseStream.Position;
             if (remain < Size)
             {
-                return Tuple.Create(false, null as object);
+                return false;
             }
 
             // 固定値なのでmodel使わない読み捨てる
@@ -83,8 +85,10 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             var v = converter.ToModel<V>(data);
             // 一応固定値と照合する
             var isEqual = converter.Equal(v, value);
-            return Tuple.Create(isEqual, v as object);
+            SetContextValue(Tag, v);
+            return isEqual;
         }
+        
     }
 
 }

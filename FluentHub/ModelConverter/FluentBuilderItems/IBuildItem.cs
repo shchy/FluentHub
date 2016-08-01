@@ -10,9 +10,14 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public interface IBuildItem<T>
     {
         void Write(T model, BinaryWriter w);
-        Tuple<bool,object> CanRead(BinaryReader r, IDictionary<string, object> _context);
-        object Read(T model, BinaryReader r, IDictionary<string, object> _context);
-        // todo なんとかここから削除したい
+        bool CanRead(BinaryReader r, IDictionary<string, object> _context);
+        void Read(T model, BinaryReader r, IDictionary<string, object> _context);
+    }
+
+    public interface ITaggedBuildItem<T> : IBuildItem<T>
+    {
+        // todo 実質ContractしかTagつけないのでインタフェース分ける？
         string Tag { get; set; }
+        event Action<string, object> SetContextValue;
     }
 }

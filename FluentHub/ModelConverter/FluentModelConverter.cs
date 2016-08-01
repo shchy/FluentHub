@@ -28,7 +28,7 @@ namespace FluentHub.ModelConverter
                 using (var r = new BinaryReader(ms))
                 {
                     var result = builder.CanToModel(r);
-                    return result.Item1;
+                    return result;
                 }
             }
             catch (Exception)

@@ -14,9 +14,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private Action<T, V> setter;
         private ModelBuilder<V> builder;
 
-
-        public string Tag { get; set; }
-
         public ProxyModelBuildItem(Func<T, V> getter, Action<T, V> setter, ModelBuilder<V> builder)
         {
             this.builder = builder;
@@ -30,14 +27,13 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             builder.ToBytes(w, v);
         }
 
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var v = builder.ToModel(r);
             setter(model, v);
-            return v;
         }
 
-        public Tuple<bool, object> CanRead(BinaryReader r, IDictionary<string, object> context)
+        public bool CanRead(BinaryReader r, IDictionary<string, object> context)
         {
             return
                 builder.CanToModel(r, context);

@@ -12,8 +12,8 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     {
         private List<IBuildItem<TModel>> buildItems;
         private Action<TModel> init;
+
         public IBinaryConverter Converter { get; set; }
-        
 
         public ModelBuilder()
         {
@@ -33,39 +33,53 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             this.buildItems.Add(item);
         }
 
+
         // todo buildItemをチェーンにしておけばいいのか。
         public void SetTagForLastOne(string tagName)
         {
-            var lastOne = buildItems.Last();
+            var lastOne = buildItems.Last() as ITaggedBuildItem<TModel>;
+            if (lastOne == null)
+            {
+                return;
+            }
             lastOne.Tag = tagName;
         }
         
-        public Tuple<bool, object> CanToModel(BinaryReader r, IDictionary<string, object> context = null)
+        public bool CanToModel(BinaryReader r, IDictionary<string, object> context = null)
         {
             if (context == null)
             {
                 context = new Dictionary<string, object>();
             }
 
+            var tempContextValueSetter = (Action<string, object>)((tag, val) =>
+             {
+                 // AsTagされてたらコンテキストに生成した値を入れておく
+                 if (string.IsNullOrWhiteSpace(tag) == false)
+                 {
+                     context[tag] = val;
+                 }
+             });
+
             // 登録したビルド情報に従って電文からモデルを構築する
             foreach (var item in buildItems)
             {
-                //var position = r.BaseStream.Position;
-                var result = item.CanRead(r, context);
-                if (result.Item1 == false)
+                var taggedItem = item as ITaggedBuildItem<TModel>;
+                if (taggedItem != null)
                 {
-                    return result;
+                    taggedItem.SetContextValue += tempContextValueSetter;
                 }
-                //r.BaseStream.Position = position;
-                //// 構築
-                //var result = item.Read(model, r, context);
-                // AsTagされてたらコンテキストに生成した値を入れておく
-                if (string.IsNullOrWhiteSpace(item.Tag) == false)
+                var result = item.CanRead(r, context);
+                if (taggedItem != null)
                 {
-                    context[item.Tag] = result.Item2;
+                    taggedItem.SetContextValue -= tempContextValueSetter;
+                }
+                if (result == false)
+                {
+                    return false;
                 }
             }
-            return Tuple.Create(true, null as object);
+            return true;
         }
         
 
@@ -79,15 +93,27 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             // ここでメンバのインナークラスなどを初期化してもらう
             this.init(model);
 
+            var tempContextValueSetter = (Action<string, object>)((tag, val) =>
+            {
+                // AsTagされてたらコンテキストに生成した値を入れておく
+                if (string.IsNullOrWhiteSpace(tag) == false)
+                {
+                    context[tag] = val;
+                }
+            });
+
             // 登録したビルド情報に従って電文からモデルを構築する
             foreach (var item in buildItems)
             {
-                // 構築
-                var result = item.Read(model, r, context);
-                // AsTagされてたらコンテキストに生成した値を入れておく
-                if (string.IsNullOrWhiteSpace(item.Tag) == false)
+                var taggedItem = item as ITaggedBuildItem<TModel>;
+                if (taggedItem != null)
                 {
-                    context[item.Tag] = result;
+                    taggedItem.SetContextValue += tempContextValueSetter;
+                }
+                item.Read(model, r, context);
+                if (taggedItem != null)
+                {
+                    taggedItem.SetContextValue -= tempContextValueSetter;
                 }
             }
             return model;
