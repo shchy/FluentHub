@@ -19,48 +19,124 @@ namespace FluentHub.Sandbox
 {
     public class Program
     {
+        public interface IPingPongAppMessage { }
+
+        public class Ping : IPingPongAppMessage
+        {
+            public byte ID { get; set; } = 0x01;
+        }
+
+        public class Pong : IPingPongAppMessage
+        {
+            public byte ID { get; set; } = 0x02;
+        }
+
+
+        public class Pang : IPingPongAppMessage
+        {
+            public byte ID { get; set; } = 0x02;
+            public int Value { get; set; }
+            public IInnerModel InnerModel { get; set; }
+            public InnerModel InnerModel2 { get; set; }
+            public IEnumerable<InnerModel> Array { get; set; }
+            public InnerModel[] FixedArray { get; set; }
+        }
+
+        public interface IInnerModel
+        {
+            int Value1 { get; set; }
+            int Value2 { get; set; }
+        }
+
+        public class InnerModel : IInnerModel
+        {
+            public int Value1 { get; set; }
+            public int Value2 { get; set; }
+        }
+
+        static void Test()
+        {
+            // アプリケーションコンテナ
+            var appContainer = new ApplicationContainer();
+            // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
+            var app =
+                // 待ち受けポートは8089
+                appContainer.MakeAppByTcpClient<IPingPongAppMessage>("localhost", 8089)
+                // Ping電文のbyte[] <=> Model変換定義
+                .RegisterConverter<IPingPongAppMessage, Ping>(modelBuilder =>
+                                                                // Bigエンディアンで通信する
+                                                                modelBuilder.ToBigEndian()
+                                                                // 1byte目は定数（電文識別子）
+                                                                .Constant((byte)0x01)
+                                                                // ModelConverter型へ変換
+                                                                .ToConverter())
+                // Pong電文のbyte[] <=> Model変換定義
+                .RegisterConverter<IPingPongAppMessage, Pong>(modelBuilder =>
+                                                                // Bigエンディアンで通信する
+                                                                modelBuilder.ToBigEndian()
+                                                                // 1byte目は定数（電文識別子）
+                                                                .Constant((byte)0x02)
+                                                                // ModelConverter型へ変換
+                                                                .ToConverter())
+                .RegisterSequence((IIOContext<IPingPongAppMessage> context, Ping model) =>
+                {
+                    // Pingを受信したらPongを送信するシーケンス
+                    context.Write(new Pong());
+                });
+            Task.Run((Action)appContainer.Run);
+
+            Thread.Sleep(1000 * 10);
+
+            // サーバーにPingメッセージを送信
+            appContainer.GetApp<IPingPongAppMessage>().InstantSequence((Action<IEnumerable<IIOContext<IPingPongAppMessage>>>)(contexts =>
+            {
+                var server = contexts.FirstOrDefault();
+                if (server == null)
+                {
+                    return;
+                }
+                server.Write(new Ping());
+            }));
+
+
+                //modelBuilder =>
+                //                                               // Bigエンディアンで通信する
+                //                                               modelBuilder.ToBigEndian()
+                //                                               // モデルの初期化が必要なメンバはここで初期化する
+                //                                               .Init(m => m.InnerModel = new InnerModel())
+                //                                               // 1byte目は定数（電文識別子）
+                //                                               .Constant((byte)0x02)
+                //                                               // Modelには表現されないけどPaddingブロックなんかがあるなら
+                //                                               .Constant(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 })
+                //                                               // メンバ変換
+                //                                               .Property(m => m.Value)
+                //                                               // メンバ変換(メンバのメンバ)
+                //                                               .Property(m => m.InnerModel.Value1)
+                //                                               .Property(m => m.InnerModel.Value2)
+                //                                               // 配列の数が電文に含まれてたりするよね。
+                //                                               // 書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。
+                //                                               // っていうときはGetProperty。
+                //                                               // そして読んだ値を覚えておきたいよねって時にAsTagで読み込んだ値に名前付けておく
+                //                                               .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
+                //                                               // さらにInnerCountを配列復元する時に使いたいよね
+                //                                               .Array("InnerCount", m => m.Array
+                //                                                   // Arrayメンバの要素の型InnerModelのModelBuilderを入れ子で
+                //                                                   , b => b.Property(mi => mi.Value1)
+                //                                                           .Property(mi => mi.Value2))
+                //                                               // 固定長の配列もあるよね
+                //                                               .FixedArray(5, m => m.FixedArray
+                //                                                   , b => b.Property(mi => mi.Value1)
+                //                                                           .Property(mi => mi.Value2))
+                //                                               // メンバクラスも入れ子で定義できたら便利だよね
+                //                                               .Property(m => m.InnerModel2
+                //                                                   , b => b.Property(mi => mi.Value1)
+                //                                                           .Property(mi => mi.Value2))
+                //                                               // ModelConverter型へ変換
+                //                                               .ToConverter()
+        }
+
         static void Main(string[] args)
         {
-            var a = new TestModel()
-                .ToModelBuilder()
-                .ToBigEndian()
-                // byte -> model の時に生成するモデルのメンバがnullだと困るのでここで初期化などしてもらう
-                .Init(m => m.InnerModel = new InnerModel())
-                // 定数値電文の識別子など
-                .Constant(0x03)
-                .Constant(0x99)
-                // padding
-                .Constant(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 })
-                // メンバアクセス
-                .Property(m => m.Value)
-                // メンバアクセスがチェーンになっていても復元するよ
-                .Property(m => m.InnerModel.A)
-                // 配列の数が電文に含まれてたりするよね。書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。っていうときはGetProperty。
-                // そして読んだ値を覚えておきたいよねって時にAsTag
-                .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
-                // さらにN個分配列を復元するときのNに割り当てたいよね
-                .Array("InnerCount", m => m.Array, b => b.Property(mi => mi.A))
-                // 固定長の配列もあるよね
-                .FixedArray(5, m => m.FixedArray, b => b.Property(mi => mi.A))
-                // InnerClass Builder
-                .Property(m => m.InnerModel2, b => b.Property(mi => mi.A))
-                .ToConverter();
-            var t = new TestModel();
-            t.Value = 0x07;
-            t.InnerModel = new InnerModel();
-            t.InnerModel.A = 0x08;
-            t.Array = new List<InnerModel>
-            {
-                new InnerModel { A = 0x09 },
-                new InnerModel { A = 0x0A },
-                new InnerModel { A = 0x0B },
-                new InnerModel { A = 0x0C },
-            };
-            t.InnerModel2 = new InnerModel() { A = 0x0D };
-
-            var data = a.ToBytes(t);
-            var tt = a.ToModel(data);
-
             var appContainer = MakeApps(true);
 
             Task.Run((Action)appContainer.Run);
@@ -255,28 +331,6 @@ namespace FluentHub.Sandbox
     {
         public int ID { get; set; } = 0x02;
         public int Bar { get; set; }
-    }
-
-    public class TestModel : IModelMessageA
-    {
-        public int ID { get; set; } = 0x03;
-        public int GetOnly { get; } = 0x99;
-        public int Value { get; set; }
-        public IInnerModel InnerModel { get; set; }
-        public IEnumerable<InnerModel> Array { get; set; }
-        public InnerModel[] FixedArray { get; set; }
-        public InnerModel InnerModel2 { get; set; }
-    }
-
-    public interface IInnerModel
-    {
-        int A { get; set; }
-    }
-
-    public class InnerModel : IInnerModel
-    {
-        public int A { get; set; }
-
     }
 
     public class AMessage0Converter : WrapperModelConverter<IModelMessageA>

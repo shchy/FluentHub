@@ -33,7 +33,7 @@ namespace FluentHub.Hub
             @this.AddConverter(converter);
             return @this;
         }
-
+        
         public static IContextApplication<T> RegisterConverter<T,U>(
             this IContextApplication<T> @this)
             where U : class,T, new()

@@ -1,4 +1,5 @@
-﻿using FluentHub.ModelConverter.FluentBuilderItems;
+﻿using FluentHub.Hub;
+using FluentHub.ModelConverter.FluentBuilderItems;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,18 @@ namespace FluentHub.ModelConverter
 {
     public static class FluentModelConverterBuilder
     {
-        public static IModelBuilder<T> ToModelBuilder<T>(this T _)
+        public static IContextApplication<T> RegisterConverter<T,U>(
+            this IContextApplication<T> @this
+            , Func<IModelBuilder<U>, IModelConverter<U>> makeConverter)
+            where U : class, T, new()
+        {
+            var modelBuilder = ToModelBuilder<U>();
+            var converter = makeConverter(modelBuilder);
+            @this.AddConverter(converter.ToBaseTypeConverter<U,T>());
+            return @this;
+        }
+
+        public static IModelBuilder<T> ToModelBuilder<T>()
             where T : class, new()
         {
             var builder = new ModelBuilder<T>();
@@ -29,8 +41,14 @@ namespace FluentHub.ModelConverter
             builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
             builder.Converter.RegisterConverter(typeof(byte[]), m => (byte[])m, data => data);
             builder.Converter.RegisterConverter(typeof(IEnumerable<byte>), m => (m as IEnumerable<byte>).ToArray(), data => data);
-            builder.Converter.RegisterEqual(typeof(Array), (x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>())); 
+            builder.Converter.RegisterEqual(typeof(Array), (x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
             return builder;
+        }
+
+        public static IModelBuilder<T> ToModelBuilder<T>(this T _)
+            where T : class, new()
+        {
+            return ToModelBuilder<T>();
         }
 
         public static IModelBuilder<T> ToBigEndian<T>(this IModelBuilder<T> @this)
