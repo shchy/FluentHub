@@ -13,29 +13,23 @@ namespace FluentHub.ModelConverter
     public class FluentModelConverter<T> : IModelConverter<T>
         where T : class, new()
     {
-        private ModelBuilder<T> builder;
+        private IModelBuilder<T> builder;
 
-        public FluentModelConverter(ModelBuilder<T> builder)
+        public FluentModelConverter(IModelBuilder<T> builder)
         {
             this.builder = builder;
         }
 
-        // todo 識別しくらいまで見たいときは？ID専用のリストを作る？IsIDみたいな？
         public bool CanBytesToModel(IEnumerable<byte> bytes)
         {
-            // todo 速度に問題でそうなのでなんとかする。
-            // todo 全長や可変長にしても最低限のサイズとか
-            // todo 識別子まで読んで確認とか
-
-            // todo 固定値識別しがないとなんでも読めちゃう
             try
             {
                 using (var ms = new MemoryStream(bytes.ToArray()))
                 using (var r = new BinaryReader(ms))
                 {
-                    var model = builder.ToModel(r);
+                    var result = builder.CanToModel(r);
+                    return result;
                 }
-                return true;
             }
             catch (Exception)
             {

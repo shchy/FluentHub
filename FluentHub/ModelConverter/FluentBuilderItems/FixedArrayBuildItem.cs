@@ -10,14 +10,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public class FixedArrayBuildItem<T, VModel> : IBuildItem<T>
         where VModel : class, new()
     {
-        private ModelBuilder<VModel> childBuilder;
+        private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private int loopCount;
 
-        public string Tag { get; set; }
-
-        public FixedArrayBuildItem(ModelBuilder<VModel> childBuilder
+        public FixedArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
             , int loopCount)
@@ -44,12 +42,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 {
                     // todo 要素数が足りなかったら？
                     item = new VModel();
-                } 
+                }
                 this.childBuilder.ToBytes(w, item);
             }
         }
 
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var list = new List<VModel>();
             for (var i = 0; i < loopCount; i++)
@@ -58,7 +56,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 list.Add(vModel);
             }
             setter(model, list);
-            return list;
+        }
+
+        public bool CanRead(BinaryReader r, IDictionary<string, object> context)
+        {
+            for (var i = 0; i < loopCount; i++)
+            {
+                var result = this.childBuilder.CanToModel(r, context);
+                if (result == false)
+                    return result;
+            }
+            return true;
         }
     }
 }

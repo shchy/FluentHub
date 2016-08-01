@@ -10,14 +10,12 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     public class ArrayBuildItem<T, VModel> : IBuildItem<T>
         where VModel : class, new()
     {
-        private ModelBuilder<VModel> childBuilder;
+        private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private string loopCountName;
 
-        public string Tag { get; set; }
-
-        public ArrayBuildItem(ModelBuilder<VModel> childBuilder
+        public ArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
             , string loopCountName)
@@ -38,7 +36,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             }
         }
         
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
             var loopCount = GetLoopCount(this.loopCountName, context);
             var list = new List<VModel>();
@@ -48,7 +46,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 list.Add(vModel);
             }
             setter(model, list);
-            return list;
         }
 
         ulong GetLoopCount(string keyName, IDictionary<string, object> _context)
@@ -65,6 +62,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             }
             return loopcount;
         }
-    }
 
+        public bool CanRead(BinaryReader r, IDictionary<string, object> context)
+        {
+            var loopCount = GetLoopCount(this.loopCountName, context);
+            for (var i = 0ul; i < loopCount; i++)
+            {
+                var result = this.childBuilder.CanToModel(r, context);
+                if (result == false)
+                    return false;
+            }
+            return true;
+        }
+    }
 }

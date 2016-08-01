@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     // Read/Writeプロパティ
-    public class PropertyBuildItem<T, V> : IBuildItem<T>
+    public class PropertyBuildItem<T, V> : ITaggedBuildItem<T>
     {
         private Func<T, V> getter;
         private Action<T, V> setter;
         private IBinaryConverter converter;
 
+        public event Action<string, object> SetContextValue;
 
         public string Tag { get; set; }
 
@@ -32,16 +33,30 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             w.Write(data);
         }
 
-        public object Read(T model, BinaryReader r, IDictionary<string, object> context)
+        public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
-            var data = r.ReadBytes(System.Runtime.InteropServices.Marshal.SizeOf(typeof(V)));
+            var data = r.ReadBytes(Size);
             var v = converter.ToModel<V>(data);
             setter(model, v);
-            return v;
+            SetContextValue(Tag, v);
         }
+
+        int Size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
+
+
+        public bool CanRead(BinaryReader r, IDictionary<string, object> context)
+        {
+            var remain = r.BaseStream.Length - r.BaseStream.Position;
+            if (remain < Size)
+            {
+                return false;
+            }
+
+            var data = r.ReadBytes(Size);
+            var v = converter.ToModel<V>(data);
+            SetContextValue(Tag, v);
+            return true;
+        }
+
     }
-
-    
-
-
 }

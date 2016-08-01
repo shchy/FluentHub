@@ -12,7 +12,7 @@ namespace FluentHub.ModelConverter
 {
     public static class FluentModelConverterBuilder
     {
-        public static ModelBuilder<T> ToModelBuilder<T>(this T _)
+        public static IModelBuilder<T> ToModelBuilder<T>(this T _)
             where T : class, new()
         {
             var builder = new ModelBuilder<T>();
@@ -28,10 +28,12 @@ namespace FluentHub.ModelConverter
             builder.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
             builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
             builder.Converter.RegisterConverter(typeof(byte[]), m => (byte[])m, data => data);
+            builder.Converter.RegisterConverter(typeof(IEnumerable<byte>), m => (m as IEnumerable<byte>).ToArray(), data => data);
+            builder.Converter.RegisterEqual(typeof(Array), (x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>())); 
             return builder;
         }
 
-        public static ModelBuilder<T> ToBigEndian<T>(this ModelBuilder<T> @this)
+        public static IModelBuilder<T> ToBigEndian<T>(this IModelBuilder<T> @this)
             where T : class, new()
         {
             // default type converter
@@ -54,73 +56,85 @@ namespace FluentHub.ModelConverter
             return @this;
         }
         
-        public static ModelBuilder<T> Init<T>(this ModelBuilder<T> @this, Action<T> init)
+        public static IModelBuilder<T> Init<T>(this IModelBuilder<T> @this, Action<T> init)
             where T : class, new()
         {
             @this.RegisterInit(init);
             return @this;
         }
 
-        public static ModelBuilder<T> Property<T, V>(
-            this ModelBuilder<T> @this
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> Property<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
             , Expression<Func<T, V>> getterExpression)
             where T : class, new()
+            where BuildItem : IBuildItem<T>
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
-            @this.AddBuildItem(
+
+            var item =
                 new PropertyBuildItem<T, V>(
                     getter
                     , setter
-                    , @this.Converter));
-            return @this;
+                    , @this.Converter);
+            var newItem = @this.SetNext(item as ITaggedBuildItem<T>);
+            return newItem;
         }
 
-        public static ModelBuilder<T> Property<T, V>(
-            this ModelBuilder<T> @this
+        public static IBuildItemChain<T, IBuildItem<T>> Property<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
             , Expression<Func<T, V>> getterExpression
-            , Action<ModelBuilder<V>> childModelBuilderFactory)
+            , Action<IModelBuilder<V>> childModelBuilderFactory)
             where T : class, new()
             where V : class, new()
+            where BuildItem : IBuildItem<T>
+
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
             var childModelBuilder = @this.MakeChildModelBuilder(childModelBuilderFactory);
 
-            @this.AddBuildItem(
+            var item = 
                 new ProxyModelBuildItem<T, V>(
                     getter
                     , setter
-                    , childModelBuilder));
-            return @this;
+                    , childModelBuilder);
+            return @this.SetNext(item as IBuildItem<T>);
         }
 
 
-        public static ModelBuilder<T> GetProperty<T, V>(
-            this ModelBuilder<T> @this
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> GetProperty<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
             , Func<T, V> getter)
             where T : class, new()
+            where BuildItem : IBuildItem<T>
         {
-            @this.AddBuildItem(new GetPropertyBuildItem<T, V>(getter, @this.Converter));
-            return @this;
+            var item = new GetPropertyBuildItem<T, V>(getter, @this.Converter) as ITaggedBuildItem<T>;
+            return @this.SetNext(item);
         }
 
-        public static ModelBuilder<T> Constant<T, V>(this ModelBuilder<T> @this, V v)
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> Constant<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , V v)
             where T : class, new()
+            where BuildItem : IBuildItem<T>
+
         {
-            @this.AddBuildItem(new ConstantBuildItem<T, V>(v, @this.Converter));
-            return @this;
+            var item = new ConstantBuildItem<T, V>(v, @this.Converter) as ITaggedBuildItem<T>;
+            return @this.SetNext(item);
         }
 
         
 
-        public static ModelBuilder<T> Array<T, V>(
-            this ModelBuilder<T> @this
+        public static IBuildItemChain<T, IBuildItem<T>> Array<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
             , string loopCountName
             , Expression<Func<T, IEnumerable<V>>> getterExpression
-            , Action<ModelBuilder<V>> childModelBuilderFactory)
+            , Action<IModelBuilder<V>> childModelBuilderFactory)
             where T : class, new()
             where V : class, new()
+            where BuildItem : IBuildItem<T>
+
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
@@ -129,22 +143,24 @@ namespace FluentHub.ModelConverter
             var arrayMember = getterExpression.GetPropertyInfo().Last();
             var tryArrayConvert = MakeArrayConvert<V>(arrayMember.PropertyType);
 
-            @this.AddBuildItem(
+            var item = 
                 new ArrayBuildItem<T, V>(
                     childModelBuilder
                     , getter
                     , (m, xs) => setter(m, tryArrayConvert(xs))
-                    , loopCountName));
-            return @this;
+                    , loopCountName) as IBuildItem<T>;
+            return @this.SetNext(item);
         }
 
-        public static ModelBuilder<T> FixedArray<T, VModel>(
-            this ModelBuilder<T> @this
+        public static IBuildItemChain<T, IBuildItem<T>> FixedArray<T, VModel, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
             , int loopCount
             , Expression<Func<T, IEnumerable<VModel>>> getterExpression
-            , Action<ModelBuilder<VModel>> childModelBuilderFactory)
+            , Action<IModelBuilder<VModel>> childModelBuilderFactory)
             where T : class, new()
             where VModel : class, new()
+            where BuildItem : IBuildItem<T>
+
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
@@ -153,25 +169,29 @@ namespace FluentHub.ModelConverter
             var arrayMember = getterExpression.GetPropertyInfo().Last();
             var tryArrayConvert = MakeArrayConvert<VModel>(arrayMember.PropertyType);
 
-            @this.AddBuildItem(new FixedArrayBuildItem<T, VModel>(
+            var item = new FixedArrayBuildItem<T, VModel>(
                 childModelBuilder
                 , getter
                 , (m, xs) => setter(m, tryArrayConvert(xs))
-                , loopCount));
+                , loopCount) as IBuildItem<T>;
+            return @this.SetNext(item);
+        }
+
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> AsTag<T>(
+            this IBuildItemChain<T, ITaggedBuildItem<T>> @this, string tagName)
+            where T : class, new()
+        {
+            (@this.Value as ITaggedBuildItem<T>).Tag = tagName;
             return @this;
         }
 
-        public static ModelBuilder<T> AsTag<T>(this ModelBuilder<T> @this, string tagName)
+        public static IModelConverter<T> ToConverter<T, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this)
             where T : class, new()
-        {
-            @this.SetTagForLastOne(tagName);
-            return @this;
-        }
+            where BuildItem : IBuildItem<T>
 
-        public static IModelConverter<T> ToConverter<T>(this ModelBuilder<T> @this)
-            where T : class, new()
         {
-            return new FluentModelConverter<T>(@this);
+            return new FluentModelConverter<T>(@this.Builder);
         }
 
         public static IModelConverter<P> ToBaseTypeConverter<T,P>(this IModelConverter<T> @this)
@@ -181,10 +201,7 @@ namespace FluentHub.ModelConverter
         }
 
 
-
-
-
-
+        
         static Action<T, V> MakeSetter<T, V>(Expression<Func<T, V>> getterExpression)
         {
             var chain = getterExpression.GetPropertyInfo().ToArray();
@@ -224,18 +241,23 @@ namespace FluentHub.ModelConverter
             {
                 return xs => xs.ToList();
             }
+            else if (arrayType.Equals(typeof(Queue<VModel>)))
+            {
+                return xs => new Queue<VModel>(xs);
+            }
             else
             {
                 return xs => xs;
             }
         }
 
-
-        static ModelBuilder<ChildModel> MakeChildModelBuilder<T, ChildModel>(
-            this ModelBuilder<T> @this
-            , Action<ModelBuilder<ChildModel>> childModelBuilderFactory)
+        static IModelBuilder<ChildModel> MakeChildModelBuilder<T, ChildModel, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , Action<IModelBuilder<ChildModel>> childModelBuilderFactory)
             where T : class, new()
             where ChildModel : class, new()
+            where BuildItem : IBuildItem<T>
+
         {
             var childModelBuilder = new ModelBuilder<ChildModel>();
             childModelBuilder.Converter = @this.Converter;
