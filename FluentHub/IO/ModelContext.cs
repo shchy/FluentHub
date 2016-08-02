@@ -155,10 +155,9 @@ namespace FluentHub.IO
                 var converter = this.converters.FirstOrDefault(c => c.CanModelToBytes(model));
                 System.Diagnostics.Debug.Assert(converter != null, $"can not convert model {model.GetType().Name}");
                 var bytes = converter.ToBytes(model);
+                this.logger.Debug($"send {model.GetType().Name}");
                 this.byteContext.Write(bytes);
             }
-            this.logger.Debug($"send {model.GetType().Name}");
-
         }
 
         

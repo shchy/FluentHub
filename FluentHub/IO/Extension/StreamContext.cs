@@ -112,7 +112,7 @@ namespace FluentHub.IO.Extension
                 {
                     return;
                 }
-                this.Received(this, EventArgs.Empty);
+                Task.Run(() => this.Received(this, EventArgs.Empty));
             }
         }
 
