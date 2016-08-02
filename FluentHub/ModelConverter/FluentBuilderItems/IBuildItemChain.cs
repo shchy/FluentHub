@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
-    public interface IBuildItemChain<T, BuildItem> : IChain<IBuildItem<T>>
+    public interface IBuildItemChain<T, out BuildItem> : IChain<IBuildItem<T>>
         where BuildItem : IBuildItem<T>
         where T : class, new()
     {

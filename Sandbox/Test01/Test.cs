@@ -258,6 +258,7 @@ namespace Sandbox.Test01
         public InnerModel InnerModel2 { get; set; }
         public IEnumerable<InnerModel> Array { get; set; }
         public InnerModel[] FixedArray { get; set; }
+        public byte[] Bytes { get; set; } = new byte[8];
     }
     public interface IInnerModel
     {
@@ -284,7 +285,7 @@ namespace Sandbox.Test01
                                     // 1byte目は定数（電文識別子）
                                     .Constant((byte)0x03)
                                     // Modelには表現されないけどPaddingブロックなんかがあるなら
-                                    .Constant(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 })
+                                    .Constant(new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 })
                                     // メンバ変換
                                     .Property(m => m.Value)
                                     // メンバ変換(メンバのメンバ)
@@ -296,18 +297,20 @@ namespace Sandbox.Test01
                                     // そして読んだ値を覚えておきたいよねって時にAsTagで読み込んだ値に名前付けておく
                                     .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
                                     // さらにInnerCountを配列復元する時に使いたいよね
-                                    .Array("InnerCount", m => m.Array
+                                    .ArrayProperty("InnerCount", m => m.Array
                                         // Arrayメンバの要素の型InnerModelのModelBuilderを入れ子で
                                         , b => b.Property(mi => mi.Value1)
                                                 .Property(mi => mi.Value2))
                                     // 固定長の配列もあるよね
-                                    .FixedArray(5, m => m.FixedArray
+                                    .FixedArrayProperty(5, m => m.FixedArray
                                         , b => b.Property(mi => mi.Value1)
                                                 .Property(mi => mi.Value2))
                                     // メンバクラスも入れ子で定義できたら便利だよね
                                     .Property(m => m.InnerModel2
                                         , b => b.Property(mi => mi.Value1)
                                                 .Property(mi => mi.Value2))
+                                    // 固定長のbyte配列もあるよね
+                                    .FixedArrayProperty(8, m => m.Bytes)
                                     // ModelConverter型へ変換
                                     .ToConverter()
                                     // ModelConverter<Pang> -> ModelConverter<IPingPongAppMessage>

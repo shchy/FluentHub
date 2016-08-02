@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,8 +32,49 @@ namespace FluentHub.IO.Extension
                 }
             }
         }
-        public bool CanUse => stream != null && stream.CanRead && stream.CanWrite;
+        public bool CanUse => stream != null && stream.CanRead && stream.CanWrite && IsSocketTest(stream as NetworkStream);
 
+        private bool IsSocketTest(NetworkStream networkStream)
+        {
+            if (networkStream == null)
+            {
+                return true;
+            }
+
+            var maybeSocket = 
+                typeof(NetworkStream).InvokeMember(
+                    "Socket"
+                    , System.Reflection.BindingFlags.Instance 
+                    | System.Reflection.BindingFlags.GetProperty 
+                    | System.Reflection.BindingFlags.Public 
+                    | System.Reflection.BindingFlags.NonPublic
+                    , null
+                    , networkStream
+                    , null);
+
+            var socket = maybeSocket as Socket;
+            if (socket == null)
+            {
+                return true;
+            }
+
+            try
+            {
+                if (socket.Poll(0, SelectMode.SelectRead))
+                {
+                    byte[] checkConn = new byte[1];
+                    if (socket.Receive(checkConn, SocketFlags.Peek) == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
 
         public StreamContext(Stream stream, Action disposing)
         {

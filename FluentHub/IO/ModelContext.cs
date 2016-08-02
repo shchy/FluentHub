@@ -52,25 +52,32 @@ namespace FluentHub.IO
 
         private void ByteContext_Received(object sender, EventArgs e)
         {
-            var isBuilded = false;
-            lock (this.syncObj)
+            try
             {
-                var bytes = this.byteContext.Read().ToArray();
-                lock ((this.bytecache as ICollection).SyncRoot)
+                var isBuilded = false;
+                lock (this.syncObj)
                 {
-                    this.bytecache.AddRange(bytes);
-                    lock ((this.modelcache as ICollection).SyncRoot)
+                    var bytes = this.byteContext.Read().ToArray();
+                    lock ((this.bytecache as ICollection).SyncRoot)
                     {
-                        while (TryBuildModel(this.bytecache, this.modelcache))
+                        this.bytecache.AddRange(bytes);
+                        lock ((this.modelcache as ICollection).SyncRoot)
                         {
-                            isBuilded = true;
+                            while (TryBuildModel(this.bytecache, this.modelcache))
+                            {
+                                isBuilded = true;
+                            }
                         }
                     }
                 }
+                if (isBuilded && Received != null)
+                {
+                    Received(this, EventArgs.Empty);
+                }
             }
-            if (isBuilded && Received != null)
+            catch (Exception ex)
             {
-                Received(this, EventArgs.Empty);
+                logger.Exception(ex);
             }
         }
 

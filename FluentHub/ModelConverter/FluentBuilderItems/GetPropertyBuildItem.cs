@@ -13,14 +13,16 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     {
         private Func<T, V> getter;
         private IBinaryConverter converter;
+        private int size;
 
         public string Tag { get; set; }
         public event Action<string, object> SetContextValue;
 
-        public GetPropertyBuildItem(Func<T, V> getter, IBinaryConverter converter)
+        public GetPropertyBuildItem(Func<T, V> getter, IBinaryConverter converter, int size)
         {
             this.converter = converter;
             this.getter = getter;
+            this.size = size;
         }
 
         public void Write(T model, BinaryWriter w)
@@ -33,22 +35,20 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 
         public void Read(T _, BinaryReader r, IDictionary<string, object> __)
         {
-            var data = r.ReadBytes(Size);
+            var data = r.ReadBytes(size);
             var v = converter.ToModel<V>(data);
             SetContextValue(Tag, v);
         }
-
-        int Size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(V));
-
+        
 
         public bool CanRead(BinaryReader r, IDictionary<string, object> __)
         {
             var remain = r.BaseStream.Length - r.BaseStream.Position;
-            if (remain < Size)
+            if (remain < size)
             {
                 return false;
             }
-            var data = r.ReadBytes(Size);
+            var data = r.ReadBytes(size);
             var v = converter.ToModel<V>(data);
             SetContextValue(Tag, v);
             return true;

@@ -8,21 +8,25 @@ namespace FluentHub.ModelConverter
 {
     using ToBytes = Func<object, byte[]>;
     using ToValue = Func<byte[], object>;
-    using Converter = Tuple<Func<object, byte[]>, Func<byte[], object>>;
+    using GetSize = Func<int>;
+    using Converter = Tuple<Func<object, byte[]>, Func<byte[], object>, Func<int>>;
     using Eq = Func<object, object, bool>;
+    using System.Collections;
 
     public interface IBinaryConverter
     {
-        void RegisterConverter(Type t, ToBytes toBytes, ToValue toValue);
+        void RegisterConverter<T>(ToBytes toBytes, ToValue toValue);
+        void RegisterConverter<T>(ToBytes toBytes, ToValue toValue, GetSize getSize);
         byte[] ToBytes<T>(T v);
         T ToModel<T>(byte[] data);
         bool Equal<T>(T x, T y);
-        void RegisterEqual(Type t, Eq eq);
+        void RegisterEqual<T>(Eq eq);
+        int GetTypeSize<T>();
     }
 
     public class BinaryConverter : IBinaryConverter
     {
-        private Dictionary<Type, Tuple<ToBytes, ToValue>> converters;
+        private Dictionary<Type, Converter> converters;
         private Dictionary<Type, Eq> equals;
 
         public BinaryConverter()
@@ -44,15 +48,51 @@ namespace FluentHub.ModelConverter
             }
         }
 
-        public void RegisterEqual(Type t, Eq eq)
+        public void RegisterEqual<T>(Eq eq)
         {
-            this.equals[t] = eq;
+            this.equals[typeof(T)] = eq;
         }
 
 
-        public void RegisterConverter(Type t, ToBytes toBytes, ToValue toValue)
+        public void RegisterConverter<T>(ToBytes toBytes, ToValue toValue)
         {
-            this.converters[t] = Tuple.Create(toBytes, toValue);
+            RegisterConverter<T>(toBytes, toValue, GetDefaultTypeSize<T>);
+        }
+
+        public void RegisterConverter<T>( ToBytes toBytes, ToValue toValue, GetSize getSize)
+        {
+            this.converters[typeof(T)] = Tuple.Create(toBytes, toValue, getSize);
+        }
+
+        public int GetTypeSize<T>()
+        {
+            var key = typeof(T);
+            if (this.converters.ContainsKey(key) == false)
+            {
+                return GetDefaultTypeSize<T>();
+            }
+            return this.converters[key].Item3();
+        }
+
+        int GetDefaultTypeSize<T>()
+        {
+            //if (typeof(T).IsArray)
+            //{
+            //    var gType = typeof(T).GetElementType();
+            //    var count = (value as Array).Length;
+            //    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
+            //}
+            //if (typeof(IEnumerable).IsAssignableFrom(typeof(T)))
+            //{
+
+            //    var gType = typeof(T).GetGenericArguments()[0];
+            //    var count = (value as IEnumerable).OfType<object>().Count();
+            //    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
+            //}
+            //else
+            {
+                return System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
+            }
         }
 
         public byte[] ToBytes<T>(T v)

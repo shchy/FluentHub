@@ -29,20 +29,20 @@ namespace FluentHub.ModelConverter
         {
             var builder = new ModelBuilder<T>();
             // default type converter
-            builder.Converter.RegisterConverter(typeof(bool), m => BitConverter.GetBytes((bool)m), data => BitConverter.ToBoolean(data, 0));
-            builder.Converter.RegisterConverter(typeof(char), m => BitConverter.GetBytes((char)m), data => BitConverter.ToChar(data, 0));
-            builder.Converter.RegisterConverter(typeof(byte), m => new[] { (byte)m }, data => data.First());
-            builder.Converter.RegisterConverter(typeof(short), m => BitConverter.GetBytes((short)m), data => BitConverter.ToInt16(data, 0));
-            builder.Converter.RegisterConverter(typeof(int), m => BitConverter.GetBytes((int)m), data => BitConverter.ToInt32(data, 0));
-            builder.Converter.RegisterConverter(typeof(long), m => BitConverter.GetBytes((long)m), data => BitConverter.ToInt64(data, 0));
-            builder.Converter.RegisterConverter(typeof(ushort), m => BitConverter.GetBytes((ushort)m), data => BitConverter.ToUInt16(data, 0));
-            builder.Converter.RegisterConverter(typeof(uint), m => BitConverter.GetBytes((uint)m), data => BitConverter.ToUInt32(data, 0));
-            builder.Converter.RegisterConverter(typeof(ulong), m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0));
-            builder.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
-            builder.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
-            builder.Converter.RegisterConverter(typeof(byte[]), m => (byte[])m, data => data);
-            builder.Converter.RegisterConverter(typeof(IEnumerable<byte>), m => (m as IEnumerable<byte>).ToArray(), data => data);
-            builder.Converter.RegisterEqual(typeof(Array), (x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
+            builder.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m), data => BitConverter.ToBoolean(data, 0));
+            builder.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m), data => BitConverter.ToChar(data, 0));
+            builder.Converter.RegisterConverter<byte>(m => new[] { (byte)m }, data => data.First());
+            builder.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m), data => BitConverter.ToInt16(data, 0));
+            builder.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m), data => BitConverter.ToInt32(data, 0));
+            builder.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m), data => BitConverter.ToInt64(data, 0));
+            builder.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m), data => BitConverter.ToUInt16(data, 0));
+            builder.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m), data => BitConverter.ToUInt32(data, 0));
+            builder.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0));
+            builder.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
+            builder.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
+            builder.Converter.RegisterConverter<byte[]>(m => (byte[])m, data => data);
+            builder.Converter.RegisterConverter<IEnumerable<byte>>(m => (m as IEnumerable<byte>).ToArray(), data => data);
+            builder.Converter.RegisterEqual<Array>((x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
             return builder;
         }
 
@@ -61,16 +61,16 @@ namespace FluentHub.ModelConverter
                 return @this;
             }
             // override
-            @this.Converter.RegisterConverter(typeof(bool), m => BitConverter.GetBytes((bool)m).Reverse().ToArray(), data => BitConverter.ToBoolean(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(char), m => BitConverter.GetBytes((char)m).Reverse().ToArray(), data => BitConverter.ToChar(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(short), m => BitConverter.GetBytes((short)m).Reverse().ToArray(), data => BitConverter.ToInt16(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(int), m => BitConverter.GetBytes((int)m).Reverse().ToArray(), data => BitConverter.ToInt32(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(long), m => BitConverter.GetBytes((long)m).Reverse().ToArray(), data => BitConverter.ToInt64(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(ushort), m => BitConverter.GetBytes((ushort)m).Reverse().ToArray(), data => BitConverter.ToUInt16(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(uint), m => BitConverter.GetBytes((uint)m).Reverse().ToArray(), data => BitConverter.ToUInt32(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(ulong), m => BitConverter.GetBytes((ulong)m).Reverse().ToArray(), data => BitConverter.ToUInt64(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(float), m => BitConverter.GetBytes((float)m).Reverse().ToArray(), data => BitConverter.ToSingle(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter(typeof(double), m => BitConverter.GetBytes((double)m).Reverse().ToArray(), data => BitConverter.ToDouble(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m).Reverse().ToArray(), data => BitConverter.ToBoolean(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m).Reverse().ToArray(), data => BitConverter.ToChar(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m).Reverse().ToArray(), data => BitConverter.ToInt16(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m).Reverse().ToArray(), data => BitConverter.ToInt32(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m).Reverse().ToArray(), data => BitConverter.ToInt64(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m).Reverse().ToArray(), data => BitConverter.ToUInt16(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m).Reverse().ToArray(), data => BitConverter.ToUInt32(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m).Reverse().ToArray(), data => BitConverter.ToUInt64(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m).Reverse().ToArray(), data => BitConverter.ToSingle(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m).Reverse().ToArray(), data => BitConverter.ToDouble(data.Reverse().ToArray(), 0));
 
             return @this;
         }
@@ -95,7 +95,8 @@ namespace FluentHub.ModelConverter
                 new PropertyBuildItem<T, V>(
                     getter
                     , setter
-                    , @this.Converter);
+                    , @this.Converter
+                    , @this.Converter.GetTypeSize<V>());
             var newItem = @this.SetNext(item as ITaggedBuildItem<T>);
             return newItem;
         }
@@ -107,7 +108,6 @@ namespace FluentHub.ModelConverter
             where T : class, new()
             where V : class, new()
             where BuildItem : IBuildItem<T>
-
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
@@ -121,31 +121,24 @@ namespace FluentHub.ModelConverter
             return @this.SetNext(item as IBuildItem<T>);
         }
 
-
-        public static IBuildItemChain<T, ITaggedBuildItem<T>> GetProperty<T, V, BuildItem>(
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> Property<T, V, BuildItem>(
             this IBuildItemChain<T, BuildItem> @this
-            , Func<T, V> getter)
+            , Func<T, V> getter
+            , Action<T, V> setter)
             where T : class, new()
             where BuildItem : IBuildItem<T>
         {
-            var item = new GetPropertyBuildItem<T, V>(getter, @this.Converter) as ITaggedBuildItem<T>;
-            return @this.SetNext(item);
+            var item =
+                new PropertyBuildItem<T, V>(
+                    getter
+                    , setter
+                    , @this.Converter
+                    , @this.Converter.GetTypeSize<V>());
+            var newItem = @this.SetNext(item as ITaggedBuildItem<T>);
+            return newItem;
         }
 
-        public static IBuildItemChain<T, ITaggedBuildItem<T>> Constant<T, V, BuildItem>(
-            this IBuildItemChain<T, BuildItem> @this
-            , V v)
-            where T : class, new()
-            where BuildItem : IBuildItem<T>
-
-        {
-            var item = new ConstantBuildItem<T, V>(v, @this.Converter) as ITaggedBuildItem<T>;
-            return @this.SetNext(item);
-        }
-
-        
-
-        public static IBuildItemChain<T, IBuildItem<T>> Array<T, V, BuildItem>(
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V, BuildItem>(
             this IBuildItemChain<T, BuildItem> @this
             , string loopCountName
             , Expression<Func<T, IEnumerable<V>>> getterExpression
@@ -153,7 +146,6 @@ namespace FluentHub.ModelConverter
             where T : class, new()
             where V : class, new()
             where BuildItem : IBuildItem<T>
-
         {
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
@@ -171,7 +163,7 @@ namespace FluentHub.ModelConverter
             return @this.SetNext(item);
         }
 
-        public static IBuildItemChain<T, IBuildItem<T>> FixedArray<T, VModel, BuildItem>(
+        public static IBuildItemChain<T, IBuildItem<T>> FixedArrayProperty<T, VModel, BuildItem>(
             this IBuildItemChain<T, BuildItem> @this
             , int loopCount
             , Expression<Func<T, IEnumerable<VModel>>> getterExpression
@@ -195,6 +187,70 @@ namespace FluentHub.ModelConverter
                 , loopCount) as IBuildItem<T>;
             return @this.SetNext(item);
         }
+
+        public static IBuildItemChain<T, IBuildItem<T>> FixedArrayProperty<T, VModel, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , int loopCount
+            , Expression<Func<T, IEnumerable<VModel>>> getterExpression)
+            where T : class, new()
+            where VModel : struct
+            where BuildItem : IBuildItem<T>
+        {
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
+
+            var arrayMember = getterExpression.GetPropertyInfo().Last();
+            var tryArrayConvert = MakeArrayConvert<VModel>(arrayMember.PropertyType);
+
+            var item = @this.MakeStructArrayBuildItem(loopCount
+                , m => getter(m)
+                , (m, v) => setter(m, tryArrayConvert(v))
+                , (chain, i) => chain.Property(list => list[i], (list, v) => list[i] = v));
+            return @this.SetNext(item);
+        }
+        
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> GetProperty<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , Func<T, V> getter)
+            where T : class, new()
+            where BuildItem : IBuildItem<T>
+        {
+            var item =
+                new GetPropertyBuildItem<T, V>(
+                    getter
+                    , @this.Converter
+                    , @this.Converter.GetTypeSize<V>()) as ITaggedBuildItem<T>;
+            return @this.SetNext(item);
+        }
+
+        public static IBuildItemChain<T, ITaggedBuildItem<T>> Constant<T, V, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , V v)
+            where T : class, new()
+            where BuildItem : IBuildItem<T>
+        {
+            var item =
+                new ConstantBuildItem<T, V>(v
+                , @this.Converter
+                , @this.Converter.GetTypeSize<V>()) as ITaggedBuildItem<T>;
+            return @this.SetNext(item);
+        }
+
+        public static IBuildItemChain<T, IBuildItem<T>> Constant<T, VModel, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , VModel[] vList)
+            where T : class, new()
+            where VModel : struct
+            where BuildItem : IBuildItem<T>
+        {
+            var loopCount = vList.Count();
+            var item = @this.MakeStructArrayBuildItem(loopCount
+                , m => vList
+                , (m, v) => { }
+                , (chain,i) => chain.Constant(vList[i]));
+            return @this.SetNext(item);
+        }
+
 
         public static IBuildItemChain<T, ITaggedBuildItem<T>> AsTag<T>(
             this IBuildItemChain<T, ITaggedBuildItem<T>> @this, string tagName)
@@ -282,6 +338,45 @@ namespace FluentHub.ModelConverter
             childModelBuilder.Converter = @this.Converter;
             childModelBuilderFactory(childModelBuilder);
             return childModelBuilder;
+        }
+
+        static IBuildItem<T> MakeStructArrayBuildItem<T, VModel, BuildItem>(
+            this IBuildItemChain<T, BuildItem> @this
+            , int loopCount
+            , Func<T, IEnumerable<VModel>> getter
+            , Action<T, IEnumerable<VModel>> setter
+            , Func<IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>, int, IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>> build)
+            where T : class, new()
+            where VModel : struct
+            where BuildItem : IBuildItem<T>
+        {
+            var childModelBuilder = @this.MakeChildModelBuilder((IModelBuilder<List<VModel>> builder) =>
+            {
+                // 固定長で初期化
+                builder.Init(list => list.AddRange(Enumerable.Range(0, loopCount).Select(_ => default(VModel))));
+                // 各要素のBuildItemを生成
+                var seed = null as IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>;
+
+                for (int i = 0; i < loopCount; i++)
+                {
+                    var li = i;
+                    if (seed == null)
+                    {
+                        seed = build(builder, li);//.Property(list => list[li], (list, v) => list[li] = v);
+                    }
+                    else
+                    {
+                        seed = build(seed, li);//.Property(list => list[li], (list, v) => list[li] = v);
+                    }
+                }
+            });
+
+            var item =
+                new ProxyModelBuildItem<T, List<VModel>>(
+                    m => getter(m).ToList()
+                    , (m, v) => setter(m, v)
+                    , childModelBuilder) as IBuildItem<T>;
+            return item;
         }
 
         public static IEnumerable<PropertyInfo> GetPropertyInfo<T, _>(this Expression<Func<T, _>> lambda)
