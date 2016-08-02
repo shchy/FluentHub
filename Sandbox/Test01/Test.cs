@@ -49,6 +49,7 @@ namespace Sandbox.Test01
                         Array = new[] { new InnerModel { Value1 = 1, Value2 = 2 }, new InnerModel { Value1 = 3, Value2 = 4 } },
                         FixedArray = new[] { new InnerModel { Value1 = 5, Value2 = 6 }, new InnerModel { Value1 = 7, Value2 = 8 } },
                         InnerModel2 = new InnerModel { Value1 = 9, Value2 = 10 },
+                        StructArray = new byte[] { 0x01, 0x02, 0x03 },
                     };
                     thirdContext.Write(pang);
                 }
@@ -257,8 +258,9 @@ namespace Sandbox.Test01
         public IInnerModel InnerModel { get; set; }
         public InnerModel InnerModel2 { get; set; }
         public IEnumerable<InnerModel> Array { get; set; }
+        public IEnumerable<byte> StructArray { get; set; }
         public InnerModel[] FixedArray { get; set; }
-        public byte[] Bytes { get; set; } = new byte[8];
+        public byte[] Bytes { get; set; } = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
     }
     public interface IInnerModel
     {
@@ -291,26 +293,31 @@ namespace Sandbox.Test01
                                     // メンバ変換(メンバのメンバ)
                                     .Property(m => m.InnerModel.Value1)
                                     .Property(m => m.InnerModel.Value2)
-                                    // 配列の数が電文に含まれてたりするよね。
-                                    // 書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。
-                                    // っていうときはGetProperty。
-                                    // そして読んだ値を覚えておきたいよねって時にAsTagで読み込んだ値に名前付けておく
-                                    .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
-                                    // さらにInnerCountを配列復元する時に使いたいよね
-                                    .ArrayProperty("InnerCount", m => m.Array
-                                        // Arrayメンバの要素の型InnerModelのModelBuilderを入れ子で
-                                        , b => b.Property(mi => mi.Value1)
-                                                .Property(mi => mi.Value2))
-                                    // 固定長の配列もあるよね
-                                    .FixedArrayProperty(5, m => m.FixedArray
-                                        , b => b.Property(mi => mi.Value1)
-                                                .Property(mi => mi.Value2))
                                     // メンバクラスも入れ子で定義できたら便利だよね
                                     .Property(m => m.InnerModel2
                                         , b => b.Property(mi => mi.Value1)
                                                 .Property(mi => mi.Value2))
                                     // 固定長のbyte配列もあるよね
                                     .FixedArrayProperty(8, m => m.Bytes)
+                                    // 固定長の配列(メンバを持つ型の配列)
+                                    .FixedArrayProperty(5, m => m.FixedArray
+                                        // 型の定義を入れ子で書く
+                                        , b => b.Property(mi => mi.Value1)
+                                                .Property(mi => mi.Value2))
+                                    // 可変長配列
+                                    // 配列の数が電文に含まれてたりするよね。
+                                    // 書き込むときはメンバの値を書けばいいけど復元する時は読むだけでいいよね。
+                                    // っていうときはGetProperty。
+                                    // そして読んだ値を覚えておきたいよねって時にAsTagで読み込んだ値に名前付けておく                                    
+                                    .GetProperty(m => m.StructArray.Count()).AsTag("StructArrayCount")
+                                    // さらにStructArrayCountを配列復元する時に使いたいよね
+                                    .ArrayProperty("StructArrayCount", m => m.StructArray)
+                                    // メンバを持つ型の可変長配列
+                                    .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
+                                    .ArrayProperty("InnerCount", m => m.Array
+                                        // Arrayメンバの要素の型InnerModelのModelBuilderを入れ子で
+                                        , b => b.Property(mi => mi.Value1)
+                                                .Property(mi => mi.Value2))
                                     // ModelConverter型へ変換
                                     .ToConverter()
                                     // ModelConverter<Pang> -> ModelConverter<IPingPongAppMessage>

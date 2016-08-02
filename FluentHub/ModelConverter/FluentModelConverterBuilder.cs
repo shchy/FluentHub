@@ -159,6 +159,38 @@ namespace FluentHub.ModelConverter
             return @this.SetNext(item);
         }
 
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , string loopCountName
+            , Expression<Func<T, IEnumerable<V>>> getterExpression)
+            where T : class, new()
+            where V : struct
+        {
+            var getter = getterExpression.Compile();
+            var setter = MakeSetter(getterExpression);
+            var childModelBuilder = @this.MakeChildModelBuilder((IModelBuilder<Box<V>> builder)=>
+            {
+                builder.Property(vm => vm.Value);
+            });
+
+            var arrayMember = getterExpression.GetPropertyInfo().Last();
+            var tryArrayConvert = MakeArrayConvert<V>(arrayMember.PropertyType);
+
+            var item =
+                new ArrayBuildItem<T, Box<V>>(
+                    childModelBuilder
+                    , m => getter(m).Select(x=>new Box<V> { Value = x })
+                    , (m, xs) => setter(m, tryArrayConvert(xs.Select(x=>x.Value).ToArray()))
+                    , loopCountName);
+            return @this.SetNext(item);
+        }
+
+        class Box<T>
+            where T : struct
+        {
+            public T Value { get; set; }
+        }
+
         public static IBuildItemChain<T, IBuildItem<T>> FixedArrayProperty<T, VModel>(
             this IBuildItemChain<T, IBuildItem<T>> @this
             , int loopCount
@@ -182,6 +214,7 @@ namespace FluentHub.ModelConverter
             return @this.SetNext(item);
         }
 
+        // todo ArrayPropertyのBoxを流用できるんじゃない？
         public static IBuildItemChain<T, IBuildItem<T>> FixedArrayProperty<T, VModel>(
             this IBuildItemChain<T, IBuildItem<T>> @this
             , int loopCount
