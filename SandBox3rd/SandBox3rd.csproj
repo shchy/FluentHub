@@ -50,7 +50,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FluentHub.Sandbox\Sandbox.csproj">
+    <ProjectReference Include="..\Sandbox\Sandbox.csproj">
       <Project>{5e2358c5-c40f-4470-9695-f7fb64e4dfb7}</Project>
       <Name>Sandbox</Name>
     </ProjectReference>

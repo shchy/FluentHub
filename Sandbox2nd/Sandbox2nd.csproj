@@ -51,13 +51,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FluentHub.Sandbox\Sandbox.csproj">
-      <Project>{5e2358c5-c40f-4470-9695-f7fb64e4dfb7}</Project>
-      <Name>Sandbox</Name>
-    </ProjectReference>
     <ProjectReference Include="..\FluentHub\FluentHub.csproj">
       <Project>{31b51484-f77b-47fd-bc83-674e7e4d85c2}</Project>
       <Name>FluentHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sandbox\Sandbox.csproj">
+      <Project>{5e2358c5-c40f-4470-9695-f7fb64e4dfb7}</Project>
+      <Name>Sandbox</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

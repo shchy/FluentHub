@@ -25,7 +25,6 @@ namespace FluentHub.Hub
             this.updateCallEvent = new ManualResetEvent(true);
         }
 
-
         public void Dispose()
         {
             lock ((pool as ICollection).SyncRoot)
@@ -43,8 +42,8 @@ namespace FluentHub.Hub
             modelContext.Received += ModelContext_Received;
             lock ((pool as ICollection).SyncRoot)
             {
-                CleaningPool(pool);
                 pool.Add(modelContext);
+                CleaningPool(pool);
             }
         }
 
@@ -89,6 +88,8 @@ namespace FluentHub.Hub
                     }
                 }
                 logger.TrySafe(() => OnUpdate(context));
+                // todo 誰も処理しないAnyがあるとCPU100%になっちゃう問題
+                Thread.Sleep(1);
             } while (true);
         }
 
@@ -121,7 +122,5 @@ namespace FluentHub.Hub
                 Remove(item);
             }
         }
-
     }
-
 }
