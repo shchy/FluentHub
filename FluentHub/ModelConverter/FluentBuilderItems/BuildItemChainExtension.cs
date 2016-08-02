@@ -8,8 +8,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public static class BuildItemChainExtension
     {
-        public static IBuildItemChain<T, BuildItemTo> SetNext<T, BuildItemFrom, BuildItemTo>(this IBuildItemChain<T, BuildItemFrom> @this, BuildItemTo v)
-            where BuildItemFrom : IBuildItem<T>
+        public static IBuildItemChain<T, BuildItemTo> SetNext<T, BuildItemTo>(this IBuildItemChain<T, IBuildItem<T>> @this, BuildItemTo v)
             where BuildItemTo : IBuildItem<T>
             where T : class, new()
         {

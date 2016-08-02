@@ -8,7 +8,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public interface ITaggedBuildItem<T> : IBuildItem<T>
     {
-        // todo 実質ContractしかTagつけないのでインタフェース分ける？
         string Tag { get; set; }
         event Action<string, object> SetContextValue;
     }
