@@ -6,19 +6,21 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentHub.IO
 {
     public class ModelContext<T> : IIOContext<T>
     {
-        private IIOContext<byte> byteContext;
+        private IIOContext<byte[]> byteContext;
         private IEnumerable<IModelConverter<T>> converters;
         private List<byte> bytecache;
         private List<T> modelcache;
         private bool isDisposed;
         private object syncObj = new object();
         private ILogger logger;
+        private ISuspendedSentence jammedPacketCleaner;
 
         public event EventHandler Received;
         public bool IsAny
@@ -34,10 +36,12 @@ namespace FluentHub.IO
         public bool CanUse => byteContext.CanUse;
 
 
-        public ModelContext(IIOContext<byte> byteContext
+        public ModelContext(IIOContext<byte[]> byteContext
             , IEnumerable<IModelConverter<T>> converters
+            , ISuspendedSentence jammedPacketCleaner
             , ILogger logger)
         {
+            this.jammedPacketCleaner = jammedPacketCleaner;
             this.logger = logger;
             this.byteContext = byteContext;
             this.converters = converters;
@@ -51,7 +55,7 @@ namespace FluentHub.IO
             var isBuilded = false;
             lock (this.syncObj)
             {
-                var bytes = this.byteContext.ReadAll().ToArray();
+                var bytes = this.byteContext.Read().ToArray();
                 lock ((this.bytecache as ICollection).SyncRoot)
                 {
                     this.bytecache.AddRange(bytes);
@@ -70,25 +74,41 @@ namespace FluentHub.IO
             }
         }
 
-
         bool TryBuildModel(List<byte> bytes, IList<T> models)
         {
-            // todo 不要なメッセージは破棄しないと
-            var result =
-                this.converters
-                .Where(c => c.CanBytesToModel(bytes))
-                .Select(c => c.ToModel(bytes))
-                .Where(r => r.Item1 != null)
-                .FirstOrDefault();
-                
-            if (result == null ||result.Item1 == null)
+            // 何もなければ何もしない。
+            if (bytes.Any() == false)
             {
                 return false;
             }
-            models.Add(result.Item1);
+            // todo 不要なメッセージは破棄しないと
+            var result =
+                this.converters.TryToBuild(bytes);
+                
+            // 現在のパケットキャッシュからどのコンバーターもモデルへ変換できなかった
+            if (result == null || result.Item1 == null)
+            {
+                // パケットが詰まってるかもしれないので執行猶予付きでパケットキャッシュをクリア
+                this.jammedPacketCleaner.Sentence(ClearJammedPacket);
+                return false;
+            }
+            // モデル変換できたということは疑いが晴れたので解放
+            this.jammedPacketCleaner.Expiration();
+
             this.logger.Debug($"recv {result.Item1.GetType().Name}");
+
+            models.Add(result.Item1);
             bytes.RemoveRange(0, result.Item2);
+
             return true;
+        }
+
+        void ClearJammedPacket()
+        {
+            lock((this.bytecache as ICollection).SyncRoot)
+            {
+                this.bytecache.Clear();
+            }
         }
 
         public T Read(Func<T, bool> predicate)
@@ -105,16 +125,7 @@ namespace FluentHub.IO
                 return item;
             }
         }
-
-        public IEnumerable<T> ReadAll()
-        {
-            lock ((this.modelcache as ICollection).SyncRoot)
-            {
-                var items = this.modelcache.ToArray();
-                this.modelcache.Clear();
-                return items;
-            }
-        }
+        
 
         public T Read()
         {
@@ -137,20 +148,13 @@ namespace FluentHub.IO
                 var converter = this.converters.FirstOrDefault(c => c.CanModelToBytes(model));
                 System.Diagnostics.Debug.Assert(converter != null, $"can not convert model {model.GetType().Name}");
                 var bytes = converter.ToBytes(model);
-                this.byteContext.WriteAll(bytes);
+                this.byteContext.Write(bytes);
             }
             this.logger.Debug($"send {model.GetType().Name}");
 
         }
 
-        public void WriteAll(IEnumerable<T> models)
-        {
-            foreach (var item in models)
-            {
-                Write(item);
-            }
-        }
-
+        
         public void Dispose()
         {
             if (this.isDisposed)
@@ -161,6 +165,19 @@ namespace FluentHub.IO
             this.modelcache.Clear();
             this.bytecache.Clear();
             this.byteContext.Dispose();
+        }
+    }
+
+    public static class ModelConverterExtension
+    {
+        public static Tuple<Model, int> TryToBuild<Model>(this IEnumerable<IModelConverter<Model>> @this, IEnumerable<byte> bytes)
+        {
+            return
+                @this
+                .Where(c => c.CanBytesToModel(bytes))
+                .Select(c => c.ToModel(bytes))
+                .Where(r => r.Item1 != null)
+                .FirstOrDefault();
         }
     }
 }

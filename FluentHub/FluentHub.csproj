@@ -51,6 +51,8 @@
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
     <Compile Include="Hub\Application.cs" />
+    <Compile Include="IO\Extension\ISuspendedSentence.cs" />
+    <Compile Include="IO\Extension\SuspendedSentence.cs" />
     <Compile Include="ModelConverter\BinaryConverter.cs" />
     <Compile Include="ModelConverter\DefaultModelConverter.cs" />
     <Compile Include="IO\Extension\FakeStream.cs" />

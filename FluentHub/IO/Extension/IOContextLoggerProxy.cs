@@ -70,19 +70,6 @@ namespace FluentHub.IO.Extension
 
         }
 
-        public IEnumerable<T> ReadAll()
-        {
-            try
-            {
-                return this.realContext.ReadAll();
-            }
-            catch (Exception ex)
-            {
-                this.logger.Exception(ex);
-                throw;
-            }
-        }
-
         public T Read()
         {
             try
@@ -101,19 +88,6 @@ namespace FluentHub.IO.Extension
             try
             {
                 this.realContext.Write(model);
-            }
-            catch (Exception ex)
-            {
-                this.logger.Exception(ex);
-                throw;
-            }
-        }
-
-        public void WriteAll(IEnumerable<T> models)
-        {
-            try
-            {
-                this.realContext.WriteAll(models);
             }
             catch (Exception ex)
             {

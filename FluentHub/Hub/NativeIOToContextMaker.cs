@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public class NativeIOToContextMaker<T> : IIOContextMaker<byte>
+    public class NativeIOToContextMaker<T> : IIOContextMaker<byte[]>
     {
-        private Func<T, IIOContext<byte>> convert;
+        private Func<T, IIOContext<byte[]>> convert;
         private INativeIOFactory<T> makeNativeIO;
         private Action<T> missedMakeNotify;
         private bool isDisposed;
 
-        public Action<IIOContext<byte>> Maked { get; set; }
+        public Action<IIOContext<byte[]>> Maked { get; set; }
 
         public NativeIOToContextMaker(
             INativeIOFactory<T> makeNativeIO
-            , Func<T, IIOContext<byte>> convert
+            , Func<T, IIOContext<byte[]>> convert
             , Action<T> missedMakeNotify
             )
         {

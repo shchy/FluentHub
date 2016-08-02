@@ -9,14 +9,11 @@ namespace FluentHub.IO
     public interface IIOContext<T> : IDisposable
     {
         bool IsAny { get; }
+        bool CanUse { get; }
+        event EventHandler Received;
+
         void Write(T model);
-        void WriteAll(IEnumerable<T> models);
         T Read();
         T Read(Func<T, bool> predicate);
-        IEnumerable<T> ReadAll();
-        event EventHandler Received;
-        bool CanUse { get; }
     }
-
-    
 }

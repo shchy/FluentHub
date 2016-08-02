@@ -76,7 +76,9 @@ namespace Sandbox.Test01
                 // Pong電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PongModelConverter())
                 // Tunnel電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new TunnelModelConverter());
+                .RegisterConverter(new TunnelModelConverter())
+                .RegisterConverter(new GomiModelConverter());
+                
 
             Task.Run((Action)appContainer.Run);
 
@@ -84,27 +86,56 @@ namespace Sandbox.Test01
             while (true)
             {
                 // Enter to send Ping
-                Console.ReadLine();
+                var line = Console.ReadLine();
 
-                // サーバーにPingメッセージを送信
-                appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
+                if (string.IsNullOrWhiteSpace(line))
                 {
-                    var server = contexts.FirstOrDefault();
-                    if (server == null)
+                    // サーバーにPingメッセージを送信
+                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
                     {
-                        return;
-                    }
-                    // 送信
-                    server.Write(new Ping());
-                    // Pongを受信するまで10秒待機
-                    var pong = server.Read(m => m is Pong, 1000 * 10);
+                        var server = contexts.FirstOrDefault();
+                        if (server == null)
+                        {
+                            return;
+                        }
+                        // 送信
+                        server.Write(new Ping());
+                        // Pongを受信するまで10秒待機
+                        var pong = server.Read(m => m is Pong, 1000 * 10);
 
-                    // send Tunnel
-                    server.Write(new Tunnel());
+                        if (pong == null)
+                        {
+                            appContainer.Logger.Debug("pong not recv");
+                            return;
+                        }
 
-                    // Pongを受信するまで10秒待機
-                    var pong2 = server.Read(m => m is Pong, 1000 * 10);
-                }));
+                        // send Tunnel
+                        server.Write(new Tunnel());
+
+                        // Pongを受信するまで10秒待機
+                        var pong2 = server.Read(m => m is Pong, 1000 * 10);
+
+                        if (pong2 == null)
+                        {
+                            appContainer.Logger.Debug("pong2 not recv");
+                            return;
+                        }
+                    }));
+                }
+                else
+                {
+                    // サーバーにPingメッセージを送信
+                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
+                    {
+                        var server = contexts.FirstOrDefault();
+                        if (server == null)
+                        {
+                            return;
+                        }
+                        // 送信
+                        server.Write(new Gomi());
+                    }));
+                }
             }
         }
     }
@@ -150,6 +181,11 @@ namespace Sandbox.Test01
         public byte ID { get; set; } = 0x03;
     }
 
+    public class Gomi : IPingPongAppMessage
+    {
+        public byte ID { get; set; } = 0x99;
+    }
+
     // IPingPongAppMessageアプリケーションプロトコルの電文コンバーター
     public class PingModelConverter : WrapperModelConverter<IPingPongAppMessage>
     {
@@ -193,6 +229,21 @@ namespace Sandbox.Test01
                     // ModelConverter型へ変換
                     .ToConverter()
                     .ToBaseTypeConverter<Tunnel, IPingPongAppMessage>();
+        }
+    }
+
+    public class GomiModelConverter : WrapperModelConverter<IPingPongAppMessage>
+    {
+        protected override IModelConverter<IPingPongAppMessage> MakeConverter()
+        {
+            return new Gomi().ToModelBuilder()
+                    // Bigエンディアンで通信する
+                    .ToBigEndian()
+                    // 1byte目は定数（電文識別子）
+                    .Constant((byte)0x99)
+                    // ModelConverter型へ変換
+                    .ToConverter()
+                    .ToBaseTypeConverter<Gomi, IPingPongAppMessage>();
         }
     }
 

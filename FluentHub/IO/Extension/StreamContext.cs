@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.IO.Extension
 {
-    public class StreamContext : IIOContext<byte>
+    public class StreamContext : IIOContext<byte[]>
     {
         private object syncObj = new object();
         private bool disposed;
@@ -41,7 +41,6 @@ namespace FluentHub.IO.Extension
             this.readCancelToken = new System.Threading.CancellationTokenSource();
             this.cache = new List<byte>();
             this.takingTask = Task.Run(() => { try { TakeBuffer(this.stream); } catch (Exception) { this.Dispose(); } });
-
         }
 
         private void TakeBuffer(Stream stream)
@@ -116,12 +115,13 @@ namespace FluentHub.IO.Extension
             }
         }
 
-        public byte Read(Func<byte, bool> predicate)
+        public byte[] Read(Func<byte[], bool> predicate)
         {
+            // todo 使うことないよね？
             throw new NotImplementedException();
         }
 
-        public IEnumerable<byte> ReadAll()
+        public byte[] Read()
         {
             lock ((this.cache as ICollection).SyncRoot)
             {
@@ -130,21 +130,8 @@ namespace FluentHub.IO.Extension
                 return buff;
             }
         }
-
-        public byte Read()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Write(byte model)
-        {
-            lock (this.syncObj)
-            {
-                this.stream.WriteByte(model);
-            }
-        }
-
-        public void WriteAll(IEnumerable<byte> models)
+        
+        public void Write(byte[] models)
         {
             var data = models.ToArray();
             lock (this.syncObj)
@@ -156,7 +143,7 @@ namespace FluentHub.IO.Extension
 
     public static class StreamExtension
     {
-        public static IIOContext<byte> BuildContextByStream(
+        public static IIOContext<byte[]> BuildContextByStream(
            this Stream @this)
         {
             return

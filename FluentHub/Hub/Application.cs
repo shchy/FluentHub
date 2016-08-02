@@ -12,7 +12,7 @@ namespace FluentHub.Hub
     public class Application<T> : IContextApplication<T>
     {
         private List<Action<IIOContext<T>>> sequences;
-        private IIOContextMaker<byte> streamContextFactory;
+        private IIOContextMaker<byte[]> streamContextFactory;
         private List<IModelConverter<T>> modelConverters;
 
         public IContextPool<T> Pool { get;  }
@@ -20,7 +20,7 @@ namespace FluentHub.Hub
 
         public Application(
             IContextPool<T> pool
-            , IIOContextMaker<byte> sreamContextFactory
+            , IIOContextMaker<byte[]> sreamContextFactory
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
@@ -54,7 +54,7 @@ namespace FluentHub.Hub
             }
         }
 
-        private void MakedClient(IIOContext<byte> context)
+        private void MakedClient(IIOContext<byte[]> context)
         {
             this.Pool.Add(
                 context.BuildContext(

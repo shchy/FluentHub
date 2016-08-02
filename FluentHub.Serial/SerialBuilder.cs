@@ -28,7 +28,7 @@ namespace FluentHub.Hub
                         , c => c.Close()));
         }
 
-        public static IIOContext<byte> BuildContextBySerialPort(
+        public static IIOContext<byte[]> BuildContextBySerialPort(
             this SerialPort @this)
         {
             return

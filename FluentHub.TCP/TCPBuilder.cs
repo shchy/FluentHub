@@ -46,7 +46,7 @@ namespace FluentHub.Hub
                         , c=>c.Close()));
         }
 
-        public static IIOContext<byte> BuildContextByTcp(
+        public static IIOContext<byte[]> BuildContextByTcp(
            this TcpClient @this)
         {
             return
