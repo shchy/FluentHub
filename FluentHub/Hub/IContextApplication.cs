@@ -17,6 +17,7 @@ namespace FluentHub.Hub
     public interface IContextApplication<T> : IContextApplication
     {
         void AddSequence(Action<IIOContext<T>> sequence);
+        void AddInitializeSequence(Action<IIOContext<T>> initializeSequence);
         void AddConverter(IModelConverter<T> converter);
         IContextPool<T> Pool { get; }
         ILogger Logger { get; }

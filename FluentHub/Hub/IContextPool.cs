@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    // todo Added event
     // todo session
     public interface IContextPool<T> : IDisposable
     {
@@ -17,5 +16,6 @@ namespace FluentHub.Hub
         void Remove(IIOContext<T> modelContext);
         IEnumerable<IIOContext<T>> Get();
         event Action<IIOContext<T>> Updated;
+        event Action<IIOContext<T>> Added;
     }
 }

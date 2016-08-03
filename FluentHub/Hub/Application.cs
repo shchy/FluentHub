@@ -12,6 +12,7 @@ namespace FluentHub.Hub
     public class Application<T> : IContextApplication<T>
     {
         private List<Action<IIOContext<T>>> sequences;
+        private List<Action<IIOContext<T>>> initializeSequences;
         private IIOContextMaker<byte[]> streamContextFactory;
         private List<IModelConverter<T>> modelConverters;
 
@@ -24,6 +25,7 @@ namespace FluentHub.Hub
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
+            this.initializeSequences = new List<Action<IIOContext<T>>>();
             this.Pool = pool;
             this.streamContextFactory = sreamContextFactory;
             this.modelConverters = new List<IModelConverter<T>>();
@@ -33,9 +35,26 @@ namespace FluentHub.Hub
         public void Run()
         {
             this.Pool.Updated += UpdatedContext;
+            this.Pool.Added += AddedContext;
             this.streamContextFactory.Maked = MakedClient;
             this.streamContextFactory.Run();
+            this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
+        }
+
+        private void AddedContext(IIOContext<T> context)
+        {
+            var xs = Enumerable.Empty<Action<IIOContext<T>>>();
+            lock ((initializeSequences as ICollection).SyncRoot)
+            {
+                xs = initializeSequences.ToArray();
+            }
+
+            foreach (var seq in xs)
+            {
+                Logger.TrySafe(() => seq(context));
+            }
+
         }
 
         private void UpdatedContext(IIOContext<T> context)
@@ -78,6 +97,14 @@ namespace FluentHub.Hub
             lock ((sequences as ICollection).SyncRoot)
             {
                 this.sequences.Add(sequence);
+            }
+        }
+
+        public void AddInitializeSequence(Action<IIOContext<T>> initializeSequence)
+        {
+            lock ((initializeSequences as ICollection).SyncRoot)
+            {
+                this.initializeSequences.Add(initializeSequence);
             }
         }
 

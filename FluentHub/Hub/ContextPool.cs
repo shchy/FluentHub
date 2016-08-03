@@ -17,6 +17,7 @@ namespace FluentHub.Hub
         private EventWaitHandle updateCallEvent;
 
         public event Action<IIOContext<T>> Updated;
+        public event Action<IIOContext<T>> Added;
 
         public ContextPool(ILogger logger)
         {
@@ -45,6 +46,12 @@ namespace FluentHub.Hub
                 pool.Add(modelContext);
                 CleaningPool(pool);
             }
+
+            if (Added == null)
+            {
+                return;
+            }
+            Added(modelContext);
         }
 
         public void Remove(IIOContext<T> modelContext)

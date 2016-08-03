@@ -78,11 +78,10 @@ namespace Sandbox.Test01
                 .RegisterConverter(new PongModelConverter())
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter())
-                .RegisterConverter(new GomiModelConverter());
-                
+                .RegisterConverter(new GomiModelConverter())
+                .RegisterInitializeSequence(c => c.Write(new Ping()));
 
             Task.Run((Action)appContainer.Run);
-
 
             while (true)
             {

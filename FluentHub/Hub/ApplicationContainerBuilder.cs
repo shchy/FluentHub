@@ -148,6 +148,32 @@ namespace FluentHub.Hub
 
             return @this;
         }
+        
+        public static IContextApplication<T> RegisterInitializeSequence<T>(
+            this IContextApplication<T> @this
+            , Action<IIOContext<T>> sequence)
+        {
+            @this.AddInitializeSequence(sequence);
+            return @this;
+        }
+
+        public static IApplicationContainer RegisterInitializeSequence<T, U>(
+            this IApplicationContainer @this
+            , Action<IIOContext<T>, IEnumerable<IIOContext<U>>> sequence)
+        {
+            var app = @this.GetApp<T>();
+            var appTarg = @this.GetApp<U>();
+            System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
+            System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
+
+            app.AddInitializeSequence(context =>
+            {
+                var contexts = appTarg.Pool.Get().ToArray();
+                sequence(context, contexts);
+            });
+
+            return @this;
+        }
 
         /// <summary>
         /// 受信->応答型じゃなくてサーバーから開始するシーケンス
