@@ -205,30 +205,28 @@ namespace Sandbox.Test00
         public int Bar { get; set; }
     }
 
-    public class AMessage0Converter : WrapperModelConverter<IModelMessageA>
+    public class AMessage0Converter : WrapperModelConverter<IModelMessageA, AMessage0>
     {
-        protected override IModelConverter<IModelMessageA> MakeConverter()
+        protected override IModelConverter<AMessage0> MakeConverter()
         {
             return
                 new AMessage0().ToModelBuilder()
                 .ToBigEndian()
                 .Constant(0x00)
                 .Property(m => m.Foo)
-                .ToConverter()
-                .ToBaseTypeConverter<AMessage0, IModelMessageA>();
+                .ToConverter();
         }
     }
-    public class AMessage1Converter : WrapperModelConverter<IModelMessageA>
+    public class AMessage1Converter : WrapperModelConverter<IModelMessageA, AMessage1>
     {
-        protected override IModelConverter<IModelMessageA> MakeConverter()
+        protected override IModelConverter<AMessage1> MakeConverter()
         {
             return
                 new AMessage1().ToModelBuilder()
                 .ToBigEndian()
                 .Constant(0x01)
                 .Property(m => m.Bar)
-                .ToConverter()
-                .ToBaseTypeConverter<AMessage1, IModelMessageA>();
+                .ToConverter();
 
         }
     }

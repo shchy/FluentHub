@@ -29,7 +29,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public void Write(T _, BinaryWriter w)
         {
             // 固定値なのでmodel使わない
-            // todo BinaryConverterには死ぬほど依存するけどしょうがない
             var data =
                 converter.ToBytes(value);
             w.Write(data);

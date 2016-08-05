@@ -34,6 +34,14 @@ namespace FluentHub.Hub
             }
         }
 
+        public IEnumerable<IContextApplication> GetApps()
+        {
+            lock ((appList as ICollection).SyncRoot)
+            {
+                return appList.Values.ToArray();
+            }
+        }
+
         public IContextApplication<T> GetApp<T>()
         {
             var tType = typeof(T);

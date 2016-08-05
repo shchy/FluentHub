@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
+using System.Reflection;
 
 namespace FluentHub.Hub
 {
@@ -115,6 +116,8 @@ namespace FluentHub.Hub
             return @this;
         }
 
+        
+
         /// <summary>
         /// モデル指定バージョン
         /// </summary>
@@ -149,6 +152,7 @@ namespace FluentHub.Hub
             return @this;
         }
         
+
         public static IContextApplication<T> RegisterInitializeSequence<T>(
             this IContextApplication<T> @this
             , Action<IIOContext<T>> sequence)
@@ -258,5 +262,4 @@ namespace FluentHub.Hub
             });
         }
     }
-
 }

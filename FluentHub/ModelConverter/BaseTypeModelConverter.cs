@@ -44,36 +44,5 @@ namespace FluentHub.ModelConverter
         }
     }
 
-    // todo ラッパーは型変換はクラスを分ける
-    public abstract class WrapperModelConverter<T> : IModelConverter<T>
-    {
-        private IModelConverter<T> real;
-
-        public WrapperModelConverter()
-        {
-            this.real = MakeConverter();
-        }
-
-        protected abstract IModelConverter<T> MakeConverter();
-
-        public bool CanBytesToModel(IEnumerable<byte> bytes)
-        {
-            return this.real.CanBytesToModel(bytes);
-        }
-
-        public bool CanModelToBytes(object model)
-        {
-            return this.real.CanModelToBytes(model);
-        }
-
-        public byte[] ToBytes(T model)
-        {
-            return this.real.ToBytes(model);
-        }
-
-        public Tuple<T, int> ToModel(IEnumerable<byte> bytes)
-        {
-            return this.real.ToModel(bytes);
-        }
-    }
+    
 }

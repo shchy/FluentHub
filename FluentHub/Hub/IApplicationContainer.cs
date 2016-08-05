@@ -13,6 +13,7 @@ namespace FluentHub.Hub
 
         void Add<T>(IContextApplication<T> app);
         IContextApplication<T> GetApp<T>();
+        IEnumerable<IContextApplication> GetApps();
         IContextPool<T> MakeContextPool<T>();
         void Run();
     }

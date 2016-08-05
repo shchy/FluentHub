@@ -47,6 +47,7 @@
     <Compile Include="Hub\ApplicationContainer.cs" />
     <Compile Include="Hub\ApplicationContainerBuilder.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />
+    <Compile Include="Hub\ModuleExtension.cs" />
     <Compile Include="Hub\NativeIOToContextMaker.cs" />
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
@@ -83,7 +84,8 @@
     <Compile Include="IO\ModelContext.cs" />
     <Compile Include="Logger\DefaultLogger.cs" />
     <Compile Include="Logger\ILogger.cs" />
-    <Compile Include="ModelConverter\ProxyModelConverter.cs" />
+    <Compile Include="ModelConverter\BaseTypeModelConverter.cs" />
+    <Compile Include="ModelConverter\WrapperModelConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

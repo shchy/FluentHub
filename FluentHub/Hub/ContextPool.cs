@@ -69,7 +69,6 @@ namespace FluentHub.Hub
             }
         }
 
-        // todo ModelContextが非同期でこのイベントを挙げてくるなら成り立つ？
         private void ModelContext_Received(object sender, EventArgs e)
         {
             lock (sender)

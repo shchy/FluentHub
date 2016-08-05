@@ -31,7 +31,7 @@ namespace FluentHub.Logger
 
         private void Log(string type, string message)
         {
-            Console.WriteLine($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.ffff")}][{type}][{Thread.CurrentThread.ManagedThreadId.ToString("X4")}]:{message}");
+            Console.WriteLine($"[{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff")}][{type}][{Thread.CurrentThread.ManagedThreadId.ToString("X4")}]:{message}");
         }
     }
 }

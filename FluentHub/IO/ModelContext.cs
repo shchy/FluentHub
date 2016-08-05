@@ -88,7 +88,7 @@ namespace FluentHub.IO
             {
                 return false;
             }
-            // todo 不要なメッセージは破棄しないと
+            
             var result =
                 this.converters.TryToBuild(bytes);
                 

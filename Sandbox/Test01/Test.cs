@@ -1,7 +1,9 @@
 ﻿using FluentHub.Hub;
 using FluentHub.IO;
+using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,39 +27,16 @@ namespace Sandbox.Test01
                 // Pong電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PongModelConverter())
                 // Tunnel電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new TunnelModelConverter())
-                // Pingを受信したらPongを送信するシーケンス
-                .RegisterSequence((IIOContext<IPingPongAppMessage> sender, Ping model) =>
-                {
-                    sender.Write(new Pong());
-                });
+                .RegisterConverter(new TunnelModelConverter());
+
+            // シーケンスモジュールを直接登録するスタイル
+            appContainer.RegisterModule(new ServerApp());
+
             // 異なるプロトコルを持つ第3者通信相手を定義
             var thirdApp =
                 appContainer.MakeAppByTcpServer<IThirdAppMessage>(8099)
                 .RegisterConverter(new PangModelConverter());
-
-            // 3者間シーケンス
-            // クライアントからTunnelを受信した時のシーケンス
-            appContainer.RegisterSequence((IIOContext<IPingPongAppMessage> sender, Tunnel recvMessage, IEnumerable<IIOContext<IThirdAppMessage>> thirdAppContexts) =>
-            {
-                // 接続中のIThirdAppMessageプロトコルを持つ相手にPangを送信
-                foreach (var thirdContext in thirdAppContexts)
-                {
-                    var pang = new Pang
-                    {
-                        InnerModel = new InnerModel { Value1 = 11, Value2 = 12 },
-                        Array = new[] { new InnerModel { Value1 = 1, Value2 = 2 }, new InnerModel { Value1 = 3, Value2 = 4 } },
-                        FixedArray = new[] { new InnerModel { Value1 = 5, Value2 = 6 }, new InnerModel { Value1 = 7, Value2 = 8 } },
-                        InnerModel2 = new InnerModel { Value1 = 9, Value2 = 10 },
-                        StructArray = new byte[] { 0x01, 0x02, 0x03 },
-                    };
-                    thirdContext.Write(pang);
-                }
-
-                // 送信元のsenderにPongを返送
-                sender.Write(new Pong());
-            });
-
+            
             appContainer.Run();
         }
     }
@@ -79,7 +58,7 @@ namespace Sandbox.Test01
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter())
                 .RegisterConverter(new GomiModelConverter())
-                .RegisterInitializeSequence(c => c.Write(new Ping()));
+                .RegisterInitializeSequence(c => PingPongSequence(c, appContainer.Logger));
 
             Task.Run((Action)appContainer.Run);
 
@@ -93,33 +72,7 @@ namespace Sandbox.Test01
                     // サーバーにPingメッセージを送信
                     appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
                     {
-                        var server = contexts.FirstOrDefault();
-                        if (server == null)
-                        {
-                            return;
-                        }
-                        // 送信
-                        server.Write(new Ping());
-                        // Pongを受信するまで10秒待機
-                        var pong = server.Read(m => m is Pong, 1000 * 10);
-
-                        if (pong == null)
-                        {
-                            appContainer.Logger.Debug("pong not recv");
-                            return;
-                        }
-
-                        // send Tunnel
-                        server.Write(new Tunnel());
-
-                        // Pongを受信するまで10秒待機
-                        var pong2 = server.Read(m => m is Pong, 1000 * 10);
-
-                        if (pong2 == null)
-                        {
-                            appContainer.Logger.Debug("pong2 not recv");
-                            return;
-                        }
+                        PingPongSequence(contexts.First(), appContainer.Logger);
                     }));
                 }
                 else
@@ -136,6 +89,36 @@ namespace Sandbox.Test01
                         server.Write(new Gomi());
                     }));
                 }
+            }
+        }
+
+        private void PingPongSequence(IIOContext<IPingPongAppMessage> server, ILogger logger)
+        {
+            if (server == null)
+            {
+                return;
+            }
+            // 送信
+            server.Write(new Ping());
+            // Pongを受信するまで10秒待機
+            var pong = server.Read(m => m is Pong, 1000 * 10);
+
+            if (pong == null)
+            {
+                logger.Debug("pong not recv");
+                return;
+            }
+
+            // send Tunnel
+            server.Write(new Tunnel());
+
+            // Pongを受信するまで10秒待機
+            var pong2 = server.Read(m => m is Pong, 1000 * 10);
+
+            if (pong2 == null)
+            {
+                logger.Debug("pong2 not recv");
+                return;
             }
         }
     }
@@ -187,9 +170,9 @@ namespace Sandbox.Test01
     }
 
     // IPingPongAppMessageアプリケーションプロトコルの電文コンバーター
-    public class PingModelConverter : WrapperModelConverter<IPingPongAppMessage>
+    public class PingModelConverter : WrapperModelConverter<IPingPongAppMessage, Ping>
     {
-        protected override IModelConverter<IPingPongAppMessage> MakeConverter()
+        protected override IModelConverter<Ping> MakeConverter()
         {
             return new Ping().ToModelBuilder()
                     // Bigエンディアンで通信する
@@ -197,14 +180,13 @@ namespace Sandbox.Test01
                     // 1byte目は定数（電文識別子）
                     .Constant((byte)0x01)
                     // ModelConverter型へ変換
-                    .ToConverter()
-                    .ToBaseTypeConverter<Ping, IPingPongAppMessage>();
+                    .ToConverter();
         }
     }
 
-    public class PongModelConverter : WrapperModelConverter<IPingPongAppMessage>
+    public class PongModelConverter : WrapperModelConverter<IPingPongAppMessage, Pong>
     {
-        protected override IModelConverter<IPingPongAppMessage> MakeConverter()
+        protected override IModelConverter<Pong> MakeConverter()
         {
             return new Pong().ToModelBuilder()
                     // Bigエンディアンで通信する
@@ -212,14 +194,13 @@ namespace Sandbox.Test01
                     // 1byte目は定数（電文識別子）
                     .Constant((byte)0x02)
                     // ModelConverter型へ変換
-                    .ToConverter()
-                    .ToBaseTypeConverter<Pong, IPingPongAppMessage>();
+                    .ToConverter();
         }
     }
 
-    public class TunnelModelConverter : WrapperModelConverter<IPingPongAppMessage>
+    public class TunnelModelConverter : WrapperModelConverter<IPingPongAppMessage, Tunnel>
     {
-        protected override IModelConverter<IPingPongAppMessage> MakeConverter()
+        protected override IModelConverter<Tunnel> MakeConverter()
         {
             return new Tunnel().ToModelBuilder()
                     // Bigエンディアンで通信する
@@ -227,14 +208,13 @@ namespace Sandbox.Test01
                     // 1byte目は定数（電文識別子）
                     .Constant((byte)0x03)
                     // ModelConverter型へ変換
-                    .ToConverter()
-                    .ToBaseTypeConverter<Tunnel, IPingPongAppMessage>();
+                    .ToConverter();
         }
     }
 
-    public class GomiModelConverter : WrapperModelConverter<IPingPongAppMessage>
+    public class GomiModelConverter : WrapperModelConverter<IPingPongAppMessage, Gomi>
     {
-        protected override IModelConverter<IPingPongAppMessage> MakeConverter()
+        protected override IModelConverter<Gomi> MakeConverter()
         {
             return new Gomi().ToModelBuilder()
                     // Bigエンディアンで通信する
@@ -242,8 +222,7 @@ namespace Sandbox.Test01
                     // 1byte目は定数（電文識別子）
                     .Constant((byte)0x99)
                     // ModelConverter型へ変換
-                    .ToConverter()
-                    .ToBaseTypeConverter<Gomi, IPingPongAppMessage>();
+                    .ToConverter();
         }
     }
 
