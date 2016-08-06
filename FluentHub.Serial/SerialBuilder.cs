@@ -31,10 +31,12 @@ namespace FluentHub.Hub
         public static IIOContext<byte[]> BuildContextBySerialPort(
             this SerialPort @this)
         {
-            return
+            var context =
                  new StreamContext(
                     @this.BaseStream
                     , () => @this.Dispose());
+            context.StartAutoTakeBuffer();
+            return context;
         }
 
     }

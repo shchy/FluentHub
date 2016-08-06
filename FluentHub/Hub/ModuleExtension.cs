@@ -16,6 +16,10 @@ namespace FluentHub.Hub
             this IApplicationContainer @this
             , Module module)
         {
+            var app
+
+
+
             // コンテナに登録済のアプリケーションを取り出す
             var apps = @this.GetApps().ToArray();
             // コンテナが解決可能な型について、シーケンスメソッドにDIする為のType->objectメソッド
@@ -104,6 +108,7 @@ namespace FluentHub.Hub
             void Setup();
         }
 
+
         public class ModuleSeauence<T> : IModuleSeauence
         {
             private IContextApplication<T> app;
@@ -116,9 +121,9 @@ namespace FluentHub.Hub
                 , MethodInfo method
                 , Func<Type, object> injection)
             {
-                this.app = app;
                 this.getInstance = getInstance;
                 this.method = method;
+                this.app = app;
                 this.injection = injection;
             }
 

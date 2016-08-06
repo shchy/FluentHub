@@ -82,8 +82,15 @@ namespace FluentHub.IO.Extension
             this.stream = stream;
             this.readCancelToken = new System.Threading.CancellationTokenSource();
             this.cache = new List<byte>();
+            
+        }
+
+        public void StartAutoTakeBuffer()
+        {
+            // todo 
             this.takingTask = Task.Run(() => { try { TakeBuffer(this.stream); } catch (Exception) { this.Dispose(); } });
         }
+
 
         private void TakeBuffer(Stream stream)
         {
@@ -95,7 +102,7 @@ namespace FluentHub.IO.Extension
                 {
                     readTask = stream.ReadAsync(buff, 0, buff.Length);
                 }
-
+                
                 // disposeでキャンセル可能にする
                 readTask.SafeWait(this.readCancelToken.Token);
                 // キャンセルを判定する
@@ -188,10 +195,12 @@ namespace FluentHub.IO.Extension
         public static IIOContext<byte[]> BuildContextByStream(
            this Stream @this)
         {
-            return
+            var context = 
                 new StreamContext(
                     @this
                     , () => @this.Close());
+            context.StartAutoTakeBuffer();
+            return context;
         }
     }
 }

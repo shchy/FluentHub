@@ -49,10 +49,12 @@ namespace FluentHub.Hub
         public static IIOContext<byte[]> BuildContextByTcp(
            this TcpClient @this)
         {
-            return
+            var context = 
                 new StreamContext(
                     @this.GetStream()
                     , () => @this.Close());
+            context.StartAutoTakeBuffer();
+            return context;
         }
 
     }

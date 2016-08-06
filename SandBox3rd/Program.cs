@@ -10,7 +10,7 @@ namespace SandBox3rd
     {
         static void Main(string[] args)
         {
-            new Sandbox.Test01.TestOtherClient().Run(args);
+            //new Test01.TestOtherClient().Run(args);
         }
     }
 }
