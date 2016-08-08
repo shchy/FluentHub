@@ -7,14 +7,19 @@ using System.Threading.Tasks;
 
 namespace Sandbox.Test01
 {
+    using ACTXT = IIOContext<IPingPongAppMessage>;
+    using BCTXT = IIOContext<IThirdAppMessage>;
+    using ACTXTS = IEnumerable<IIOContext<IPingPongAppMessage>>;
+    using BCTXTS = IEnumerable<IIOContext<IThirdAppMessage>>;
+
     public class ServerApp
     {
-        public void ReceivedPing(IIOContext<IPingPongAppMessage> sender, Ping message)
+        public void ReceivedPing(ACTXT sender, Ping message)
         {
             sender.Write(new Pong());
         }
 
-        public void TunnelReceive(IIOContext<IPingPongAppMessage> sender, Tunnel recvMessage, IEnumerable<IIOContext<IThirdAppMessage>> thirdAppContexts)
+        public void TunnelReceive(ACTXT sender, Tunnel recvMessage, BCTXTS thirdAppContexts)
         {
             // 接続中のIThirdAppMessageプロトコルを持つ相手にPangを送信
             foreach (var thirdContext in thirdAppContexts)

@@ -4,18 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B0DE3D5F-F9B6-433B-BDC5-6108576A9D34}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{26CAB9B5-1950-4066-BED3-CCC56FDCBAAC}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sandbox2nd</RootNamespace>
-    <AssemblyName>Sandbox2nd</AssemblyName>
+    <RootNamespace>FluentHub.Unity</RootNamespace>
+    <AssemblyName>FluentHub.Unity</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -60,22 +57,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
+    <Compile Include="UnityExtension.cs" />
+    <Compile Include="UnityModuleInjection.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FluentHub\FluentHub.csproj">
       <Project>{31b51484-f77b-47fd-bc83-674e7e4d85c2}</Project>
       <Name>FluentHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sandbox\Sandbox.csproj">
-      <Project>{5e2358c5-c40f-4470-9695-f7fb64e4dfb7}</Project>
-      <Name>Sandbox</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

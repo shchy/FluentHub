@@ -9,6 +9,6 @@ namespace FluentHub.Hub.Module
     public interface IModuleInjection
     {
         object Resolve(Type type);
-        void Add(Type type, Func<object> resolver);
+        void Add<T>(Func<T> resolver);
     }
 }

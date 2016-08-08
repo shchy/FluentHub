@@ -20,7 +20,7 @@ namespace FluentHub.Hub
         /// <param name="app"></param>
         static void RegisterResolver<AppIF>(this IModuleInjection @this, IContextApplication<AppIF> app)
         {
-            @this.Add(typeof(IEnumerable<IIOContext<AppIF>>), ()=> app.Pool.Get().ToArray());
+            @this.Add(()=> app.Pool.Get().ToArray().AsEnumerable());
         }
 
 
@@ -69,6 +69,15 @@ namespace FluentHub.Hub
         {
             // Moduleのメソッド引数を解決するDIコンテナ
             var resolver = new ModuleInjection();
+            return @this.RegisterModule(resolver, ()=>module);
+        }
+
+        public static IApplicationContainer RegisterModule<Module>(
+            this IApplicationContainer @this
+            , IModuleInjection resolver
+            , Func<Module> getModule)
+        {
+            // Moduleのメソッド引数を解決するDIコンテナ
             foreach (var app in @this.GetApps().ToArray())
             {
                 resolver.TryRegisterResolver(app);
@@ -79,10 +88,14 @@ namespace FluentHub.Hub
                 var appType = app.GetType().GetGenericArguments()[0];
                 var makeHelperMethod = typeof(ModuleExtension).GetMethod(nameof(ModuleExtension.MakeHelper), BindingFlags.NonPublic | BindingFlags.Static);
                 var typedMakeHelperMethod = makeHelperMethod.MakeGenericMethod(new[] { appType, typeof(Module) });
-                var helper = typedMakeHelperMethod.Invoke(null, new object[] { app, (Func<Module>)(()=>module), resolver }) as IModuleRegisterHelper;
+                var helper = typedMakeHelperMethod.Invoke(null, new object[] { app, getModule, resolver }) as IModuleRegisterHelper;
                 helper.Setup();
             }
             return @this;
         }
+
+
+
+
     }
 }

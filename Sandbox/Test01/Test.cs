@@ -2,6 +2,7 @@
 using FluentHub.IO;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
+using Microsoft.Practices.Unity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,8 +36,13 @@ namespace Sandbox.Test01
                 appContainer.MakeAppByTcpServer<IThirdAppMessage>(8099)
                 .RegisterConverter(new PangModelConverter());
 
+
+            // Unity使う版
+            var container = new UnityContainer();
+            // ModuleをUnityに登録しておく
+            container.RegisterType<ServerApp>();
             // シーケンスモジュールを直接登録するスタイル
-            appContainer.RegisterModule(new ServerApp());
+            appContainer.RegisterModule<ServerApp>(container);
 
             appContainer.Run();
         }

@@ -15,9 +15,9 @@ namespace FluentHub.Hub.Module
             this.resolvers = new Dictionary<Type, Func<object>>();
         }
 
-        public void Add(Type type, Func<object> resolver)
+        public void Add<T>(Func<T> resolver)
         {
-            this.resolvers[type] = resolver;
+            this.resolvers[typeof(T)] = ()=>resolver();
         }
 
         public object Resolve(Type type)
