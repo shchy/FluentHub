@@ -64,6 +64,7 @@ namespace FluentHub.Hub
 
         public void Run()
         {
+            SetThreadPool();
             var apps = null as IContextApplication[];
             lock ((appList as ICollection).SyncRoot)
             {
@@ -80,6 +81,21 @@ namespace FluentHub.Hub
             }
 
             Task.WaitAll(GetRunningTasks().ToArray());
+        }
+
+        /// <summary>
+        /// スレッドプールのパフォーマンスを上げるために最小値を設定しておく
+        /// </summary>
+        private static void SetThreadPool()
+        {
+            var maxX = 0;
+            var minY = 0;
+            var __ = 0;
+            var recommended = 256 + 256 + 64;
+            
+            ThreadPool.GetMaxThreads(out maxX, out __);
+            ThreadPool.GetMinThreads(out __, out minY);
+            ThreadPool.SetMinThreads(Math.Min(recommended, maxX), minY);
         }
 
         void AddTask(Task task)

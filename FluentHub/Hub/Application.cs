@@ -54,7 +54,6 @@ namespace FluentHub.Hub
             {
                 Logger.TrySafe(() => seq(context));
             }
-
         }
 
         private void UpdatedContext(IIOContext<T> context)

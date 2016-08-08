@@ -29,14 +29,15 @@ namespace Sandbox.Test01
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter());
 
-            // シーケンスモジュールを直接登録するスタイル
-            appContainer.RegisterModule(new ServerApp());
 
             // 異なるプロトコルを持つ第3者通信相手を定義
             var thirdApp =
                 appContainer.MakeAppByTcpServer<IThirdAppMessage>(8099)
                 .RegisterConverter(new PangModelConverter());
-            
+
+            // シーケンスモジュールを直接登録するスタイル
+            appContainer.RegisterModule(new ServerApp());
+
             appContainer.Run();
         }
     }
