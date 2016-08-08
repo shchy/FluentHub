@@ -5,11 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Practices.Unity;
 using FluentHub.Unity;
+using FluentHub.Logger;
 
 namespace FluentHub.Hub
 {
     public static class UnityExtension
     {
+        public static IUnityContainer MakeContainer(this IApplicationContainer @this)
+        {
+            var container = new UnityContainer();
+            container.RegisterInstance<IApplicationContainer>(@this);
+            container.RegisterInstance<ILogger>(@this.Logger);
+            foreach (var app in @this.GetApps())
+            {
+                var appIF = app.GetType().GetGenericArguments()[0];
+                var typedApp = typeof(IContextApplication<>).MakeGenericType(appIF);
+                container.RegisterInstance(typedApp, app);
+            }
+            return container;
+        }
+
         /// <summary>
         /// Module型のクラスが持っているPublicメソッドをAppのシーケンスメソッドとして登録する
         /// </summary>

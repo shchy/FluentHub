@@ -76,20 +76,11 @@ namespace FluentHub.ModelConverter
 
         int GetDefaultTypeSize<T>()
         {
-            //if (typeof(T).IsArray)
-            //{
-            //    var gType = typeof(T).GetElementType();
-            //    var count = (value as Array).Length;
-            //    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
-            //}
-            //if (typeof(IEnumerable).IsAssignableFrom(typeof(T)))
-            //{
-
-            //    var gType = typeof(T).GetGenericArguments()[0];
-            //    var count = (value as IEnumerable).OfType<object>().Count();
-            //    return System.Runtime.InteropServices.Marshal.SizeOf(gType) * count;
-            //}
-            //else
+            if (typeof(T).IsEnum)
+            {
+                return System.Runtime.InteropServices.Marshal.SizeOf(Enum.GetUnderlyingType(typeof(T)));
+            }
+            else
             {
                 return System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
             }
@@ -98,6 +89,10 @@ namespace FluentHub.ModelConverter
         public byte[] ToBytes<T>(T v)
         {
             var key = typeof(T);
+            if (typeof(T).IsEnum)
+            {
+                key = Enum.GetUnderlyingType(typeof(T));
+            }
             if (converters.ContainsKey(key) == false)
             {
                 throw new Exception($"{key.Name} is not registed");
@@ -109,6 +104,10 @@ namespace FluentHub.ModelConverter
         public T ToModel<T>(byte[] data)
         {
             var key = typeof(T);
+            if (typeof(T).IsEnum)
+            {
+                key = Enum.GetUnderlyingType(typeof(T));
+            }
             if (converters.ContainsKey(key) == false)
             {
                 throw new Exception($"{key.Name} is not registed");

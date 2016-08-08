@@ -14,6 +14,7 @@ namespace Sandbox2nd
         {
             //new Sandbox.Test00.Test(false).Run(args);
             new Sandbox.Test01.TestClient().Run(args);
+            //new Sandbox.Test02.Client().Run();
         }
     }
 }

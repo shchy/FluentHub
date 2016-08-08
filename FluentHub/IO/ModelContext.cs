@@ -112,10 +112,14 @@ namespace FluentHub.IO
 
         void ClearJammedPacket()
         {
+            var jammed = null as byte[];
             lock((this.bytecache as ICollection).SyncRoot)
             {
+                jammed = this.bytecache.ToArray();
                 this.bytecache.Clear();
             }
+
+            this.logger.Debug($"clear jammed packet 0x{string.Join("", jammed.Select(b=>b.ToString("X2")))}");
         }
 
         public T Read(Func<T, bool> predicate)

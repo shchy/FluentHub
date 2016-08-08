@@ -29,20 +29,20 @@ namespace FluentHub.ModelConverter
         {
             var builder = new ModelBuilder<T>();
             // default type converter
-            builder.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m), data => BitConverter.ToBoolean(data, 0));
-            builder.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m), data => BitConverter.ToChar(data, 0));
-            builder.Converter.RegisterConverter<byte>(m => new[] { (byte)m }, data => data.First());
-            builder.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m), data => BitConverter.ToInt16(data, 0));
-            builder.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m), data => BitConverter.ToInt32(data, 0));
-            builder.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m), data => BitConverter.ToInt64(data, 0));
-            builder.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m), data => BitConverter.ToUInt16(data, 0));
-            builder.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m), data => BitConverter.ToUInt32(data, 0));
-            builder.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0));
-            builder.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0));
-            builder.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0));
-            builder.Converter.RegisterConverter<byte[]>(m => (byte[])m, data => data);
-            builder.Converter.RegisterConverter<IEnumerable<byte>>(m => (m as IEnumerable<byte>).ToArray(), data => data);
-            builder.Converter.RegisterEqual<Array>((x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
+            builder.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m), data => BitConverter.ToBoolean(data, 0), () => sizeof(bool));
+            builder.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m), data => BitConverter.ToChar(data, 0), () => sizeof(char));
+            builder.Converter.RegisterConverter<byte>(m => new[] { (byte)m }, data => data.First(), () => sizeof(byte));
+            builder.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m), data => BitConverter.ToInt16(data, 0), () => sizeof(short));
+            builder.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m), data => BitConverter.ToInt32(data, 0), () => sizeof(int));
+            builder.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m), data => BitConverter.ToInt64(data, 0), () => sizeof(long));
+            builder.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m), data => BitConverter.ToUInt16(data, 0), () => sizeof(ushort));
+            builder.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m), data => BitConverter.ToUInt32(data, 0), () => sizeof(uint));
+            builder.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0), () => sizeof(ulong));
+            builder.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0), () => sizeof(float));
+            builder.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0), () => sizeof(double));
+            //builder.Converter.RegisterConverter<byte[]>(m => (byte[])m, data => data);
+            //builder.Converter.RegisterConverter<IEnumerable<byte>>(m => (m as IEnumerable<byte>).ToArray(), data => data);
+            //builder.Converter.RegisterEqual<Array>((x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
             return builder;
         }
 
@@ -61,20 +61,32 @@ namespace FluentHub.ModelConverter
                 return @this;
             }
             // override
-            @this.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m).Reverse().ToArray(), data => BitConverter.ToBoolean(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m).Reverse().ToArray(), data => BitConverter.ToChar(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m).Reverse().ToArray(), data => BitConverter.ToInt16(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m).Reverse().ToArray(), data => BitConverter.ToInt32(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m).Reverse().ToArray(), data => BitConverter.ToInt64(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m).Reverse().ToArray(), data => BitConverter.ToUInt16(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m).Reverse().ToArray(), data => BitConverter.ToUInt32(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m).Reverse().ToArray(), data => BitConverter.ToUInt64(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m).Reverse().ToArray(), data => BitConverter.ToSingle(data.Reverse().ToArray(), 0));
-            @this.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m).Reverse().ToArray(), data => BitConverter.ToDouble(data.Reverse().ToArray(), 0));
+            @this.Converter.RegisterConverter<bool>(m => BitConverter.GetBytes((bool)m).Reverse().ToArray(), data => BitConverter.ToBoolean(data.Reverse().ToArray(), 0), () => sizeof(bool));
+            @this.Converter.RegisterConverter<char>(m => BitConverter.GetBytes((char)m).Reverse().ToArray(), data => BitConverter.ToChar(data.Reverse().ToArray(), 0), () => sizeof(char));
+            @this.Converter.RegisterConverter<short>(m => BitConverter.GetBytes((short)m).Reverse().ToArray(), data => BitConverter.ToInt16(data.Reverse().ToArray(), 0), () => sizeof(short));
+            @this.Converter.RegisterConverter<int>(m => BitConverter.GetBytes((int)m).Reverse().ToArray(), data => BitConverter.ToInt32(data.Reverse().ToArray(), 0), () => sizeof(int));
+            @this.Converter.RegisterConverter<long>(m => BitConverter.GetBytes((long)m).Reverse().ToArray(), data => BitConverter.ToInt64(data.Reverse().ToArray(), 0), () => sizeof(long));
+            @this.Converter.RegisterConverter<ushort>(m => BitConverter.GetBytes((ushort)m).Reverse().ToArray(), data => BitConverter.ToUInt16(data.Reverse().ToArray(), 0), () => sizeof(ushort));
+            @this.Converter.RegisterConverter<uint>(m => BitConverter.GetBytes((uint)m).Reverse().ToArray(), data => BitConverter.ToUInt32(data.Reverse().ToArray(), 0), () => sizeof(uint));
+            @this.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m).Reverse().ToArray(), data => BitConverter.ToUInt64(data.Reverse().ToArray(), 0), () => sizeof(ulong));
+            @this.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m).Reverse().ToArray(), data => BitConverter.ToSingle(data.Reverse().ToArray(), 0), () => sizeof(float));
+            @this.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m).Reverse().ToArray(), data => BitConverter.ToDouble(data.Reverse().ToArray(), 0), () => sizeof(double));
+            
+            return @this;
+        }
+
+        public static IModelBuilder<TModel> RegisterTypeConverter<TModel, VModel>(this IModelBuilder<TModel> @this
+            , Func<VModel, byte[]> toBytes, Func<byte[], VModel> toModel, Func<int> getSize)
+            where TModel : class, new()
+        {
+            @this.Converter.RegisterConverter<VModel>(
+                m => toBytes((VModel)m)
+                , bytes => toModel(bytes)
+                , getSize);
 
             return @this;
         }
-        
+
         public static IModelBuilder<T> Init<T>(this IModelBuilder<T> @this, Action<T> init)
             where T : class, new()
         {
@@ -341,6 +353,14 @@ namespace FluentHub.ModelConverter
             else if (arrayType.Equals(typeof(Queue<VModel>)))
             {
                 return xs => new Queue<VModel>(xs);
+            }
+            else if (arrayType.Equals(typeof(string)))
+            {
+                return xs =>
+                {
+                    var a = new string(xs.OfType<char>().ToArray());
+                    return a.AsEnumerable() as IEnumerable<VModel>;
+                };
             }
             else
             {

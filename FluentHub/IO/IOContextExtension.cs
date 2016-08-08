@@ -29,6 +29,34 @@ namespace FluentHub.IO
             } while (DateTime.Now < target);
             return null;
         }
+
+        public static U ReadAs<T,U>(
+            this IIOContext<T> @this
+            , int timeoutMillisecond)
+            where T : class
+            where U : class, T
+        {
+            var target = DateTime.Now.AddMilliseconds(timeoutMillisecond);
+            do
+            {
+                var model = @this.ReadAs<T,U>();
+                if (model != null)
+                {
+                    return model;
+                }
+
+            } while (DateTime.Now < target);
+            return null;
+        }
+
+        public static U ReadAs<T,U>(
+            this IIOContext<T> @this)
+            where T : class
+            where U : class, T
+        {
+            var model = @this.Read(m => m is U) as U;
+            return model;
+        }
     }
 
     public static class ModelContext
