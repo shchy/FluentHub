@@ -42,7 +42,8 @@ namespace FluentHub.IO.Extension
             this.readCancelToken = new System.Threading.CancellationTokenSource();
             this.cache = new List<byte>();
             this.takingTask = Task.Run(() => { });
-            // todo 誰に呼んでもらうのがいいのか
+            // todo 誰に呼んでもらうのがいいのか。.Net組み込みのReceivedイベント実装してるやつとかはどうやってるの？ハードウェアのイベントとか監視してるの？
+            // Nativeな奴らにイベント持たせるとか？
             Run();
         }
 

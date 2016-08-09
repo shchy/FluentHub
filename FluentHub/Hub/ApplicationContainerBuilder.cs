@@ -94,7 +94,6 @@ namespace FluentHub.Hub
         /// 3者間シーケンスの登録
         /// T<->Server<->U的なシーケンス
         /// U群の内、どれかを特定するのはシーケンス内でやってね
-        /// todo ISession的な概念を作る？IIOContextごとに持つやつ。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>

@@ -19,14 +19,12 @@ namespace FluentHub.Hub
         public ApplicationContainer(ILogger logger = null)
         {
             this.Logger = logger ?? new DefaultLogger();
-            // todo 同じタイプを登録できるようにする？Dictionaryやめる？
             this.appList = new Dictionary<Type, IContextApplication>();
             this.runningTasks = new List<Task>();
         }
 
         public void Add<T>(IContextApplication<T> app)
         {
-            // todo problem when after Run
             var tType = typeof(T);
             lock ((appList as ICollection).SyncRoot)
             {

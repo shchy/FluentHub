@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    // todo session
     public interface IContextPool<T> : IDisposable
     {
         void Add(IIOContext<T> modelContext);
