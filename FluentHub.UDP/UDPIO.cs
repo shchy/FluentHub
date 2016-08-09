@@ -27,7 +27,7 @@ namespace FluentHub.UDP
 
         public UDPIO(string host, int sendPort, int recvPort)
         {
-            // todo sendPortとrecvPortを分けなくてもいいんだけど１PCでテストできるように分けることも可能にしておく
+            // memo sendPortとrecvPortを分けなくてもいいんだけど１PCでテストできるように分けることも可能にしておく
             this.client = new UdpClient(new IPEndPoint(IPAddress.Any, recvPort));
             this.sendHost = host;
             this.sendPort = sendPort;

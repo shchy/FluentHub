@@ -40,7 +40,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 }
                 else
                 {
-                    // todo 要素数が足りなかったら？
+                    // 要素数が足りなかったらデフォルト
                     item = new VModel();
                 }
                 this.childBuilder.ToBytes(w, item);

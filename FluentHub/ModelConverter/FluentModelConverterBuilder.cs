@@ -40,9 +40,6 @@ namespace FluentHub.ModelConverter
             builder.Converter.RegisterConverter<ulong>(m => BitConverter.GetBytes((ulong)m), data => BitConverter.ToUInt64(data, 0), () => sizeof(ulong));
             builder.Converter.RegisterConverter<float>(m => BitConverter.GetBytes((float)m), data => BitConverter.ToSingle(data, 0), () => sizeof(float));
             builder.Converter.RegisterConverter<double>(m => BitConverter.GetBytes((double)m), data => BitConverter.ToDouble(data, 0), () => sizeof(double));
-            //builder.Converter.RegisterConverter<byte[]>(m => (byte[])m, data => data);
-            //builder.Converter.RegisterConverter<IEnumerable<byte>>(m => (m as IEnumerable<byte>).ToArray(), data => data);
-            //builder.Converter.RegisterEqual<Array>((x, y) => Enumerable.SequenceEqual((x as Array).OfType<object>(), (y as Array).OfType<object>()));
             return builder;
         }
 

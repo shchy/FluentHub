@@ -35,7 +35,7 @@ namespace FluentHub.Hub.Module
                 where method.IsPublic
                 where method.DeclaringType == typeof(Module)
                 // かつそのメソッドの引数に電文型の仮引数、またはIIOContext<電文型>の仮引数があればそのメソッドはシーケンスとみなす 
-                // todo 他のアプリの電文型が混合されてる場合、両方に反応しちゃうね。
+                // todo 他のアプリの電文型が混合されてる場合、両方に反応しちゃうね。別にいいね。3者間通信で相手も1人指定でイケるとか思われたら変な動きするね。ダメかもね。
                 let prms = method.GetParameters().ToArray()
                 let isKnown1 = (Func<Type, bool>)(t => typeof(AppIF).IsAssignableFrom(t))
                 let isKnown2 = (Func<Type, bool>)(t => t == typeof(IIOContext<AppIF>))

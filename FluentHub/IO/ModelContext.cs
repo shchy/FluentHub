@@ -54,6 +54,9 @@ namespace FluentHub.IO
         {
             try
             {
+                // 何か追加で受信したということは疑惑解消の可能性が高まったので執行猶予を伸ばす為にいったん開放
+                this.jammedPacketCleaner.Cancel();
+
                 var isBuilded = false;
                 lock (this.syncObj)
                 {
@@ -70,10 +73,24 @@ namespace FluentHub.IO
                         }
                     }
                 }
-                if (isBuilded && Received != null)
+
+                // 1つもモデル変換できなかった
+                if (isBuilded == false)
                 {
-                    Received(this, EventArgs.Empty);
+                    // パケットが詰まってるかもしれないので執行猶予付きでパケットキャッシュをクリア
+                    this.jammedPacketCleaner.Register(ClearJammedPacket);
                 }
+                else
+                {
+                    // モデル変換できたということは疑いが晴れたので解放
+                    this.jammedPacketCleaner.Cancel();
+
+                    if (Received != null)
+                    {
+                        Received(this, EventArgs.Empty);
+                    }
+                }
+                
             }
             catch (Exception ex)
             {
@@ -83,25 +100,15 @@ namespace FluentHub.IO
 
         bool TryBuildModel(List<byte> bytes, IList<T> models)
         {
-            // 何もなければ何もしない。
-            if (bytes.Any() == false)
-            {
-                return false;
-            }
-            
             var result =
                 this.converters.TryToBuild(bytes);
                 
             // 現在のパケットキャッシュからどのコンバーターもモデルへ変換できなかった
             if (result == null || result.Item1 == null)
             {
-                // パケットが詰まってるかもしれないので執行猶予付きでパケットキャッシュをクリア
-                this.jammedPacketCleaner.Register(ClearJammedPacket);
                 return false;
             }
-            // モデル変換できたということは疑いが晴れたので解放
-            this.jammedPacketCleaner.Cancel();
-
+            
             this.logger.Debug($"recv {result.Item1.GetType().Name}");
 
             models.Add(result.Item1);

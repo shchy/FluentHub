@@ -95,6 +95,7 @@ namespace FluentHub.Hub
                 }
                 logger.TrySafe(() => OnUpdate(context));
                 // todo 誰も処理しないAnyがあるとCPU100%になっちゃう問題
+                // todo そもそもシーケンスの非同期と結合しないから処理自体を考え直す
                 Thread.Sleep(1);
             } while (true);
         }

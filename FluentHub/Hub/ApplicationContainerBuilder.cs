@@ -21,7 +21,7 @@ namespace FluentHub.Hub
                 new Application<T>(
                     @this.MakeContextPool<T>()
                     , streamContextFactory
-                    , new SuspendedDisposalSource(10 * 1000)    // todo 外に出す
+                    , new SuspendedDisposalSource(1000)    // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
                     , @this.Logger
                     );
             @this.Add(app);
@@ -192,7 +192,6 @@ namespace FluentHub.Hub
             this IContextApplication<T> @this
             , Func<IEnumerable<IIOContext<T>>, Return> sequence)
         {
-            // todo 例外起こす方がいい？
             return
                 @this.Logger.TrySafe(
                     () => sequence(@this.Pool.Get().ToArray())).Item2;
