@@ -48,9 +48,19 @@ namespace FluentHub.IO
             this.bytecache = new List<byte>();
             this.modelcache = new List<T>();
             this.byteContext.Received += ByteContext_Received;
+            if (this.byteContext.IsAny)
+            {
+                ReceivedHandler();
+            }
         }
 
+
         private void ByteContext_Received(object sender, EventArgs e)
+        {
+            ReceivedHandler();
+        }
+
+        private void ReceivedHandler()
         {
             try
             {
@@ -90,13 +100,14 @@ namespace FluentHub.IO
                         Received(this, EventArgs.Empty);
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
                 logger.Exception(ex);
             }
         }
+
 
         bool TryBuildModel(List<byte> bytes, IList<T> models)
         {

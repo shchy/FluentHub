@@ -47,6 +47,12 @@ namespace FluentHub.Hub
                 CleaningPool(pool);
             }
 
+            // ここに来るまでにすでに何らかのメッセージを受信している場合があるのでここで処理させる
+            if (modelContext.IsAny)
+            {
+                ReceivedMessage(modelContext);
+            }
+
             if (Added == null)
             {
                 return;
@@ -71,7 +77,12 @@ namespace FluentHub.Hub
 
         private void ModelContext_Received(object sender, EventArgs e)
         {
-            lock (sender)
+            ReceivedMessage(sender as IIOContext<T>);
+        }
+
+        private void ReceivedMessage(IIOContext<T> context)
+        {
+            lock (context)
             {
                 // 処理中だったら無視する
                 if (this.updateCallEvent.WaitOne(0) == false)
@@ -82,10 +93,9 @@ namespace FluentHub.Hub
                 this.updateCallEvent.Reset();
             }
 
-            var context = sender as IIOContext<T>;
             do
             {
-                lock (sender)
+                lock (context)
                 {
                     if (context.IsAny == false)
                     {
