@@ -22,6 +22,7 @@ namespace FluentHub.Hub
                     @this.MakeContextPool<T>()
                     , streamContextFactory
                     , new SuspendedDisposalSource(1000)    // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
+                    , new SequenceRunnerFacade<T>(@this.Logger) // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
                     , @this.Logger
                     );
             @this.Add(app);

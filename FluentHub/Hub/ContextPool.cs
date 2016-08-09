@@ -14,7 +14,6 @@ namespace FluentHub.Hub
     {
         private List<IIOContext<T>> pool;
         private ILogger logger;
-        private EventWaitHandle updateCallEvent;
 
         public event Action<IIOContext<T>> Updated;
         public event Action<IIOContext<T>> Added;
@@ -23,7 +22,6 @@ namespace FluentHub.Hub
         {
             this.logger = logger;
             this.pool = new List<IIOContext<T>>();
-            this.updateCallEvent = new ManualResetEvent(true);
         }
 
         public void Dispose()
@@ -50,7 +48,7 @@ namespace FluentHub.Hub
             // ここに来るまでにすでに何らかのメッセージを受信している場合があるのでここで処理させる
             if (modelContext.IsAny)
             {
-                ReceivedMessage(modelContext);
+                OnUpdate(modelContext);
             }
 
             if (Added == null)
@@ -77,38 +75,9 @@ namespace FluentHub.Hub
 
         private void ModelContext_Received(object sender, EventArgs e)
         {
-            ReceivedMessage(sender as IIOContext<T>);
+            OnUpdate(sender as IIOContext<T>);
         }
 
-        private void ReceivedMessage(IIOContext<T> context)
-        {
-            lock (context)
-            {
-                // 処理中だったら無視する
-                if (this.updateCallEvent.WaitOne(0) == false)
-                {
-                    return;
-                }
-                // 処理中にする
-                this.updateCallEvent.Reset();
-            }
-
-            do
-            {
-                lock (context)
-                {
-                    if (context.IsAny == false)
-                    {
-                        this.updateCallEvent.Set();
-                        return;
-                    }
-                }
-                logger.TrySafe(() => OnUpdate(context));
-                // todo 誰も処理しないAnyがあるとCPU100%になっちゃう問題
-                // todo そもそもシーケンスの非同期と結合しないから処理自体を考え直す
-                Thread.Sleep(1);
-            } while (true);
-        }
 
         void OnUpdate(IIOContext<T> context)
         {

@@ -17,6 +17,7 @@ namespace FluentHub.Hub
         private IIOContextMaker<byte[]> streamContextFactory;
         private List<IModelConverter<T>> modelConverters;
         private ISuspendedDisposalSource suspendedSentenceSource;
+        private ISequenceRunnerFacade<T> sequenceRunnerFacade;
 
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
@@ -25,6 +26,7 @@ namespace FluentHub.Hub
             IContextPool<T> pool
             , IIOContextMaker<byte[]> sreamContextFactory
             , ISuspendedDisposalSource suspendedSentenceSource
+            , ISequenceRunnerFacade<T> sequenceRunnerFacade
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
@@ -34,6 +36,7 @@ namespace FluentHub.Hub
             this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
             this.suspendedSentenceSource = suspendedSentenceSource;
+            this.sequenceRunnerFacade = sequenceRunnerFacade;
         }
 
         public void Run()
@@ -67,7 +70,6 @@ namespace FluentHub.Hub
 
         private void UpdatedContext(IIOContext<T> context)
         {
-            // todo 非同期にする？
             var ss = null as Action<IIOContext<T>>[];
 
             lock ((sequences as ICollection).SyncRoot)
@@ -77,7 +79,7 @@ namespace FluentHub.Hub
 
             foreach (var seq in ss)
             {
-                Logger.TrySafe(() => seq(context));
+                this.sequenceRunnerFacade.Push(context, seq);
             }
         }
 
