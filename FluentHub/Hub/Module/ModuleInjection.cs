@@ -20,6 +20,11 @@ namespace FluentHub.Hub.Module
             this.resolvers[typeof(T)] = ()=>resolver();
         }
 
+        public void Add<T, U>(Func<U> resolver) where U : T
+        {
+            this.resolvers[typeof(T)] = () => resolver();
+        }
+
         public object Resolve(Type type)
         {
             if (this.resolvers.ContainsKey(type))

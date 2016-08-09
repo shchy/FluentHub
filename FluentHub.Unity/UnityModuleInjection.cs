@@ -18,6 +18,11 @@ namespace FluentHub.Unity
             this.container.RegisterType<T>(new InjectionFactory(_=> resolver()));
         }
 
+        public void Add<T, U>(Func<U> resolver) where U : T
+        {
+            this.container.RegisterType<T>(new InjectionFactory(_ => resolver()));
+        }
+
         public object Resolve(Type type)
         {
             return this.container.Resolve(type);

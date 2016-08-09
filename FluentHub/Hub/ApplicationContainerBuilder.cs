@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System.Reflection;
+using FluentHub.IO.Extension;
 
 namespace FluentHub.Hub
 {
     public static class ApplicationContainerBuilder
     {
-
         public static IContextApplication<T> MakeApp<T>(
             this IApplicationContainer @this
             , IIOContextMaker<byte[]> streamContextFactory)
@@ -21,6 +21,7 @@ namespace FluentHub.Hub
                 new Application<T>(
                     @this.MakeContextPool<T>()
                     , streamContextFactory
+                    , new SuspendedDisposalSource(10 * 1000)    // todo 外に出す
                     , @this.Logger
                     );
             @this.Add(app);

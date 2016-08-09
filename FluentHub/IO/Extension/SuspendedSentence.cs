@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,76 +8,70 @@ using System.Threading.Tasks;
 
 namespace FluentHub.IO.Extension
 {
-    public class SuspendedSentence : ISuspendedSentence
+    public class SuspendedDisposalToken : ISuspendedDisposal, ISuspendedDisposalToken
     {
-        private Task runningTask;
         private Action method;
         private ManualResetEvent waitEvent;
-        private DateTime targetTime;
-        private bool isDisposed;
         private int suspendMillisecond;
+        private object syncObject = new object();
 
-        public SuspendedSentence(int suspendMillisecond)
+        public DateTime TargetTime { get; set; }
+        public WaitHandle WaitHandle => waitEvent;
+        public bool IsDisposed { get; set; }
+
+
+        public SuspendedDisposalToken(int suspendMillisecond)
         {
-            this.waitEvent = new ManualResetEvent(false);
             this.suspendMillisecond = suspendMillisecond;
+            this.waitEvent = new ManualResetEvent(false);
         }
 
-        public void Run()
+        public void Register(Action method)
         {
-            if (this.runningTask != null || this.isDisposed)
+            lock (syncObject)
             {
-                return;
-            }
-            this.runningTask = Task.Run((Action)Running);
-        }
-
-        private void Running()
-        {
-            while (this.isDisposed == false)
-            {
-                // 処理が登録されていない間は動かない
-                this.waitEvent.WaitOne();
-
-                // 時が来たら実行
-                if (targetTime < DateTime.Now)
+                // すでに実行中の場合は無視
+                if (this.IsDisposed || this.waitEvent.WaitOne(0) == true)
                 {
-                    // 処理が空だったら未登録でやり直す
-                    if (method != null)
-                    {
-                        method();
-                        method = null;
-                    }
-                    this.waitEvent.Reset();
-                    continue;
+                    return;
                 }
-
-                System.Threading.Thread.Sleep(1);
+                this.TargetTime = DateTime.Now.AddMilliseconds(this.suspendMillisecond);
+                this.method = method;
+                this.waitEvent.Set();
             }
         }
 
-        public void Sentence(Action method)
+        public void Disposal()
         {
-            // すでに実行中の場合は無視
-            if (this.waitEvent.WaitOne(0) == true)
+            lock (syncObject)
             {
-                return;
+                // 処理が空だったら未登録でやり直す
+                if (method != null)
+                {
+                    method();
+                    method = null;
+                }
+                this.waitEvent.Reset();
             }
-            this.targetTime = DateTime.Now.AddMilliseconds(this.suspendMillisecond);
-            this.method = method;
-            this.waitEvent.Set();
         }
 
-        public void Expiration()
+        public void Cancel()
         {
-            this.method = null;
-            this.waitEvent.Reset();
+            lock (syncObject)
+            {
+                this.method = null;
+                this.waitEvent.Reset();
+            }
         }
 
         public void Dispose()
         {
-            this.isDisposed = true;
-            this.waitEvent.Set();
+            this.IsDisposed = true;
+            lock (syncObject)
+            {
+                this.method = null;
+                this.waitEvent.Set();
+            }
         }
     }
 }

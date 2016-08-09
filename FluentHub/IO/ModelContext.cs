@@ -20,7 +20,7 @@ namespace FluentHub.IO
         private bool isDisposed;
         private object syncObj = new object();
         private ILogger logger;
-        private ISuspendedSentence jammedPacketCleaner;
+        private ISuspendedDisposal jammedPacketCleaner;
 
         public event EventHandler Received;
         public bool IsAny
@@ -38,7 +38,7 @@ namespace FluentHub.IO
 
         public ModelContext(IIOContext<byte[]> byteContext
             , IEnumerable<IModelConverter<T>> converters
-            , ISuspendedSentence jammedPacketCleaner
+            , ISuspendedDisposal jammedPacketCleaner
             , ILogger logger)
         {
             this.jammedPacketCleaner = jammedPacketCleaner;
@@ -96,11 +96,11 @@ namespace FluentHub.IO
             if (result == null || result.Item1 == null)
             {
                 // パケットが詰まってるかもしれないので執行猶予付きでパケットキャッシュをクリア
-                this.jammedPacketCleaner.Sentence(ClearJammedPacket);
+                this.jammedPacketCleaner.Register(ClearJammedPacket);
                 return false;
             }
             // モデル変換できたということは疑いが晴れたので解放
-            this.jammedPacketCleaner.Expiration();
+            this.jammedPacketCleaner.Cancel();
 
             this.logger.Debug($"recv {result.Item1.GetType().Name}");
 

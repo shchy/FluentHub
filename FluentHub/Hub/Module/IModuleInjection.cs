@@ -10,5 +10,7 @@ namespace FluentHub.Hub.Module
     {
         object Resolve(Type type);
         void Add<T>(Func<T> resolver);
+        void Add<T, U>(Func<U> resolver)
+            where U : T;
     }
 }

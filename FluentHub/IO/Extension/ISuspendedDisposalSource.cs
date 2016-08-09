@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace FluentHub.IO.Extension
 {
-    public interface ISuspendedDisposal : IDisposable
+    public interface ISuspendedDisposalSource : IDisposable
     {
-        void Register(Action method);
-        void Cancel();
+        void Run();
+        void Stop();
+        ISuspendedDisposal MakeToken();
     }
 }

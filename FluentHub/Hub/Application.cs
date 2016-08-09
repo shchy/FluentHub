@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using FluentHub.ModelConverter;
+using FluentHub.IO.Extension;
 
 namespace FluentHub.Hub
 {
@@ -15,6 +16,7 @@ namespace FluentHub.Hub
         private List<Action<IIOContext<T>>> initializeSequences;
         private IIOContextMaker<byte[]> streamContextFactory;
         private List<IModelConverter<T>> modelConverters;
+        private ISuspendedDisposalSource suspendedSentenceSource;
 
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
@@ -22,6 +24,7 @@ namespace FluentHub.Hub
         public Application(
             IContextPool<T> pool
             , IIOContextMaker<byte[]> sreamContextFactory
+            , ISuspendedDisposalSource suspendedSentenceSource
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
@@ -30,16 +33,22 @@ namespace FluentHub.Hub
             this.streamContextFactory = sreamContextFactory;
             this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
+            this.suspendedSentenceSource = suspendedSentenceSource;
         }
 
         public void Run()
         {
+            
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
             this.streamContextFactory.Maked = MakedClient;
+            this.suspendedSentenceSource.Run();
             this.streamContextFactory.Run();
+            this.suspendedSentenceSource.Stop();
+
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
+            
         }
 
         private void AddedContext(IIOContext<T> context)
@@ -77,6 +86,7 @@ namespace FluentHub.Hub
             this.Pool.Add(
                 context.BuildContext(
                     this.modelConverters.ToArray()
+                    , this.suspendedSentenceSource.MakeToken()
                     , this.Logger));
         }
 

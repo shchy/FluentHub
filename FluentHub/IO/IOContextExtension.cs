@@ -64,15 +64,9 @@ namespace FluentHub.IO
         public static IIOContext<T> BuildContext<T>(
             this IIOContext<byte[]> @this
             , IEnumerable<IModelConverter<T>> converters
+            , ISuspendedDisposal suspendedSentence
             , ILogger logger)
         {
-            // todo jammed packet clear のため。もっといい入れ方ないかな
-            // todo 猶予時間もどっかで設定したい
-            var suspendedSentence = new SuspendedSentence(1000 * 10); 
-            // todo Runもここじゃない感強い
-            // todo Contextごとにスレッドできちゃう。アプリケーション単位でRunすればいい？
-            suspendedSentence.Run();
-
             return
                 new ModelContext<T>(
                     new IOContextLoggerProxy<byte[]>(

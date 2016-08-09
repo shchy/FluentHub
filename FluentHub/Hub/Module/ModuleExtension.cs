@@ -20,7 +20,7 @@ namespace FluentHub.Hub
         /// <param name="app"></param>
         static void RegisterResolver<AppIF>(this IModuleInjection @this, IContextApplication<AppIF> app)
         {
-            @this.Add(()=> app.Pool.Get().ToArray().AsEnumerable());
+            @this.Add<IEnumerable<IIOContext<AppIF>>>(()=> app.Pool.Get().ToArray());
         }
 
 
