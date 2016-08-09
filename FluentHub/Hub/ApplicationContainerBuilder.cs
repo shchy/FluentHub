@@ -47,113 +47,72 @@ namespace FluentHub.Hub
             return @this;
         }
 
-        /// <summary>
-        /// アプリケーションにシーケンスを登録する
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="this"></param>
-        /// <param name="sequence"></param>
-        /// <returns></returns>
-        public static IContextApplication<T> RegisterSequence<T>(
-            this IContextApplication<T> @this
-            , Action<IIOContext<T>> sequence)
-        {
-            @this.AddSequence(sequence);
-            return @this;
-        }
-
-        /// <summary>
-        /// アプリケーションにシーケンスを追加する
-        /// 指定の仮引数型のモデルが受信済みであるかをあらかじめ確認してから発行される
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="this"></param>
-        /// <param name="sequence"></param>
-        /// <returns></returns>
-        public static IContextApplication<T> RegisterSequence<T, U>(
-            this IContextApplication<T> @this
-            , Action<IIOContext<T>, U> sequence)
-            where U : class, T
-        {
-            var typeT = typeof(U);
-
-            @this.AddSequence(context =>
-            {
-                var model = context.Read(x => typeT.IsInstanceOfType(x));
-                if (model == null)
-                {
-                    return;
-                }
-                sequence(context, model as U);
-            });
-            return @this;
-        }
-
-
-        /// <summary>
-        /// 3者間シーケンスの登録
-        /// T<->Server<->U的なシーケンス
-        /// U群の内、どれかを特定するのはシーケンス内でやってね
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="this"></param>
-        /// <param name="sequence"></param>
-        /// <returns></returns>
-        public static IApplicationContainer RegisterSequence<T, U>(
-            this IApplicationContainer @this
-            , Action<IIOContext<T>, IEnumerable<IIOContext<U>>> sequence)
-        {
-            var app = @this.GetApp<T>();
-            var appTarg = @this.GetApp<U>();
-            System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
-            System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
-
-            app.AddSequence(context =>
-            {
-                var contexts = appTarg.Pool.Get().ToArray();
-                sequence(context, contexts);
-            });
-
-            return @this;
-        }
-
         
+    }
 
-        /// <summary>
-        /// モデル指定バージョン
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="U"></typeparam>
-        /// <param name="this"></param>
-        /// <param name="sequence"></param>
-        /// <returns></returns>
-        public static IApplicationContainer RegisterSequence<T, U, Ti>(
+    public static class Gokan
+    {
+
+        public static IApplicationContainer RegisterSequence<T1>(
             this IApplicationContainer @this
-            , Action<IIOContext<T>, Ti, IEnumerable<IIOContext<U>>> sequence)
-            where Ti : class, T
+            , Action<T1> lambda)
         {
-            var app = @this.GetApp<T>();
-            var appTarg = @this.GetApp<U>();
-            System.Diagnostics.Debug.Assert(app != null, "RegisterSequence");
-            System.Diagnostics.Debug.Assert(appTarg != null, "RegisterSequence");
-
-            var typeT = typeof(Ti);
-
-            app.AddSequence(context =>
-            {
-                var model = context.Read(x => typeT.IsInstanceOfType(x));
-                if (model == null)
-                {
-                    return;
-                }
-                var contexts = appTarg.Pool.Get().ToArray();
-                sequence(context, model as Ti, contexts);
-            });
-
-            return @this;
+            return @this.RegisterSequence(lambda.Method, ()=> lambda.Target);
         }
-        
 
+        public static IApplicationContainer RegisterSequence<T1, T2>(
+            this IApplicationContainer @this
+            , Action<T1,T2> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+
+        public static IApplicationContainer RegisterSequence<T1, T2, T3>(
+            this IApplicationContainer @this
+            , Action<T1, T2,T3> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+        public static IApplicationContainer RegisterSequence<T1, T2, T3, T4>(
+            this IApplicationContainer @this
+            , Action<T1, T2, T3, T4> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+
+        public static IApplicationContainer RegisterSequence<T1, T2, T3, T4, T5>(
+            this IApplicationContainer @this
+            , Action<T1, T2, T3, T4, T5> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+
+        public static IApplicationContainer RegisterSequence<T1, T2, T3, T4, T5, T6>(
+            this IApplicationContainer @this
+            , Action<T1, T2, T3, T4, T5, T6> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+        public static IApplicationContainer RegisterSequence<T1, T2, T3, T4, T5, T6, T7>(
+            this IApplicationContainer @this
+            , Action<T1, T2, T3, T4, T5, T6, T7> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+        public static IApplicationContainer RegisterSequence<T1, T2, T3, T4, T5, T6, T7, T8>(
+            this IApplicationContainer @this
+            , Action<T1, T2, T3, T4, T5, T6, T7, T8> lambda)
+        {
+            return @this.RegisterSequence(lambda.Method, () => lambda.Target);
+        }
+
+
+        [Obsolete("This class has been deprecated. ")]
         public static IContextApplication<T> RegisterInitializeSequence<T>(
             this IContextApplication<T> @this
             , Action<IIOContext<T>> sequence)
@@ -162,6 +121,7 @@ namespace FluentHub.Hub
             return @this;
         }
 
+        [Obsolete("This class has been deprecated. ")]
         public static IApplicationContainer RegisterInitializeSequence<T, U>(
             this IApplicationContainer @this
             , Action<IIOContext<T>, IEnumerable<IIOContext<U>>> sequence)
@@ -188,6 +148,7 @@ namespace FluentHub.Hub
         /// <param name="this"></param>
         /// <param name="sequence"></param>
         /// <returns></returns>
+        [Obsolete("This class has been deprecated. ")]
         public static Return InstantSequence<T, Return>(
             this IContextApplication<T> @this
             , Func<IEnumerable<IIOContext<T>>, Return> sequence)
@@ -203,6 +164,7 @@ namespace FluentHub.Hub
         /// <typeparam name="T"></typeparam>
         /// <param name="this"></param>
         /// <param name="sequence"></param>
+        [Obsolete("This class has been deprecated. ")]
         public static void InstantSequence<T>(
             this IContextApplication<T> @this
             , Action<IEnumerable<IIOContext<T>>> sequence)
@@ -220,6 +182,7 @@ namespace FluentHub.Hub
         /// <param name="this"></param>
         /// <param name="sequence"></param>
         /// <returns></returns>
+        [Obsolete("This class has been deprecated. ")]
         public static Return InstantSequence<T, U, Return>(
             this IApplicationContainer @this
             , Func<IEnumerable<IIOContext<T>>, IEnumerable<IIOContext<U>>, Return> sequence)
@@ -246,6 +209,7 @@ namespace FluentHub.Hub
         /// <typeparam name="U"></typeparam>
         /// <param name="this"></param>
         /// <param name="sequence"></param>
+        [Obsolete("This class has been deprecated. ")]
         public static void InstantSequence<T, U>(
            this IApplicationContainer @this
            , Action<IEnumerable<IIOContext<T>>, IEnumerable<IIOContext<U>>> sequence)

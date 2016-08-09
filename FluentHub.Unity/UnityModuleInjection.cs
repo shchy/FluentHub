@@ -4,28 +4,28 @@ using Microsoft.Practices.Unity;
 
 namespace FluentHub.Unity
 {
-    internal class UnityModuleInjection : IModuleInjection
+    public class UnityModuleInjection : IModuleInjection
     {
-        private IUnityContainer container;
+        public IUnityContainer Container { get; private set; }
 
         public UnityModuleInjection(IUnityContainer container)
         {
-            this.container = container;
+            this.Container = container;
         }
 
         public void Add<T>(Func<T> resolver)
         {
-            this.container.RegisterType<T>(new InjectionFactory(_=> resolver()));
+            this.Container.RegisterType<T>(new InjectionFactory(_=> resolver()));
         }
 
         public void Add<T, U>(Func<U> resolver) where U : T
         {
-            this.container.RegisterType<T>(new InjectionFactory(_ => resolver()));
+            this.Container.RegisterType<T>(new InjectionFactory(_ => resolver()));
         }
 
         public object Resolve(Type type)
         {
-            return this.container.Resolve(type);
+            return this.Container.Resolve(type);
         }
     }
 }

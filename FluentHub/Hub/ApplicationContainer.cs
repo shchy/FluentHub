@@ -1,4 +1,6 @@
-﻿using FluentHub.Logger;
+﻿using FluentHub.Hub.Module;
+using FluentHub.IO;
+using FluentHub.Logger;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,12 +17,18 @@ namespace FluentHub.Hub
         private List<Task> runningTasks;
 
         public ILogger Logger { get; private set; }
+        public IModuleInjection ModuleInjection { get; set; }
 
-        public ApplicationContainer(ILogger logger = null)
+        public ApplicationContainer(ILogger logger = null, IModuleInjection moduleInjection = null)
         {
             this.Logger = logger ?? new DefaultLogger();
+            this.ModuleInjection = moduleInjection ?? new ModuleInjection();
             this.appList = new Dictionary<Type, IContextApplication>();
             this.runningTasks = new List<Task>();
+
+            // DIに登録
+            this.ModuleInjection.Add(() => this as IApplicationContainer);
+            this.ModuleInjection.Add(() => this.Logger as ILogger);
         }
 
         public void Add<T>(IContextApplication<T> app)
@@ -30,6 +38,9 @@ namespace FluentHub.Hub
             {
                 this.appList.Add(tType, app);
             }
+            // DIコンテナに登録
+            this.ModuleInjection.Add(() => app);
+            this.ModuleInjection.Add<IEnumerable<IIOContext<T>>>(() => app.Pool.Get().ToArray());
         }
 
         public IEnumerable<IContextApplication> GetApps()

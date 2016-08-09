@@ -49,10 +49,8 @@
     <Compile Include="Hub\INativeIOFactory.cs" />
     <Compile Include="Hub\ISequenceRunner.cs" />
     <Compile Include="Hub\Module\IModuleInjection.cs" />
-    <Compile Include="Hub\Module\IModuleRegisterHelper.cs" />
     <Compile Include="Hub\Module\ModuleExtension.cs" />
     <Compile Include="Hub\Module\ModuleInjection.cs" />
-    <Compile Include="Hub\Module\ModuleRegisterHelper.cs" />
     <Compile Include="Hub\NativeIOToContextMaker.cs" />
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />

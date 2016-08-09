@@ -2,6 +2,7 @@
 using FluentHub.IO;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
+using FluentHub.Unity;
 using Microsoft.Practices.Unity;
 using System;
 using System.Collections;
@@ -17,8 +18,14 @@ namespace Sandbox.Test01
     {
         public void Run(string[] args)
         {
+
+            // Unity使う版
+            var unityContainer = new UnityContainer();
+            // ModuleをUnityに登録しておく
+            unityContainer.RegisterType<ServerApp>();
+
             // アプリケーションコンテナ
-            var appContainer = new ApplicationContainer();
+            var appContainer = new ApplicationContainer(moduleInjection:new UnityModuleInjection(unityContainer));
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
@@ -36,13 +43,8 @@ namespace Sandbox.Test01
                 appContainer.MakeAppByTcpServer<IThirdAppMessage>(8099)
                 .RegisterConverter(new PangModelConverter());
 
-
-            // Unity使う版
-            var container = new UnityContainer();
-            // ModuleをUnityに登録しておく
-            container.RegisterType<ServerApp>();
             // シーケンスモジュールを直接登録するスタイル
-            appContainer.RegisterModule<ServerApp>(container);
+            appContainer.RegisterModule<ServerApp>();
 
             appContainer.Run();
         }
@@ -141,7 +143,8 @@ namespace Sandbox.Test01
                 // 待ち受けポートは8089
                 appContainer.MakeAppByTcpClient<IThirdAppMessage>("localhost", 8099)
                 // Ping電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new PangModelConverter())
+                .RegisterConverter(new PangModelConverter());
+            appContainer
                 .RegisterSequence((IIOContext<IThirdAppMessage> context, Pang model) =>
                 {
                     appContainer.Logger.Debug("Pang!");

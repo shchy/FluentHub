@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Sandbox.Test02
 {
+    using FluentHub.Unity;
     using ChatContext = IIOContext<IChatProtocol>;
 
     class Server
@@ -17,7 +18,10 @@ namespace Sandbox.Test02
         {
             using (var lifetime = new ContainerControlledLifetimeManager())
             {
-                var serverContainer = new ApplicationContainer();
+                var unitycontainer = new UnityContainer();
+                unitycontainer.RegisterType<ChatServer>(lifetime);
+
+                var serverContainer = new ApplicationContainer(moduleInjection:new UnityModuleInjection(unitycontainer));
                 var serverApp = serverContainer.MakeAppByTcpServer<IChatProtocol>(54321)
                     .RegisterConverter(new ReqCreateRoomConverter())
                     .RegisterConverter(new ResCreateRoomConverter())
@@ -31,13 +35,11 @@ namespace Sandbox.Test02
                     .RegisterConverter(new ReqLoginConverter())
                     .RegisterConverter(new ResLoginConverter());
 
-                var container = serverContainer.MakeContainer();
-                container.RegisterType<ChatServer>(lifetime);
-                serverContainer.RegisterModule<ChatServer>(container);
+                serverContainer.RegisterModule<ChatServer>();
 
                 Task.Run(() => serverContainer.Run());
 
-                var server = container.Resolve<ChatServer>();
+                var server = unitycontainer.Resolve<ChatServer>();
                 Console.ReadLine();
             }
         }

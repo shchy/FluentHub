@@ -40,30 +40,30 @@ namespace Sandbox.Test00
                 MakeAppUDP<IModelMessageA>(appContainer, isServer, 1244)
                 .RegisterConverter(new AMessage0Converter())
                 .RegisterConverter(new AMessage1Converter())
-                .RegisterConverter<IModelMessageA, AMessage2>()
+                .RegisterConverter<IModelMessageA, AMessage2>();
+            
+            // TCPサーバーアプリケーションBを立てる
+            var appB =
+                MakeAppTCP<IModelMessageB>(appContainer, isServer, 1245)
+                .RegisterConverter<IModelMessageB, BMessage0>()
+                .RegisterConverter<IModelMessageB, BMessage1>();
+            
+            // シーケンスの登録
+            appContainer
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
                 {
                     logger.Info($"{model.GetType().Name}を受信");
                     context.Write(new AMessage1());
-                });
-
-            // TCPサーバーアプリケーションBを立てる
-            var appB =
-                MakeAppTCP<IModelMessageB>(appContainer, isServer, 1245)
-                .RegisterConverter<IModelMessageB, BMessage0>()
-                .RegisterConverter<IModelMessageB, BMessage1>()
+                })
                 .RegisterSequence((IIOContext<IModelMessageB> context) => logger.Info($"Bから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageB> context, BMessage0 model) =>
                 {
                     logger.Info($"{model.GetType().Name}を受信");
                     context.Write(new BMessage1());
-                });
-
-            // 3者間シーケンスの登録
-            appContainer
+                })
                 // シーケンスの登録
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage2 _, IEnumerable<IIOContext<IModelMessageB>> ts) =>
                 {
@@ -133,7 +133,7 @@ namespace Sandbox.Test00
                                     foreach (var c in cx)
                                     {
                                         c.Write(new AMessage0());
-                                        var res = c.Read(m => m is AMessage1, 50 * 1000);
+                                        var res = c.Read(m => m is AMessage1,  1000);
                                         logger.Info($"{res.GetType().Name}を受信");
                                     }
                                 });
@@ -147,7 +147,7 @@ namespace Sandbox.Test00
                                     foreach (var c in cx)
                                     {
                                         c.Write(new BMessage0());
-                                        var res = c.Read(m => m is BMessage1, 50 * 1000);
+                                        var res = c.Read(m => m is BMessage1, 1000);
                                         logger.Info($"{res.GetType().Name}を受信");
                                     }
                                 });

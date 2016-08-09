@@ -10,8 +10,9 @@ using System.Threading.Tasks;
 namespace Sandbox.Test02
 {
     using FluentHub.Logger;
+    using FluentHub.Unity;
     using System.Windows.Forms;
-    
+
 
     public class Client
     {
@@ -19,7 +20,10 @@ namespace Sandbox.Test02
         {
             using (var lifetime = new ContainerControlledLifetimeManager())
             {
-                var serverContainer = new ApplicationContainer();
+                var unityContainer = new UnityContainer();
+                unityContainer.RegisterType<ClientForm>(lifetime);
+
+                var serverContainer = new ApplicationContainer(moduleInjection:new UnityModuleInjection(unityContainer));
                 var serverApp = serverContainer.MakeAppByTcpClient<IChatProtocol>("localhost", 54321)
                     .RegisterConverter(new ReqCreateRoomConverter())
                     .RegisterConverter(new ResCreateRoomConverter())
@@ -33,13 +37,11 @@ namespace Sandbox.Test02
                     .RegisterConverter(new ReqLoginConverter())
                     .RegisterConverter(new ResLoginConverter());
 
-                var container = serverContainer.MakeContainer();
-                container.RegisterType<ClientForm>(lifetime);
-                serverContainer.RegisterModule<ClientForm>(container);
+                serverContainer.RegisterModule<ClientForm>();
+                var client = unityContainer.Resolve<ClientForm>();
 
                 Task.Run(() => serverContainer.Run());
 
-                var client = container.Resolve<ClientForm>();
 
                 Application.EnableVisualStyles();
                 Application.Run(client);

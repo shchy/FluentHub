@@ -8,10 +8,16 @@ namespace FluentHub.Hub.Module
 {
     public class ModuleInjection : IModuleInjection
     {
+        private IModuleInjection parent;
         private Dictionary<Type, Func<object>> resolvers;
 
-        public ModuleInjection()
+        public ModuleInjection(): this(null)
         {
+        }
+
+        public ModuleInjection(IModuleInjection parent)
+        {
+            this.parent = parent;
             this.resolvers = new Dictionary<Type, Func<object>>();
         }
 
@@ -25,11 +31,15 @@ namespace FluentHub.Hub.Module
             this.resolvers[typeof(T)] = () => resolver();
         }
 
-        public object Resolve(Type type)
+        public virtual object Resolve(Type type)
         {
             if (this.resolvers.ContainsKey(type))
             {
                 return this.resolvers[type]();
+            }
+            else if (this.parent != null)
+            {
+                return this.parent.Resolve(type);
             }
             return null;
         }
