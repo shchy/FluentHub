@@ -15,12 +15,12 @@ namespace FluentHub.ModelConverter
 
     public interface IBinaryConverter
     {
-        void RegisterConverter<T>(ToBytes toBytes, ToValue toValue);
+        void RegisterEqual<T>(Eq eq);
         void RegisterConverter<T>(ToBytes toBytes, ToValue toValue, GetSize getSize);
+
         byte[] ToBytes<T>(T v);
         T ToModel<T>(byte[] data);
         bool Equal<T>(T x, T y);
-        void RegisterEqual<T>(Eq eq);
         int GetTypeSize<T>();
     }
 
@@ -53,12 +53,6 @@ namespace FluentHub.ModelConverter
             this.equals[typeof(T)] = eq;
         }
 
-
-        public void RegisterConverter<T>(ToBytes toBytes, ToValue toValue)
-        {
-            RegisterConverter<T>(toBytes, toValue, GetDefaultTypeSize<T>);
-        }
-
         public void RegisterConverter<T>( ToBytes toBytes, ToValue toValue, GetSize getSize)
         {
             this.converters[typeof(T)] = Tuple.Create(toBytes, toValue, getSize);
@@ -89,6 +83,12 @@ namespace FluentHub.ModelConverter
         public byte[] ToBytes<T>(T v)
         {
             var key = typeof(T);
+            // byte[]だったら変換の必要がないのでスルー
+            if (key == typeof(byte[]))
+            {
+                return v as byte[];
+            }
+
             if (typeof(T).IsEnum)
             {
                 key = Enum.GetUnderlyingType(typeof(T));
@@ -104,6 +104,13 @@ namespace FluentHub.ModelConverter
         public T ToModel<T>(byte[] data)
         {
             var key = typeof(T);
+            // byte[]だったら変換の必要がないのでスルー
+            if (key == typeof(byte[]))
+            {
+                var box = data as object;
+                return (T)box;
+            }
+
             if (typeof(T).IsEnum)
             {
                 key = Enum.GetUnderlyingType(typeof(T));
