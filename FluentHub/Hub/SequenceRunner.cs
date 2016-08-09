@@ -43,7 +43,6 @@ namespace FluentHub.Hub
             do
             {
                 this.logger.TrySafe(() => sequence(context));
-                // todo IsAnyもみとく？
                 lock (syncObject)
                 {
                     if (this.isReserved)
@@ -52,7 +51,9 @@ namespace FluentHub.Hub
                         continue;
                     }
                 }
-            } while (false);
+
+                // memo IsAnyは必要。同じ電文が2つ連続で来たとき、1つ目の電文だけ拾って終わるパターンあるよね
+            } while (context.IsAny);
 
             lock (syncObject)
             {
