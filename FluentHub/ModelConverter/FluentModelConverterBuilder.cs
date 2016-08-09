@@ -223,7 +223,6 @@ namespace FluentHub.ModelConverter
             return @this.SetNext(item);
         }
 
-        // todo ArrayPropertyのBoxを流用できるんじゃない？
         public static IBuildItemChain<T, IBuildItem<T>> FixedArrayProperty<T, VModel>(
             this IBuildItemChain<T, IBuildItem<T>> @this
             , int loopCount
@@ -234,13 +233,19 @@ namespace FluentHub.ModelConverter
             var getter = getterExpression.Compile();
             var setter = MakeSetter(getterExpression);
 
+            var childModelBuilder = @this.MakeChildModelBuilder((IModelBuilder<Box<VModel>> builder) =>
+            {
+                builder.Property(vm => vm.Value);
+            });
             var arrayMember = getterExpression.GetPropertyInfo().Last();
             var tryArrayConvert = MakeArrayConvert<VModel>(arrayMember.PropertyType);
 
-            var item = @this.MakeStructArrayBuildItem(loopCount
-                , m => getter(m)
-                , (m, v) => setter(m, tryArrayConvert(v))
-                , (chain, i) => chain.Property(list => list[i], (list, v) => list[i] = v));
+            var item =
+                new FixedArrayBuildItem<T, Box<VModel>>(
+                    childModelBuilder
+                    , m => getter(m).Select(x => new Box<VModel> { Value = x })
+                    , (m, xs) => setter(m, tryArrayConvert(xs.Select(x => x.Value).ToArray()))
+                    , loopCount);
             return @this.SetNext(item);
         }
         
@@ -276,10 +281,18 @@ namespace FluentHub.ModelConverter
             where VModel : struct
         {
             var loopCount = vList.Count();
-            var item = @this.MakeStructArrayBuildItem(loopCount
-                , m => vList
-                , (m, v) => { }
-                , (chain,i) => chain.Constant(vList[i]));
+            var childModelBuilder = @this.MakeChildModelBuilder((IModelBuilder<Box<VModel>> builder) =>
+            {
+                builder.Property(vm => vm.Value);
+            });
+
+            var item =
+                new FixedArrayBuildItem<T, Box<VModel>>(
+                    childModelBuilder
+                    , m => vList.Select(x => new Box<VModel> { Value = x })
+                    , (m, xs) => { }
+                    , loopCount);
+            
             return @this.SetNext(item);
         }
 
@@ -375,44 +388,6 @@ namespace FluentHub.ModelConverter
             childModelBuilder.Converter = @this.Converter;
             childModelBuilderFactory(childModelBuilder);
             return childModelBuilder;
-        }
-
-        static IBuildItem<T> MakeStructArrayBuildItem<T, VModel>(
-            this IBuildItemChain<T, IBuildItem<T>> @this
-            , int loopCount
-            , Func<T, IEnumerable<VModel>> getter
-            , Action<T, IEnumerable<VModel>> setter
-            , Func<IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>, int, IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>> build)
-            where T : class, new()
-            where VModel : struct
-        {
-            var childModelBuilder = @this.MakeChildModelBuilder((IModelBuilder<List<VModel>> builder) =>
-            {
-                // 固定長で初期化
-                builder.Init(list => list.AddRange(Enumerable.Range(0, loopCount).Select(_ => default(VModel))));
-                // 各要素のBuildItemを生成
-                var seed = null as IBuildItemChain<List<VModel>, IBuildItem<List<VModel>>>;
-
-                for (int i = 0; i < loopCount; i++)
-                {
-                    var li = i;
-                    if (seed == null)
-                    {
-                        seed = build(builder, li);//.Property(list => list[li], (list, v) => list[li] = v);
-                    }
-                    else
-                    {
-                        seed = build(seed, li);//.Property(list => list[li], (list, v) => list[li] = v);
-                    }
-                }
-            });
-
-            var item =
-                new ProxyModelBuildItem<T, List<VModel>>(
-                    m => getter(m).ToList()
-                    , (m, v) => setter(m, v)
-                    , childModelBuilder);
-            return item;
         }
 
         public static IEnumerable<PropertyInfo> GetPropertyInfo<T, _>(this Expression<Func<T, _>> lambda)

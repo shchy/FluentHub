@@ -110,7 +110,7 @@ namespace FluentHub.IO.Extension
                 // イベントがあれば発行
                 if (this.Received == null)
                 {
-                    return;
+                    continue;
                 }
                 Task.Run(() => this.Received(this, EventArgs.Empty));
             }
