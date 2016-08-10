@@ -11,15 +11,18 @@ namespace Sandbox.Test01
     using BCTXT = IIOContext<IThirdAppMessage>;
     using ACTXTS = IEnumerable<IIOContext<IPingPongAppMessage>>;
     using BCTXTS = IEnumerable<IIOContext<IThirdAppMessage>>;
+    using FluentHub.IO.Extension;
 
     public class ServerApp
     {
-        public void ReceivedPing(ACTXT sender, Ping message)
+        public void ReceivedPing(ACTXT sender, DebugSession session, ISessionContext<IPingPongAppMessage, DebugSession> sender2, Ping message)
         {
-            sender.Write(new Pong());
+            sender2.Write(new Pong());
+            session.Test = "unko";
+
         }
 
-        public void TunnelReceive(ACTXT sender, Tunnel recvMessage, BCTXTS thirdAppContexts)
+        public void TunnelReceive(ACTXT sender, DebugSession session, Tunnel recvMessage, BCTXTS thirdAppContexts, IEnumerable<ISessionContext<IThirdAppMessage, ISession>> others)
         {
             // 接続中のIThirdAppMessageプロトコルを持つ相手にPangを送信
             foreach (var thirdContext in thirdAppContexts)

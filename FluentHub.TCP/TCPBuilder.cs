@@ -23,6 +23,7 @@ namespace FluentHub.Hub
         /// <returns></returns>
         public static IContextApplication<T> MakeAppByTcpServer<T>(
             this IApplicationContainer @this
+            , Func<object, ISession> makeSession
             , params int[] ports)
         {
             return
@@ -31,13 +32,23 @@ namespace FluentHub.Hub
                         new TcpServerFactory(ports)
                         , (TcpClient client) => client.BuildContextByTcp()
                         , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger));
+                        , @this.Logger
+                        ), makeSession);
+        }
+
+        public static IContextApplication<T> MakeAppByTcpServer<T>(
+            this IApplicationContainer @this
+            , params int[] ports)
+        {
+            return
+                @this.MakeAppByTcpServer<T>(null, ports);
         }
 
         public static IContextApplication<T> MakeAppByTcpClient<T>(
             this IApplicationContainer @this
             , string host
-            , int port)
+            , int port
+            , Func<object, ISession> makeSession = null)
         {
             return
                @this.MakeApp<T>(
@@ -45,7 +56,8 @@ namespace FluentHub.Hub
                         new TcpClientFactory(host, port)
                         , (TcpClient client) => client.BuildContextByTcp()
                         , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger));
+                        , @this.Logger
+                        ), makeSession);
         }
 
         public static IIOContext<byte[]> BuildContextByTcp(

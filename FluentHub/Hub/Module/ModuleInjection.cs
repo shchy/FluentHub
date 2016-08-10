@@ -21,6 +21,8 @@ namespace FluentHub.Hub.Module
             this.resolvers = new Dictionary<Type, Func<object>>();
         }
 
+        public event Func<Type, object> Missed;
+
         public void Add<T>(Func<T> resolver)
         {
             this.resolvers[typeof(T)] = ()=>resolver();
@@ -40,6 +42,10 @@ namespace FluentHub.Hub.Module
             else if (this.parent != null)
             {
                 return this.parent.Resolve(type);
+            }
+            else if (Missed != null)
+            {
+                return Missed(type);
             }
             return null;
         }

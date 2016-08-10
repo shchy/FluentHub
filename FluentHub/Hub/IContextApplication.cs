@@ -1,5 +1,6 @@
 ﻿using FluentHub.Hub.Module;
 using FluentHub.IO;
+using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System;
@@ -21,6 +22,7 @@ namespace FluentHub.Hub
         void AddInitializeSequence(Action<IIOContext<T>> initializeSequence);
         void AddConverter(IModelConverter<T> converter);
         IContextPool<T> Pool { get; }
+        IDictionary<IIOContext<T>, ISession> Sessions{get;}
         ILogger Logger { get; }
         IModuleInjection ModuleInjection { get; }
     }

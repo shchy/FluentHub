@@ -22,7 +22,8 @@ namespace FluentHub.Hub
             this IApplicationContainer @this
             , string host
             , int sendPort
-            , int recvPort)
+            , int recvPort
+            , Func<object, ISession> makeSession = null)
         {
             return
                 @this.MakeApp<T>(
@@ -30,7 +31,7 @@ namespace FluentHub.Hub
                         new UDPFactory(host, sendPort, recvPort)
                         , (Stream x) => x.BuildContextByStream()
                         , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger));
+                        , @this.Logger), makeSession);
         }        
     }
 }

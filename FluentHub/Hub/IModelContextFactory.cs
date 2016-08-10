@@ -12,6 +12,6 @@ namespace FluentHub.Hub
     {
         void Run(IEnumerable<IModelConverter<AppIF>> modelConverters);
         void Stop();
-        event Action<IIOContext<AppIF>> Maked;
+        event Action<IIOContext<AppIF>, object> Maked;
     }
 }

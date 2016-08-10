@@ -18,7 +18,8 @@ namespace FluentHub.Hub
     {
         public static IContextApplication<T> MakeAppBySerialPort<T>(
             this IApplicationContainer @this
-            , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
+            , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits
+            , Func<object, ISession> makeSession = null)
         {
             return
                @this.MakeApp<T>(
@@ -26,7 +27,8 @@ namespace FluentHub.Hub
                         new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
                         , (SerialPort x) => x.BuildContextBySerialPort()
                         , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger));
+                        , @this.Logger
+                        ), makeSession);
         }
 
         public static IIOContext<byte[]> BuildContextBySerialPort(

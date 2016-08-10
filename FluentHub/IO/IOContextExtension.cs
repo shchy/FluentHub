@@ -59,22 +59,5 @@ namespace FluentHub.IO
         }
     }
 
-    public static class ModelContext
-    {
-        public static IIOContext<T> BuildContext<T>(
-            this IIOContext<byte[]> @this
-            , IEnumerable<IModelConverter<T>> converters
-            , ISuspendedDisposal suspendedSentence
-            , ILogger logger)
-        {
-            return
-                new ModelContext<T>(
-                    new IOContextLoggerProxy<byte[]>(
-                        @this
-                        , logger)
-                    , converters
-                    , suspendedSentence
-                    , logger);
-        }
-    }
+    
 }

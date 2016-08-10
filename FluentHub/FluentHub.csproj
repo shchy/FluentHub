@@ -62,6 +62,7 @@
     <Compile Include="Hub\SequenceRunner.cs" />
     <Compile Include="Hub\SequenceRunnerFacade.cs" />
     <Compile Include="Hub\TaskExtension.cs" />
+    <Compile Include="IO\Extension\ISession.cs" />
     <Compile Include="IO\Extension\ISuspendedDisposalSource.cs" />
     <Compile Include="IO\Extension\ISuspendedDisposalToken.cs" />
     <Compile Include="IO\Extension\ISuspendedSentence.cs" />

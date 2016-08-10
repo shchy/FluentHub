@@ -162,7 +162,7 @@ namespace FluentHub.Hub
             return context =>
             {
                 // contextをDIに登録した子オブジェクトを生成
-                var contextinjection = new ContextModuleInjection<AppIF>(moduleInjection, context);
+                var contextinjection = new ContextModuleInjection<AppIF>(app, context);
                 // DIを解決して
                 var injectioned = MakeAction(method, getModule, contextinjection);
                 // 実行

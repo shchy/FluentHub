@@ -20,32 +20,46 @@ namespace FluentHub.Hub
         private List<IModelConverter<T>> modelConverters;
         private ISequenceRunnerFacade<T> sequenceRunnerFacade;
         private IModelContextFactory<T> modelContextFactory;
+        private Func<object, ISession> makeSession;
 
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
 
         public IModuleInjection ModuleInjection { get;  }
+        IDictionary<IIOContext<T>, ISession> sessions;
+        public IDictionary<IIOContext<T>, ISession> Sessions
+        {
+            get
+            {
+                lock ((sessions as ICollection).SyncRoot)
+                {
+                    return sessions;
+                }
+            }
+        }
 
         public Application(
             IContextPool<T> pool
             , IModelContextFactory<T> modelContextFactory
             , ISequenceRunnerFacade<T> sequenceRunnerFacade
             , IModuleInjection moduleInjection
-            , ILogger logger)
+            , ILogger logger
+            , Func<object, ISession> makeSession)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
             this.initializeSequences = new List<Action<IIOContext<T>>>();
             this.Pool = pool;
+            this.sessions = new Dictionary<IIOContext<T>, ISession>();
             this.modelContextFactory = modelContextFactory;
             this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
             this.ModuleInjection = moduleInjection;
+            this.makeSession = makeSession ?? (nativeIO => new DefaultSession { NativeIO = nativeIO });
         }
 
         public void Run()
         {
-            
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
             this.modelContextFactory.Maked += ModelContextFactory_Maked;
@@ -53,12 +67,15 @@ namespace FluentHub.Hub
             this.modelContextFactory.Maked -= ModelContextFactory_Maked;
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
-            
         }
 
-        private void ModelContextFactory_Maked(IIOContext<T> context)
+        private void ModelContextFactory_Maked(IIOContext<T> context, object nativeIO)
         {
             this.Pool.Add(context);
+            lock ((sessions as ICollection).SyncRoot)
+            {
+                this.sessions[context] = makeSession(nativeIO);
+            }
         }
 
         private void AddedContext(IIOContext<T> context)

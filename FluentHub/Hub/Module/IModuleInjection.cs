@@ -12,5 +12,6 @@ namespace FluentHub.Hub.Module
         void Add<T>(Func<T> resolver);
         void Add<T, U>(Func<U> resolver)
             where U : T;
+        event Func<Type, object> Missed;
     }
 }

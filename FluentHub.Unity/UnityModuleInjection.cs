@@ -13,6 +13,8 @@ namespace FluentHub.Unity
             this.Container = container;
         }
 
+        public event Func<Type, object> Missed;
+
         public void Add<T>(Func<T> resolver)
         {
             this.Container.RegisterType<T>(new InjectionFactory(_=> resolver()));
@@ -25,7 +27,15 @@ namespace FluentHub.Unity
 
         public object Resolve(Type type)
         {
-            return this.Container.Resolve(type);
+            if (Container.IsRegistered(type))
+            {
+                return this.Container.Resolve(type);
+            }
+            else if (Missed != null)
+            {
+                return Missed(type);
+            }
+            return null;
         }
     }
 }

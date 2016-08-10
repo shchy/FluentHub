@@ -1,4 +1,5 @@
 ﻿using FluentHub.IO;
+using FluentHub.IO.Extension;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,12 @@ namespace FluentHub.Hub.Module
 {
     class ContextModuleInjection<AppIF> : ModuleInjection
     {
+        private IContextApplication<AppIF> app;
         private IIOContext<AppIF> context;
 
-        public ContextModuleInjection(IModuleInjection parent, IIOContext<AppIF> context) : base(parent)
+        public ContextModuleInjection(IContextApplication<AppIF> app, IIOContext<AppIF> context) : base(app.ModuleInjection)
         {
+            this.app = app;
             this.context = context;
             this.Add<IIOContext<AppIF>>(() => context);
         }
@@ -29,6 +32,29 @@ namespace FluentHub.Hub.Module
                     return null;
                 }
                 return msg;
+            }
+            else if (typeof(ISession).IsAssignableFrom(type))
+            {
+                // ISessionを求めていたらこの文脈のContextに紐づくSessionを返す
+                var session = app.GetSession(context, type);
+                return session;
+            }
+            else if (typeof(ISessionContext<,>) == type.GetGenericTypeDefinition())
+            {
+                // ISessionContext型を求めていたら
+                // APPIFをチェック
+                var appType = type.GetGenericArguments()[0];
+                if (appType != typeof(AppIF))
+                {
+                    return null;
+                }
+
+                var sessionType = type.GetGenericArguments()[1];
+                var session = app.GetSession(context, sessionType);
+                var sessionContextType = typeof(SessionContext<,>).MakeGenericType(typeof(AppIF), sessionType);
+                var sessionContext = Activator.CreateInstance(sessionContextType, context, session);
+                return sessionContext;
+
             }
             return base.Resolve(type);
         }

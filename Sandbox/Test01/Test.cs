@@ -1,5 +1,6 @@
 ﻿using FluentHub.Hub;
 using FluentHub.IO;
+using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using FluentHub.Unity;
@@ -14,6 +15,11 @@ using System.Threading.Tasks;
 
 namespace Sandbox.Test01
 {
+    public class DebugSession : ISession
+    {
+        public object NativeIO { get; set; }
+        public string Test { get; set; }
+    }
     public class TestServer
     {
         public void Run(string[] args)
@@ -29,7 +35,7 @@ namespace Sandbox.Test01
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
+                appContainer.MakeAppByTcpServer<IPingPongAppMessage>(nativeIO=>new DebugSession { NativeIO = nativeIO}, 8089, 8090)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義
