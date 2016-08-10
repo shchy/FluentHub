@@ -1,4 +1,5 @@
-﻿using FluentHub.IO;
+﻿using FluentHub.Hub.Module;
+using FluentHub.IO;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System;
@@ -21,5 +22,6 @@ namespace FluentHub.Hub
         void AddConverter(IModelConverter<T> converter);
         IContextPool<T> Pool { get; }
         ILogger Logger { get; }
+        IModuleInjection ModuleInjection { get; }
     }
 }

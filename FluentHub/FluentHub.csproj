@@ -48,6 +48,7 @@
     <Compile Include="Hub\ApplicationContainerBuilder.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />
     <Compile Include="Hub\ISequenceRunner.cs" />
+    <Compile Include="Hub\Module\ContextModuleInjection.cs" />
     <Compile Include="Hub\Module\IModuleInjection.cs" />
     <Compile Include="Hub\Module\ModuleExtension.cs" />
     <Compile Include="Hub\Module\ModuleInjection.cs" />
@@ -55,6 +56,8 @@
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
     <Compile Include="Hub\Application.cs" />
+    <Compile Include="Hub\RegisterSequenceFromApp.cs" />
+    <Compile Include="Hub\RegisterSequenceFromContainer.cs" />
     <Compile Include="Hub\SequenceRunner.cs" />
     <Compile Include="Hub\SequenceRunnerFacade.cs" />
     <Compile Include="IO\Extension\ISuspendedDisposalSource.cs" />

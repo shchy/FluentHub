@@ -67,7 +67,7 @@ namespace Sandbox.Test01
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter())
                 .RegisterConverter(new GomiModelConverter())
-                .RegisterInitializeSequence(c => PingPongSequence(c, appContainer.Logger));
+                .RegisterInitializeSequence(( IIOContext<IPingPongAppMessage> c) => PingPongSequence(c, appContainer.Logger));
 
             Task.Run((Action)appContainer.Run);
 
@@ -79,15 +79,15 @@ namespace Sandbox.Test01
                 if (string.IsNullOrWhiteSpace(line))
                 {
                     // サーバーにPingメッセージを送信
-                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
+                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
                     {
                         PingPongSequence(contexts.First(), appContainer.Logger);
-                    }));
+                    });
                 }
                 else
                 {
                     // サーバーにPingメッセージを送信
-                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((contexts =>
+                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence(((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
                     {
                         var server = contexts.FirstOrDefault();
                         if (server == null)

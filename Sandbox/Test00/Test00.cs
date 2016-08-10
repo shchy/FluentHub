@@ -128,7 +128,7 @@ namespace Sandbox.Test00
                         case "a":
                             appContainer
                                 .GetApp<IModelMessageA>()
-                                .InstantSequence(cx =>
+                                .InstantSequence((IEnumerable<IIOContext<IModelMessageA>> cx) =>
                                 {
                                     foreach (var c in cx)
                                     {
@@ -142,7 +142,7 @@ namespace Sandbox.Test00
                         case "b":
                             appContainer
                                 .GetApp<IModelMessageB>()
-                                .InstantSequence(cx =>
+                                .InstantSequence((IEnumerable<IIOContext<IModelMessageB>> cx) =>
                                 {
                                     foreach (var c in cx)
                                     {
@@ -156,7 +156,7 @@ namespace Sandbox.Test00
                         case "ac":
                             appContainer
                                 .GetApp<IModelMessageA>()
-                                .InstantSequence(cx =>
+                                .InstantSequence((IEnumerable<IIOContext<IModelMessageA>> cx) =>
                                 {
                                     foreach (var c in cx)
                                     {

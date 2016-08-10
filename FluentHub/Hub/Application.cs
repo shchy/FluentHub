@@ -7,6 +7,7 @@ using System.Text;
 using System.Collections;
 using FluentHub.ModelConverter;
 using FluentHub.IO.Extension;
+using FluentHub.Hub.Module;
 
 namespace FluentHub.Hub
 {
@@ -22,11 +23,14 @@ namespace FluentHub.Hub
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
 
+        public IModuleInjection ModuleInjection { get;  }
+
         public Application(
             IContextPool<T> pool
             , IIOContextMaker<byte[]> sreamContextFactory
             , ISuspendedDisposalSource suspendedSentenceSource
             , ISequenceRunnerFacade<T> sequenceRunnerFacade
+            , IModuleInjection moduleInjection
             , ILogger logger)
         {
             this.sequences = new List<Action<IIOContext<T>>>();
@@ -37,6 +41,7 @@ namespace FluentHub.Hub
             this.Logger = logger;
             this.suspendedSentenceSource = suspendedSentenceSource;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
+            this.ModuleInjection = moduleInjection;
         }
 
         public void Run()

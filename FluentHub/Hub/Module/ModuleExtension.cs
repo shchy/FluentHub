@@ -39,32 +39,107 @@ namespace FluentHub.Hub
 
             foreach (var method in methods)
             {
-                @this.RegisterSequence(method, getModule);
+                RegisterSequence(@this, method, getModule);
             }
             return @this;
         }
         
         public static IApplicationContainer RegisterSequence(
-            this IApplicationContainer @this
+            IApplicationContainer @this
             , MethodInfo method
             , Func<object> getModule)
         {
-            foreach (var app in @this.GetApps().ToArray())
-            {
-                // ModuleExtension.RegisterSequenceを呼びたいだけ
-                var appType = app.GetType().GetGenericArguments()[0];
-                var registerSequence = typeof(ModuleExtension).GetMethod(nameof(ModuleExtension.RegisterSequence), BindingFlags.NonPublic | BindingFlags.Static);
-                var typedRegisterSequence = registerSequence.MakeGenericMethod(new[] { appType });
-                typedRegisterSequence.Invoke(null, new object[] { app, @this.ModuleInjection, method, getModule });
-            }
+            BridgeOfTypeRegisterSequence(@this, false, method, getModule);
             return @this;
         }
 
-        static void RegisterSequence<AppIF>(
-            IContextApplication<AppIF> app
-            , IModuleInjection injection
+        public static IApplicationContainer RegisterInitializeSequence(
+            IApplicationContainer @this
             , MethodInfo method
             , Func<object> getModule)
+        {
+            BridgeOfTypeRegisterSequence(@this, true, method, getModule);
+            return @this;
+        }
+
+        // memo ModuleExtension.RegisterSequenceかModuleExtension.RegisterInitializeSequenceを呼ぶ。
+        // なのでこの二つのメソッドの引数は一致させておいてね
+        static void BridgeOfTypeRegisterSequence(
+            IApplicationContainer @this
+            , bool isInitialize
+            , MethodInfo method
+            , Func<object> getModule)
+        {
+            // 呼び出すメソッド名
+            // ↓の関数を型引数付きで呼びたいだけ
+            var normalSequenceOrInitializeSequenceRegisterMethodName = isInitialize
+                ? nameof(ModuleExtension.RegisterInitializeSequenceApp)
+                : nameof(ModuleExtension.RegisterSequenceApp);
+            
+            foreach (var app in @this.GetApps().ToArray())
+            {
+                var appType = app.GetType().GetGenericArguments()[0];
+                var registerSequence = typeof(ModuleExtension).GetMethod(normalSequenceOrInitializeSequenceRegisterMethodName, BindingFlags.Public | BindingFlags.Static);
+                var typedRegisterSequence = registerSequence.MakeGenericMethod(new[] { appType });
+                typedRegisterSequence.Invoke(null, new object[] { app, method, getModule});
+            }
+        }
+
+        public static bool RegisterSequenceApp<AppIF>(
+            IContextApplication<AppIF> @this
+            , MethodInfo method
+            , Func<object> getModule)
+        {
+            var methodStringForLog = $"{method.ReturnType.Name} {method.DeclaringType.Name}.{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))}";
+            var initializeStringForLog =  "";
+            @this.Logger.Debug($"try register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App)");
+
+            // シーケンスになり得るメソッドだったらシーケンスっぽくする
+            var sequence = MakeAppSequence(@this, method, getModule, @this.ModuleInjection);
+            if (sequence == null)
+            {
+                @this.Logger.Debug($"failure register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App )");
+                return false;
+            }
+
+            @this.Logger.Debug($"done register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App  )");
+
+            // シーケンスを登録
+            @this.AddSequence(sequence);
+            return true;
+        }
+
+        public static bool RegisterInitializeSequenceApp<AppIF>(
+            IContextApplication<AppIF> @this
+            , MethodInfo method
+            , Func<object> getModule)
+        {
+            var methodStringForLog = $"{method.ReturnType.Name} {method.DeclaringType.Name}.{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))}";
+            var initializeStringForLog = "initialize";
+            @this.Logger.Debug($"try register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App)");
+
+
+            // シーケンスになり得るメソッドだったらシーケンスっぽくする
+            var sequence = MakeAppSequence(@this, method, getModule, @this.ModuleInjection, true);
+            if (sequence == null)
+            {
+                @this.Logger.Debug($"failure register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App )");
+                return false;
+            }
+            @this.Logger.Debug($"done register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App  )");
+
+            // シーケンスを登録
+            @this.AddInitializeSequence(sequence);
+            return true;
+        }
+
+
+        private static Action<IIOContext<AppIF>> MakeAppSequence<AppIF>(
+            IContextApplication<AppIF> app
+            , MethodInfo method
+            , Func<object> getModule
+            , IModuleInjection moduleInjection
+            , bool isRequireContext = false)
         {
             // 引数の型をチェックして次の引数がいずれかあればシーケンスとみなす。
             // AppIF型の何か
@@ -72,30 +147,18 @@ namespace FluentHub.Hub
             var prms = method.GetParameters();
             var isKnown1 = (Func<Type, bool>)(t => typeof(AppIF).IsAssignableFrom(t));
             var isKnown2 = (Func<Type, bool>)(t => t == typeof(IIOContext<AppIF>));
+            var test = (Func<ParameterInfo, bool>)(p => isKnown1(p.ParameterType) || isKnown2(p.ParameterType));
+            var testIsRequire = (Func<ParameterInfo, bool>)(p => isKnown2(p.ParameterType));
             var isTestOk =
-                prms.Any(p => isKnown1(p.ParameterType) || isKnown2(p.ParameterType));
+                prms.Any(isRequireContext ? testIsRequire : test);
+            
             // テストに落ちたらさようなら
             if (isTestOk == false)
             {
-                return;
+                return null;
             }
 
-            // シーケンスと見なしたメソッドをappのシーケンスに追加する
-            app.Logger.Debug($"register module method to {typeof(AppIF).Name} sequence : {method.ReturnType.Name} {method.DeclaringType.Name}.{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))})");
-            
             // シーケンスを生成
-            var sequence = MakeSequence<AppIF>(method, getModule, injection);
-            
-            // シーケンスを登録
-            app.AddSequence(sequence);
-        }
-
-        // シーケンスメソッドを生成
-        static Action<IIOContext<AppIF>> MakeSequence<AppIF>(
-            MethodInfo method
-            , Func<object> getModule
-            , IModuleInjection moduleInjection)
-        {
             return context =>
             {
                 // contextをDIに登録した子オブジェクトを生成
@@ -107,8 +170,9 @@ namespace FluentHub.Hub
             };
         }
 
+        
         // 引数なしのDIメソッドを生成
-        private static Action MakeAction(MethodInfo method, Func<object> getModule, IModuleInjection moduleInjection)
+        public static Action MakeAction(MethodInfo method, Func<object> getModule, IModuleInjection moduleInjection)
         {
             var parameterTypes =
                 method.GetParameters().Select(p => p.ParameterType).ToArray();
@@ -116,7 +180,7 @@ namespace FluentHub.Hub
             return () =>
             {
                 // メソッドの引数を解決して
-                var parameters = GetParameters(moduleInjection, parameterTypes);
+                var parameters = moduleInjection.ResolveTypes(parameterTypes);
                 // 解決できなかったら実行しない
                 if (parameters == null || parameters.Any(x => x == null))
                 {
@@ -129,7 +193,29 @@ namespace FluentHub.Hub
             };
         }
 
-        static object[] GetParameters(this IModuleInjection @this, Type[] parameterTypes)
+        // 引数なしのDIメソッドを生成
+        public static Func<Return> MakeFunc<Return>(MethodInfo method, Func<object> getModule, IModuleInjection moduleInjection)
+        {
+            var parameterTypes =
+                method.GetParameters().Select(p => p.ParameterType).ToArray();
+
+            return () =>
+            {
+                // メソッドの引数を解決して
+                var parameters = moduleInjection.ResolveTypes(parameterTypes);
+                // 解決できなかったら実行しない
+                if (parameters == null || parameters.Any(x => x == null))
+                {
+                    return default(Return);
+                }
+                // メソッドの持ち主を取得して
+                var instance = getModule();
+                // 実行
+                return (Return)method.Invoke(instance, parameters);
+            };
+        }
+
+        static object[] ResolveTypes(this IModuleInjection @this, Type[] parameterTypes)
         {
             var query =
                 from t in parameterTypes
@@ -138,32 +224,5 @@ namespace FluentHub.Hub
             return query.ToArray();
         }
     }
-
-    class ContextModuleInjection<AppIF> : ModuleInjection
-    {
-        private IIOContext<AppIF> context;
-
-        public ContextModuleInjection(IModuleInjection parent, IIOContext<AppIF> context) : base(parent)
-        {
-            this.context = context;
-            this.Add<IIOContext<AppIF>>(() => context);
-        }
-
-        public override object Resolve(Type type)
-        {
-            if (typeof(AppIF).IsAssignableFrom(type))
-            {
-                // AppIFの実装型だったらメッセージを読み込んでから入れてあげる。
-                var msg = context.Read(m => m.GetType() == type);
-                if (msg == null)
-                {
-                    // 受信できてなかったら呼ばない
-                    return null;
-                }
-                return msg;
-            }
-            return base.Resolve(type);
-        }
-    }
-
+    
 }
