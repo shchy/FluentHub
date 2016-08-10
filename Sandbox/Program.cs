@@ -21,8 +21,8 @@ namespace Sandbox
     {
         static void Main(string[] args)
         {
-            new Test00.Test(true).Run(args);
-            //new Test01.TestServer().Run(args);
+            //new Test00.Test(true).Run(args);
+            new Test01.TestServer().Run(args);
             //new Test02.Server().Run();
         }
     }

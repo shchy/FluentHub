@@ -29,7 +29,7 @@ namespace Sandbox.Test01
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpServer<IPingPongAppMessage>(8089)
+                appContainer.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義
@@ -59,7 +59,7 @@ namespace Sandbox.Test01
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpClient<IPingPongAppMessage>("localhost", 8089)
+                appContainer.MakeAppByTcpClient<IPingPongAppMessage>("localhost", new[] { 8089, 8090 }[DateTime.Now.Millisecond % 2])
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義

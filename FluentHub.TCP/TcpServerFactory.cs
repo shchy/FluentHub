@@ -13,20 +13,25 @@ namespace FluentHub.TCP
     public class TcpServerFactory : INativeIOFactory<TcpClient>
     {
         private bool isDisposed;
-        private TcpListener listener;
-        private int port;
+        private TcpListener[] listeners;
 
         // todo 複数ポートいけるようにしたい
-        public TcpServerFactory(int port)
+        public TcpServerFactory(params int[] ports)
         {
-            this.port = port;
-            this.listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
+            this.listeners = ports.Select(port => new TcpListener(IPAddress.Any, port)).ToArray();
+            foreach (var listener in listeners)
+            {
+                listener.Start();
+            }
+
         }
 
         public void Dispose()
         {
-            listener.Stop();
+            foreach (var listener in listeners)
+            {
+                listener.Stop();
+            }
             this.isDisposed = true;
         }
 
@@ -36,25 +41,20 @@ namespace FluentHub.TCP
             {
                 return null;
             }
-            var acceptTask = listener.AcceptTcpClientAsync();
-
-            while (this.isDisposed == false && acceptTask.IsEnd() == false)
+            var listener = this.listeners.Where(x => x.Pending()).FirstOrDefault();
+            if (listener == null)
             {
                 Thread.Sleep(10);
+                return null;
             }
-
+            var client = listener.AcceptTcpClient();
+            
             if (this.isDisposed)
             {
                 return null;
             }
 
-            if (acceptTask.IsFaulted)
-            {
-                Thread.Sleep(1000);
-                return null;
-            }
-
-            return acceptTask.Result;
+            return client;
         }
     }
 

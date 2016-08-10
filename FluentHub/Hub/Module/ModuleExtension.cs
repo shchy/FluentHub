@@ -60,7 +60,7 @@ namespace FluentHub.Hub
             return @this;
         }
 
-        static void MakeSequence<AppIF>(
+        static void RegisterSequence<AppIF>(
             IContextApplication<AppIF> app
             , IModuleInjection injection
             , MethodInfo method

@@ -23,12 +23,12 @@ namespace FluentHub.Hub
         /// <returns></returns>
         public static IContextApplication<T> MakeAppByTcpServer<T>(
             this IApplicationContainer @this
-            , int port)
+            , params int[] ports)
         {
             return
                 @this.MakeApp<T>(
                     new NativeIOToContextMaker<TcpClient>(
-                        new TcpServerFactory(port)
+                        new TcpServerFactory(ports)
                         , (TcpClient client) => client.BuildContextByTcp()
                         , c => c.Close()));
         }
