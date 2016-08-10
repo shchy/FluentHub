@@ -46,7 +46,7 @@ namespace Sandbox.Test01
 
             // 異なるプロトコルを持つ第3者通信相手を定義
             var thirdApp =
-                appContainer.MakeAppByTcpServer<IThirdAppMessage>(8099)
+                appContainer.MakeAppByTcpServer<IThirdAppMessage>(nativeIO => new DebugSession { NativeIO = nativeIO },8099)
                 .RegisterConverter(new PangModelConverter());
 
             // シーケンスモジュールを直接登録するスタイル

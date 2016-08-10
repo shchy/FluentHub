@@ -213,14 +213,14 @@ namespace FluentHub.Hub
             return sessionContexts;
         }
 
-        private IEnumerable<ISessionContext<AppIF, SessionType>> MakeSessionContexts<AppIF, SessionType>(IEnumerable<object> contexts, IEnumerable<SessionType> sessions)
+        private IEnumerable<ISessionContext<AppIF, SessionType>> MakeSessionContexts<AppIF, SessionType>(IEnumerable<object> contexts, IEnumerable<ISession> sessions)
             where SessionType : ISession
         {
             var query =
                 from c in contexts.Zip(sessions, (c,s)=>new {c,s })
                 let context = c.c
                 let session = c.s
-                let sessionContext = new SessionContext<AppIF, SessionType>((IIOContext<AppIF>)context, session)
+                let sessionContext = new SessionContext<AppIF, SessionType>((IIOContext<AppIF>)context, (SessionType)session)
                 select sessionContext;
             return query.ToArray();
         }
