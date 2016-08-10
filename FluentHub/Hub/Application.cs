@@ -8,6 +8,8 @@ using System.Collections;
 using FluentHub.ModelConverter;
 using FluentHub.IO.Extension;
 using FluentHub.Hub.Module;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace FluentHub.Hub
 {
@@ -15,10 +17,9 @@ namespace FluentHub.Hub
     {
         private List<Action<IIOContext<T>>> sequences;
         private List<Action<IIOContext<T>>> initializeSequences;
-        private IIOContextMaker<byte[]> streamContextFactory;
         private List<IModelConverter<T>> modelConverters;
-        private ISuspendedDisposalSource suspendedSentenceSource;
         private ISequenceRunnerFacade<T> sequenceRunnerFacade;
+        private IModelContextFactory<T> modelContextFactory;
 
         public IContextPool<T> Pool { get;  }
         public ILogger Logger { get; }
@@ -27,8 +28,7 @@ namespace FluentHub.Hub
 
         public Application(
             IContextPool<T> pool
-            , IIOContextMaker<byte[]> sreamContextFactory
-            , ISuspendedDisposalSource suspendedSentenceSource
+            , IModelContextFactory<T> modelContextFactory
             , ISequenceRunnerFacade<T> sequenceRunnerFacade
             , IModuleInjection moduleInjection
             , ILogger logger)
@@ -36,10 +36,9 @@ namespace FluentHub.Hub
             this.sequences = new List<Action<IIOContext<T>>>();
             this.initializeSequences = new List<Action<IIOContext<T>>>();
             this.Pool = pool;
-            this.streamContextFactory = sreamContextFactory;
+            this.modelContextFactory = modelContextFactory;
             this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
-            this.suspendedSentenceSource = suspendedSentenceSource;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
             this.ModuleInjection = moduleInjection;
         }
@@ -49,14 +48,17 @@ namespace FluentHub.Hub
             
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
-            this.streamContextFactory.Maked = MakedClient;
-            this.suspendedSentenceSource.Run();
-            this.streamContextFactory.Run();
-            this.suspendedSentenceSource.Stop();
-
+            this.modelContextFactory.Maked += ModelContextFactory_Maked;
+            this.modelContextFactory.Run(this.modelConverters);
+            this.modelContextFactory.Maked -= ModelContextFactory_Maked;
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
             
+        }
+
+        private void ModelContextFactory_Maked(IIOContext<T> context)
+        {
+            this.Pool.Add(context);
         }
 
         private void AddedContext(IIOContext<T> context)
@@ -88,18 +90,10 @@ namespace FluentHub.Hub
             }
         }
 
-        private void MakedClient(IIOContext<byte[]> context)
-        {
-            this.Pool.Add(
-                context.BuildContext(
-                    this.modelConverters.ToArray()
-                    , this.suspendedSentenceSource.MakeToken()
-                    , this.Logger));
-        }
-
+        
         public void Dispose()
         {
-            this.streamContextFactory.Dispose();
+            this.modelContextFactory.Stop();
             this.Pool.Dispose();
             lock ((sequences as ICollection).SyncRoot)
             {

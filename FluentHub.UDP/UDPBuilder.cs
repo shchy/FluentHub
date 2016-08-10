@@ -26,10 +26,11 @@ namespace FluentHub.Hub
         {
             return
                 @this.MakeApp<T>(
-                    new NativeIOToContextMaker<Stream>(
+                    new ModelContextFactory<T,Stream>(
                         new UDPFactory(host, sendPort, recvPort)
                         , (Stream x) => x.BuildContextByStream()
-                        , c => c.Close()));
+                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
+                        , @this.Logger));
         }        
     }
 }

@@ -15,13 +15,12 @@ namespace FluentHub.Hub
     {
         public static IContextApplication<T> MakeApp<T>(
             this IApplicationContainer @this
-            , IIOContextMaker<byte[]> streamContextFactory)
+            , IModelContextFactory<T> modelContextFactory)
         {
             var app =
                 new Application<T>(
                     @this.MakeContextPool<T>()
-                    , streamContextFactory
-                    , new SuspendedDisposalSource(1000)    // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
+                    , modelContextFactory
                     , new SequenceRunnerFacade<T>(@this.Logger) // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
                     , @this.ModuleInjection
                     , @this.Logger

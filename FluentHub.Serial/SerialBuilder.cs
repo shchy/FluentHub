@@ -22,10 +22,11 @@ namespace FluentHub.Hub
         {
             return
                @this.MakeApp<T>(
-                   new NativeIOToContextMaker<SerialPort>(
+                   new ModelContextFactory<T,SerialPort>(
                         new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
                         , (SerialPort x) => x.BuildContextBySerialPort()
-                        , c => c.Close()));
+                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
+                        , @this.Logger));
         }
 
         public static IIOContext<byte[]> BuildContextBySerialPort(

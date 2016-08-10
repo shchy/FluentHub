@@ -27,10 +27,11 @@ namespace FluentHub.Hub
         {
             return
                 @this.MakeApp<T>(
-                    new NativeIOToContextMaker<TcpClient>(
+                    new ModelContextFactory<T,TcpClient>(
                         new TcpServerFactory(ports)
                         , (TcpClient client) => client.BuildContextByTcp()
-                        , c => c.Close()));
+                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
+                        , @this.Logger));
         }
 
         public static IContextApplication<T> MakeAppByTcpClient<T>(
@@ -40,10 +41,11 @@ namespace FluentHub.Hub
         {
             return
                @this.MakeApp<T>(
-                   new NativeIOToContextMaker<TcpClient>(
+                   new ModelContextFactory<T,TcpClient>(
                         new TcpClientFactory(host, port)
                         , (TcpClient client) => client.BuildContextByTcp()
-                        , c=>c.Close()));
+                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
+                        , @this.Logger));
         }
 
         public static IIOContext<byte[]> BuildContextByTcp(
