@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>FluentHub.Validation</id>
+    <version>$version$</version>
+    <authors>shch</authors>
+    <owners>shch</owners>
+    <licenseUrl>https://raw.githubusercontent.com/shchy/FluentHub/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/shchy/FluentHub</projectUrl>
+    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Make server application fluently</description>
+    <releaseNotes>$version$</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>Server Tcp</tags>
+    <dependencies>
+      <dependency id="FluentHub" version="$version$" />
+      <dependency id="FluentValidation" version="6.2.1.0" />
+    </dependencies>
+  </metadata>
+</package>

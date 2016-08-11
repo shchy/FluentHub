@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class ModuleExtension
     {

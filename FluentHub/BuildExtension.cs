@@ -9,10 +9,11 @@ using System.Reflection;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.Module;
+using FluentHub.Hub;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
-    public static class ApplicationContainerBuilder
+    public static class BuildExtension
     {
         public static IAppBuilder<AppIF> RegisterConverter<AppIF>(
             this IAppBuilder<AppIF> @this
@@ -34,7 +35,8 @@ namespace FluentHub.Hub
         }
 
 
-        public static ISession GetSession<AppIF>(this IContextApplication<AppIF> app
+        public static ISession GetSession<AppIF>(
+            this IContextApplication<AppIF> app
             , IIOContext<AppIF> context
             , Type sessionType)
         {
@@ -66,7 +68,7 @@ namespace FluentHub.Hub
             this IContextApplication app)
         {
             var appType = app.GetType().GetGenericArguments()[0];
-            var method = typeof(ApplicationContainerBuilder).GetMethod(nameof(ApplicationContainerBuilder.GetContexts), BindingFlags.Public | BindingFlags.Static);
+            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetContexts), BindingFlags.Public | BindingFlags.Static);
             var typedmethod = method.MakeGenericMethod(new[] { appType });
             var contexts = typedmethod.Invoke(null, new object[] { app });
             return (IEnumerable<object>)contexts;
@@ -79,7 +81,7 @@ namespace FluentHub.Hub
             , Type sessionType)
         {
             var appType = app.GetType().GetGenericArguments()[0];
-            var method = typeof(ApplicationContainerBuilder).GetMethod(nameof(ApplicationContainerBuilder.GetSession), BindingFlags.Public | BindingFlags.Static);
+            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetSession), BindingFlags.Public | BindingFlags.Static);
             var typedmethod = method.MakeGenericMethod(new[] { appType });
             var session = (ISession)typedmethod.Invoke(null, new object[] { app, context, sessionType });
             return session;

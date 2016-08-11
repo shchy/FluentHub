@@ -28,7 +28,7 @@ namespace FluentHub
 
         public void Run()
         {
-            this.Container = new ApplicationContainer(this.Logger);
+            this.Container = new ApplicationContainer(this.Logger, this.ModuleInjection);
 
             foreach (var builder in Builders)
             {

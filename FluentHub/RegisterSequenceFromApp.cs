@@ -1,11 +1,12 @@
-﻿using FluentHub.Logger;
+﻿using FluentHub.Hub;
+using FluentHub.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class RegisterSequenceFromApp
     {
