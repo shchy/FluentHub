@@ -24,7 +24,7 @@ namespace FluentHub
 
         public Func<IDictionary<IIOContext<AppIF>, ISession>> MakeSessionPool { get; set; }
 
-        public IModuleInjection ModuleInjection { get; set; }
+        public IModuleDependencyContainer DependencyContainer { get; set; }
         
         public List<IModelConverter<AppIF>> ModelConverters { get; set; } = new List<IModelConverter<AppIF>>();
 
@@ -71,16 +71,17 @@ namespace FluentHub
                         , new SuspendedDisposalSource(1000)
                         , Logger)
                     , new SequenceRunnerFacade<AppIF>(Logger)
-                    , ModuleInjection
+                    , DependencyContainer
                     , Logger
                     , MakeSession
                     , sessionPool); // todo Context作るとこでやればここに要らないね
 
             // DIコンテナに登録しておく
-            ModuleInjection.Add<ILogger>(() => Logger);
-            ModuleInjection.Add<IApplicationContainer>(() => container);
-            ModuleInjection.Add<IContextPool<AppIF>>(() => contextPool);
-            ModuleInjection.Add<IEnumerable<IIOContext<AppIF>>>(() => contextPool.Get().ToArray());
+            DependencyContainer.Add<IContextApplication<AppIF>>(() => this.App);
+            DependencyContainer.Add<ILogger>(() => Logger);
+            DependencyContainer.Add<IApplicationContainer>(() => container);
+            DependencyContainer.Add<IContextPool<AppIF>>(() => contextPool);
+            DependencyContainer.Add<IEnumerable<IIOContext<AppIF>>>(() => contextPool.Get().ToArray());
 
             container.Add<AppIF>(this.App);
         }

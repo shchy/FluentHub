@@ -44,6 +44,8 @@
     <Compile Include="..\VersionInfo.cs">
       <Link>VersionInfo.cs</Link>
     </Compile>
+    <Compile Include="FakeStream.cs" />
+    <Compile Include="IIO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UDPFactory.cs" />
     <Compile Include="UDPBuilder.cs" />

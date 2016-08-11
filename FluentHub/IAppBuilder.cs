@@ -21,7 +21,7 @@ namespace FluentHub
     {
         ILogger Logger { get; }
 
-        IModuleInjection ModuleInjection { get; }
+        IModuleDependencyContainer DependencyContainer { get; }
 
         Func<IIOContext<byte[]>, ISuspendedDisposal, IIOContext<AppIF>> StreamToModelContext { get; set; }
 

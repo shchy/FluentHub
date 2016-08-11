@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Module
 {
-    public interface IModuleInjection
+    public interface IModuleDependencyContainer
     {
         object Resolve(Type type);
         void Add<T>(Func<T> resolver);

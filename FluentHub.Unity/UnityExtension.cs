@@ -14,7 +14,7 @@ namespace FluentHub.Hub
         public static ContainerBootstrap RegisterModule<Module>(
             this ContainerBootstrap @this)
         {
-            var unity = @this.ModuleInjection as UnityModuleInjection;
+            var unity = @this.DependencyContainer as UnityModuleDependencyContainer;
             var container = unity.Container;
             return @this.RegisterModule<Module>(()=> container.Resolve<Module>());
         }

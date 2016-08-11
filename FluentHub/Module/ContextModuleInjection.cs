@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Module
 {
-    class ContextModuleInjection<AppIF> : ModuleInjection
+    class ContextModuleInjection<AppIF> : ModuleDependencyContainer
     {
         private IContextApplication<AppIF> app;
         private IIOContext<AppIF> context;
 
-        public ContextModuleInjection(IContextApplication<AppIF> app, IIOContext<AppIF> context) : base(app.ModuleInjection)
+        public ContextModuleInjection(IContextApplication<AppIF> app, IIOContext<AppIF> context) : base(app.DependencyContainer)
         {
             this.app = app;
             this.context = context;

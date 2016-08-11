@@ -43,7 +43,32 @@ namespace FluentHub
             }
             return @this;
         }
-        
+
+        public static IAppBuilder<AppIF> RegisterModule<AppIF,Module>(
+            this IAppBuilder<AppIF> @this
+            , Module module)
+        {
+            return @this.RegisterModule<AppIF, Module>(() => module);
+        }
+
+        public static IAppBuilder<AppIF> RegisterModule<AppIF,Module>(
+            this IAppBuilder<AppIF> @this
+            , Func<object> getModule)
+        {
+            // シーケンスモジュールのpublicメソッドを取り出す
+            var methods =
+                from method in typeof(Module).GetMethods()
+                where method.IsPublic
+                where method.DeclaringType == typeof(Module)
+                select method;
+
+            foreach (var method in methods)
+            {
+                RegisterSequenceApp(@this, method, getModule);
+            }
+            return @this;
+        }
+
         public static ContainerBootstrap RegisterSequence(
             ContainerBootstrap @this
             , MethodInfo method
@@ -95,7 +120,7 @@ namespace FluentHub
             @this.Logger.Debug($"try register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App)");
 
             // シーケンスになり得るメソッドだったらシーケンスっぽくする
-            var sequence = MakeAppSequence(@this, method, getModule, @this.ModuleInjection);
+            var sequence = MakeAppSequence(@this, method, getModule, @this.DependencyContainer);
             if (sequence == null)
             {
                 @this.Logger.Debug($"failure register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App )");
@@ -120,7 +145,7 @@ namespace FluentHub
 
 
             // シーケンスになり得るメソッドだったらシーケンスっぽくする
-            var sequence = MakeAppSequence(@this, method, getModule, @this.ModuleInjection, true);
+            var sequence = MakeAppSequence(@this, method, getModule, @this.DependencyContainer, true);
             if (sequence == null)
             {
                 @this.Logger.Debug($"failure register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App )");
@@ -138,7 +163,7 @@ namespace FluentHub
             IAppBuilder<AppIF> app
             , MethodInfo method
             , Func<object> getModule
-            , IModuleInjection moduleInjection
+            , IModuleDependencyContainer dependencyContainer
             , bool isRequireContext = false)
         {
             // 引数の型をチェックして次の引数がいずれかあればシーケンスとみなす。
@@ -172,7 +197,7 @@ namespace FluentHub
 
         
         // 引数なしのDIメソッドを生成
-        public static Action MakeAction(MethodInfo method, Func<object> getModule, IModuleInjection moduleInjection)
+        public static Action MakeAction(MethodInfo method, Func<object> getModule, IModuleDependencyContainer dependencyContainer)
         {
             var parameterTypes =
                 method.GetParameters().Select(p => p.ParameterType).ToArray();
@@ -180,7 +205,7 @@ namespace FluentHub
             return () =>
             {
                 // メソッドの引数を解決して
-                var parameters = moduleInjection.ResolveTypes(parameterTypes);
+                var parameters = dependencyContainer.ResolveTypes(parameterTypes);
                 // 解決できなかったら実行しない
                 if (parameters == null || parameters.Any(x => x == null))
                 {
@@ -194,7 +219,7 @@ namespace FluentHub
         }
 
         // 引数なしのDIメソッドを生成
-        public static Func<Return> MakeFunc<Return>(MethodInfo method, Func<object> getModule, IModuleInjection moduleInjection)
+        public static Func<Return> MakeFunc<Return>(MethodInfo method, Func<object> getModule, IModuleDependencyContainer dependencyContainer)
         {
             var parameterTypes =
                 method.GetParameters().Select(p => p.ParameterType).ToArray();
@@ -202,7 +227,7 @@ namespace FluentHub
             return () =>
             {
                 // メソッドの引数を解決して
-                var parameters = moduleInjection.ResolveTypes(parameterTypes);
+                var parameters = dependencyContainer.ResolveTypes(parameterTypes);
                 // 解決できなかったら実行しない
                 if (parameters == null || parameters.Any(x => x == null))
                 {
@@ -215,7 +240,7 @@ namespace FluentHub
             };
         }
 
-        static object[] ResolveTypes(this IModuleInjection @this, Type[] parameterTypes)
+        static object[] ResolveTypes(this IModuleDependencyContainer @this, Type[] parameterTypes)
         {
             var query =
                 from t in parameterTypes

@@ -19,12 +19,12 @@ namespace FluentHub.Hub
 
         public ILogger Logger { get; set; }
 
-        public IModuleInjection ModuleInjection { get; set; }
+        public IModuleDependencyContainer DependencyContainer { get; set; }
 
-        public ApplicationContainer(ILogger logger, IModuleInjection moduleInjection)
+        public ApplicationContainer(ILogger logger, IModuleDependencyContainer dependencyContainer)
         {
             this.Logger = logger;
-            this.ModuleInjection = moduleInjection;
+            this.DependencyContainer = dependencyContainer;
             this.appList = new Dictionary<Type, IContextApplication>();
             this.runningTasks = new List<Task>();
         }

@@ -12,14 +12,26 @@ namespace Sandbox.Test01
     using ACTXTS = IEnumerable<IIOContext<IPingPongAppMessage>>;
     using BCTXTS = IEnumerable<IIOContext<IThirdAppMessage>>;
     using FluentHub.IO.Extension;
+    using FluentHub.Hub;
+    using FluentHub;
 
     public class ServerApp
     {
+        private IContextApplication<IPingPongAppMessage> app;
+
+        public ServerApp(IContextApplication<IPingPongAppMessage> app)
+        {
+            this.app = app;
+            this.app.InstantSequence((ACTXTS others) =>
+            {
+
+            });
+        }
+
         public void ReceivedPing(ACTXT sender, DebugSession session, ISessionContext<IPingPongAppMessage, DebugSession> sender2, Ping message)
         {
             sender2.Write(new Pong());
             session.Test = "unko";
-
         }
 
         public void TunnelReceive(

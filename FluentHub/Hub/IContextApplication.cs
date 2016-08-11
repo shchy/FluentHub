@@ -16,11 +16,11 @@ namespace FluentHub.Hub
         void Run();
     }
 
-    public interface IContextApplication<T> : IContextApplication
+    public interface IContextApplication<AppIF> : IContextApplication
     {
-        IContextPool<T> Pool { get; }
-        IDictionary<IIOContext<T>, ISession> Sessions{get;}
+        IContextPool<AppIF> Pool { get; }
+        IDictionary<IIOContext<AppIF>, ISession> Sessions{get;}
         ILogger Logger { get; }
-        IModuleInjection ModuleInjection { get; }
+        IModuleDependencyContainer DependencyContainer { get; }
     }
 }

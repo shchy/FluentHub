@@ -37,52 +37,55 @@ namespace Sandbox.Test01
     {
         public void Run(string[] args)
         {
-
-            // Unity使う版
-            var unityContainer = new UnityContainer();
-            // ModuleをUnityに登録しておく
-            unityContainer.RegisterType<ServerApp>();
-
-            var bootstrap = new ContainerBootstrap();
-            bootstrap.ModuleInjection = new UnityModuleInjection(unityContainer);
-            var app =
-                // 待ち受けポートは8089
-                bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
-                // Ping電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new PingModelConverter())
-                // Pong電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new PongModelConverter())
-                // Tunnel電文のbyte[] <=> Model変換定義
-                .RegisterConverter(new TunnelModelConverter());
-            app.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO };
-            app.StreamToModelContext = (c, s) =>
+            using (var lifeTime = new ContainerControlledLifetimeManager())
             {
-                var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
-                var modelContext =
-                    new ModelContext<IPingPongAppMessage>(logger
-                        , app.ModelConverters
-                        , s
-                        , app.Logger);
-                var validationContext =
-                    new ValidationModelContext<IPingPongAppMessage>(modelContext
-                        , app.Logger
-                        , new PingValidator());
-                return validationContext;
+                // Unity使う版
+                var unityContainer = new UnityContainer();
+                // ModuleをUnityに登録しておく
+                unityContainer.RegisterType<ServerApp>(lifeTime);
+
+                var bootstrap = new ContainerBootstrap();
+                bootstrap.DependencyContainer = new UnityModuleDependencyContainer(unityContainer);
+                var app =
+                    // 待ち受けポートは8089
+                    bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
+                    // Ping電文のbyte[] <=> Model変換定義
+                    .RegisterConverter(new PingModelConverter())
+                    // Pong電文のbyte[] <=> Model変換定義
+                    .RegisterConverter(new PongModelConverter())
+                    // Tunnel電文のbyte[] <=> Model変換定義
+                    .RegisterConverter(new TunnelModelConverter())
+                    .RegisterSession(nativeIO => new DebugSession { NativeIO = nativeIO });
+
+                app.StreamToModelContext = (c, s) =>
+                {
+                    var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
+                    var modelContext =
+                        new ModelContext<IPingPongAppMessage>(logger
+                            , app.ModelConverters
+                            , s
+                            , app.Logger);
+                    var validationContext =
+                        new ValidationModelContext<IPingPongAppMessage>(modelContext
+                            , app.Logger
+                            , new PingValidator());
+                    return validationContext;
                 //return modelContext;
             };
 
 
 
-            // 異なるプロトコルを持つ第3者通信相手を定義
-            var thirdApp =
-                bootstrap.MakeAppByTcpServer<IThirdAppMessage>(8099)
-                .RegisterConverter(new PangModelConverter());
-            thirdApp.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO };
+                // 異なるプロトコルを持つ第3者通信相手を定義
+                var thirdApp =
+                    bootstrap.MakeAppByTcpServer<IThirdAppMessage>(8099)
+                    .RegisterConverter(new PangModelConverter())
+                    .RegisterSession(x => new DebugSession { NativeIO = x });
 
-            // シーケンスモジュールを直接登録するスタイル
-            bootstrap.RegisterModule<ServerApp>();
+                // シーケンスモジュールを直接登録するスタイル
+                bootstrap.RegisterModule<ServerApp>();
 
-            bootstrap.Run();
+                bootstrap.Run();
+            }
         }
     }
 
@@ -104,6 +107,7 @@ namespace Sandbox.Test01
                 .RegisterConverter(new TunnelModelConverter())
                 .RegisterConverter(new GomiModelConverter())
                 .RegisterInitializeSequence(( IIOContext<IPingPongAppMessage> c) => PingPongSequence(c, bootstrap.Logger));
+
 
             Task.Run((Action)bootstrap.Run);
 

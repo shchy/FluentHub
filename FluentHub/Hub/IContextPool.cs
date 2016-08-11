@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public interface IContextPool<T> : IDisposable
+    public interface IContextPool<AppIF> : IDisposable
     {
-        void Add(IIOContext<T> modelContext);
-        void Remove(IIOContext<T> modelContext);
-        IEnumerable<IIOContext<T>> Get();
-        event Action<IIOContext<T>> Updated;
-        event Action<IIOContext<T>> Added;
+        void Add(IIOContext<AppIF> modelContext);
+        void Remove(IIOContext<AppIF> modelContext);
+        IEnumerable<IIOContext<AppIF>> Get();
+        event Action<IIOContext<AppIF>> Updated;
+        event Action<IIOContext<AppIF>> Added;
     }
 }

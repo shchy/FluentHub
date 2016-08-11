@@ -13,20 +13,20 @@ using FluentHub.Module;
 
 namespace FluentHub.Hub
 {
-    public class Application<T> : IContextApplication<T>
+    public class Application<AppIF> : IContextApplication<AppIF>
     {
-        private IEnumerable<Action<IIOContext<T>>> sequences;
-        private IEnumerable<Action<IIOContext<T>>> initializeSequences;
-        private ISequenceRunnerFacade<T> sequenceRunnerFacade;
-        private IModelContextFactory<T> modelContextFactory;
+        private IEnumerable<Action<IIOContext<AppIF>>> sequences;
+        private IEnumerable<Action<IIOContext<AppIF>>> initializeSequences;
+        private ISequenceRunnerFacade<AppIF> sequenceRunnerFacade;
+        private IModelContextFactory<AppIF> modelContextFactory;
         private Func<object, ISession> makeSession;
 
-        public IContextPool<T> Pool { get;  }
+        public IContextPool<AppIF> Pool { get;  }
         public ILogger Logger { get; }
 
-        public IModuleInjection ModuleInjection { get;  }
-        IDictionary<IIOContext<T>, ISession> sessionPool;
-        public IDictionary<IIOContext<T>, ISession> Sessions
+        public IModuleDependencyContainer DependencyContainer { get;  }
+        IDictionary<IIOContext<AppIF>, ISession> sessionPool;
+        public IDictionary<IIOContext<AppIF>, ISession> Sessions
         {
             get
             {
@@ -38,15 +38,15 @@ namespace FluentHub.Hub
         }
 
         public Application(
-            IContextPool<T> pool
-            , IEnumerable<Action<IIOContext<T>>> sequences
-            , IEnumerable<Action<IIOContext<T>>> initializeSequences
-            , IModelContextFactory<T> modelContextFactory
-            , ISequenceRunnerFacade<T> sequenceRunnerFacade
-            , IModuleInjection moduleInjection
+            IContextPool<AppIF> pool
+            , IEnumerable<Action<IIOContext<AppIF>>> sequences
+            , IEnumerable<Action<IIOContext<AppIF>>> initializeSequences
+            , IModelContextFactory<AppIF> modelContextFactory
+            , ISequenceRunnerFacade<AppIF> sequenceRunnerFacade
+            , IModuleDependencyContainer dependencyContainer
             , ILogger logger
             , Func<object, ISession> makeSession
-            , IDictionary<IIOContext<T>, ISession> sessionPool)
+            , IDictionary<IIOContext<AppIF>, ISession> sessionPool)
         {
             this.sequences = sequences;
             this.initializeSequences = initializeSequences;
@@ -55,7 +55,7 @@ namespace FluentHub.Hub
             this.modelContextFactory = modelContextFactory;
             this.Logger = logger;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
-            this.ModuleInjection = moduleInjection;
+            this.DependencyContainer = dependencyContainer;
             this.makeSession = makeSession ?? (nativeIO => new DefaultSession { NativeIO = nativeIO });
         }
 
@@ -70,7 +70,7 @@ namespace FluentHub.Hub
             this.Pool.Updated -= UpdatedContext;
         }
 
-        private void ModelContextFactory_Maked(IIOContext<T> context, object nativeIO)
+        private void ModelContextFactory_Maked(IIOContext<AppIF> context, object nativeIO)
         {
             this.Pool.Add(context);
             lock ((sessionPool as ICollection).SyncRoot)
@@ -79,9 +79,9 @@ namespace FluentHub.Hub
             }
         }
 
-        private void AddedContext(IIOContext<T> context)
+        private void AddedContext(IIOContext<AppIF> context)
         {
-            var xs = Enumerable.Empty<Action<IIOContext<T>>>();
+            var xs = Enumerable.Empty<Action<IIOContext<AppIF>>>();
             lock ((initializeSequences as ICollection).SyncRoot)
             {
                 xs = initializeSequences.ToArray();
@@ -93,9 +93,9 @@ namespace FluentHub.Hub
             }
         }
 
-        private void UpdatedContext(IIOContext<T> context)
+        private void UpdatedContext(IIOContext<AppIF> context)
         {
-            var ss = null as Action<IIOContext<T>>[];
+            var ss = null as Action<IIOContext<AppIF>>[];
 
             lock ((sequences as ICollection).SyncRoot)
             {
@@ -113,7 +113,7 @@ namespace FluentHub.Hub
         {
             this.modelContextFactory.Stop();
             this.Pool.Dispose();
-            sequences = Enumerable.Empty<Action<IIOContext<T>>>();
+            sequences = Enumerable.Empty<Action<IIOContext<AppIF>>>();
         }
     }
 }

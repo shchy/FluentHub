@@ -54,9 +54,9 @@
     <Compile Include="Hub\ModelContextFactory.cs" />
     <Compile Include="IAppBuilder.cs" />
     <Compile Include="Module\ContextModuleInjection.cs" />
-    <Compile Include="Module\IModuleInjection.cs" />
+    <Compile Include="Module\IModuleDependencyContainer.cs" />
     <Compile Include="ModuleExtension.cs" />
-    <Compile Include="Module\ModuleInjection.cs" />
+    <Compile Include="Module\ModuleDependencyContainer.cs" />
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
     <Compile Include="Hub\Application.cs" />
@@ -73,8 +73,6 @@
     <Compile Include="IO\Extension\SuspendedSentence.cs" />
     <Compile Include="ModelConverter\BinaryConverter.cs" />
     <Compile Include="ModelConverter\DefaultModelConverter.cs" />
-    <Compile Include="IO\Extension\FakeStream.cs" />
-    <Compile Include="IO\Extension\IIO.cs" />
     <Compile Include="Hub\ContextPool.cs" />
     <Compile Include="IO\Extension\IOContextLoggerProxy.cs" />
     <Compile Include="IO\Extension\StreamContext.cs" />

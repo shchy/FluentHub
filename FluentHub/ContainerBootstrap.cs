@@ -17,18 +17,18 @@ namespace FluentHub
 
         public IApplicationContainer Container { get; set; }
 
-        public IModuleInjection ModuleInjection { get; set; }
+        public IModuleDependencyContainer DependencyContainer { get; set; }
 
         public List<IAppBuilder> Builders { get; set; } = new List<IAppBuilder>();
 
         public ContainerBootstrap()
         {
-            this.ModuleInjection = new ModuleInjection();
+            this.DependencyContainer = new ModuleDependencyContainer();
         }
 
         public void Run()
         {
-            this.Container = new ApplicationContainer(this.Logger, this.ModuleInjection);
+            this.Container = new ApplicationContainer(this.Logger, this.DependencyContainer);
 
             foreach (var builder in Builders)
             {
@@ -36,11 +36,11 @@ namespace FluentHub
             }
 
 
-            this.ModuleInjection.Missed += ModuleInjection_Missed;
+            this.DependencyContainer.Missed += ModuleInjection_Missed;
 
             Container.Run();
 
-            this.ModuleInjection.Missed -= ModuleInjection_Missed;
+            this.DependencyContainer.Missed -= ModuleInjection_Missed;
         }
 
         // todo どこかへ移動したい

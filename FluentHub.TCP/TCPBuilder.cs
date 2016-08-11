@@ -27,7 +27,7 @@ namespace FluentHub.Hub
         {
             var appBuilder = new AppBuilder<T, TcpClient>();
             appBuilder.Logger = @this.Logger;
-            appBuilder.ModuleInjection = @this.ModuleInjection;
+            appBuilder.DependencyContainer = @this.DependencyContainer;
             @this.Builders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = new TcpServerFactory(ports);
@@ -44,7 +44,7 @@ namespace FluentHub.Hub
         {
             var appBuilder = new AppBuilder<T, TcpClient>();
             appBuilder.Logger = @this.Logger;
-            appBuilder.ModuleInjection = @this.ModuleInjection;
+            appBuilder.DependencyContainer = @this.DependencyContainer;
             @this.Builders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = new TcpClientFactory(host, port);

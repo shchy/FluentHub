@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace FluentHub.IO
 {
-    public interface IIOContext<T> : IDisposable
+    public interface IIOContext<AppIF> : IDisposable
     {
         bool IsAny { get; }
         bool CanUse { get; }
         event EventHandler Received;
 
-        void Write(T model);
-        T Read();
-        T Read(Func<T, bool> predicate);
+        void Write(AppIF model);
+        AppIF Read();
+        AppIF Read(Func<AppIF, bool> predicate);
     }
 }

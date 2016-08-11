@@ -34,6 +34,13 @@ namespace FluentHub
             return @this;
         }
 
+        public static IAppBuilder<AppIF> RegisterSession<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , Func<object,ISession> makeSession)
+        {
+            @this.MakeSession = makeSession;
+            return @this;
+        }
 
         public static ISession GetSession<AppIF>(
             this IContextApplication<AppIF> app
