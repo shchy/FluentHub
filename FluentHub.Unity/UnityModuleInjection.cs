@@ -1,6 +1,6 @@
 ﻿using System;
-using FluentHub.Hub.Module;
 using Microsoft.Practices.Unity;
+using FluentHub.Module;
 
 namespace FluentHub.Unity
 {

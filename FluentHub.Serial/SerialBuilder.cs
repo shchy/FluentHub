@@ -16,19 +16,20 @@ namespace FluentHub.Hub
 {
     public static class SerialBuilder
     {
-        public static IContextApplication<T> MakeAppBySerialPort<T>(
-            this IApplicationContainer @this
-            , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits
-            , Func<object, ISession> makeSession = null)
+        public static IAppBuilder<T> MakeAppBySerialPort<T>(
+            this ContainerBootstrap @this
+            , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
+            var appBuilder = new AppBuilder<T, SerialPort>();
+            appBuilder.Logger = @this.Logger;
+            appBuilder.ModuleInjection = @this.ModuleInjection;
+            @this.Builders.Add(appBuilder);
+
+            appBuilder.NativeIOFactory = new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits));
+            appBuilder.NativeToStreamContext = (SerialPort x) => x.BuildContextBySerialPort();
+
             return
-               @this.MakeApp<T>(
-                   new ModelContextFactory<T,SerialPort>(
-                        new SerialPortFactory(()=>new SerialPort(portName, baudRate, parity, dataBits, stopBits))
-                        , (SerialPort x) => x.BuildContextBySerialPort()
-                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger
-                        ), makeSession);
+                appBuilder;
         }
 
         public static IIOContext<byte[]> BuildContextBySerialPort(

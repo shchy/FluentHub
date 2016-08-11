@@ -78,7 +78,6 @@ namespace FluentHub.Hub
             OnUpdate(sender as IIOContext<T>);
         }
 
-
         void OnUpdate(IIOContext<T> context)
         {
             if (Updated == null)

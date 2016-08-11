@@ -11,8 +11,8 @@ namespace FluentHub.Hub
 {
     public static class UnityExtension
     {
-        public static IApplicationContainer RegisterModule<Module>(
-            this IApplicationContainer @this)
+        public static ContainerBootstrap RegisterModule<Module>(
+            this ContainerBootstrap @this)
         {
             var unity = @this.ModuleInjection as UnityModuleInjection;
             var container = unity.Container;

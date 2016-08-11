@@ -1,6 +1,6 @@
-﻿using FluentHub.Hub.Module;
-using FluentHub.IO;
+﻿using FluentHub.IO;
 using FluentHub.Logger;
+using FluentHub.Module;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,15 +19,15 @@ namespace FluentHub.Hub
         /// <param name="this"></param>
         /// <param name="module"></param>
         /// <returns></returns>
-        public static IApplicationContainer RegisterModule<Module>(
-            this IApplicationContainer @this
+        public static ContainerBootstrap RegisterModule<Module>(
+            this ContainerBootstrap @this
             , Module module)
         {
             return @this.RegisterModule<Module>(()=>module);
         }
 
-        public static IApplicationContainer RegisterModule<Module>(
-            this IApplicationContainer @this
+        public static ContainerBootstrap RegisterModule<Module>(
+            this ContainerBootstrap @this
             , Func<object> getModule)
         {
             // シーケンスモジュールのpublicメソッドを取り出す
@@ -44,8 +44,8 @@ namespace FluentHub.Hub
             return @this;
         }
         
-        public static IApplicationContainer RegisterSequence(
-            IApplicationContainer @this
+        public static ContainerBootstrap RegisterSequence(
+            ContainerBootstrap @this
             , MethodInfo method
             , Func<object> getModule)
         {
@@ -53,8 +53,8 @@ namespace FluentHub.Hub
             return @this;
         }
 
-        public static IApplicationContainer RegisterInitializeSequence(
-            IApplicationContainer @this
+        public static ContainerBootstrap RegisterInitializeSequence(
+            ContainerBootstrap @this
             , MethodInfo method
             , Func<object> getModule)
         {
@@ -65,7 +65,7 @@ namespace FluentHub.Hub
         // memo ModuleExtension.RegisterSequenceかModuleExtension.RegisterInitializeSequenceを呼ぶ。
         // なのでこの二つのメソッドの引数は一致させておいてね
         static void BridgeOfTypeRegisterSequence(
-            IApplicationContainer @this
+            ContainerBootstrap @this
             , bool isInitialize
             , MethodInfo method
             , Func<object> getModule)
@@ -76,17 +76,17 @@ namespace FluentHub.Hub
                 ? nameof(ModuleExtension.RegisterInitializeSequenceApp)
                 : nameof(ModuleExtension.RegisterSequenceApp);
             
-            foreach (var app in @this.GetApps().ToArray())
+            foreach (var appBuilder in @this.Builders.ToArray())
             {
-                var appType = app.GetType().GetGenericArguments()[0];
+                var appType = appBuilder.GetType().GetGenericArguments()[0];
                 var registerSequence = typeof(ModuleExtension).GetMethod(normalSequenceOrInitializeSequenceRegisterMethodName, BindingFlags.Public | BindingFlags.Static);
                 var typedRegisterSequence = registerSequence.MakeGenericMethod(new[] { appType });
-                typedRegisterSequence.Invoke(null, new object[] { app, method, getModule});
+                typedRegisterSequence.Invoke(null, new object[] { appBuilder, method, getModule});
             }
         }
 
         public static bool RegisterSequenceApp<AppIF>(
-            IContextApplication<AppIF> @this
+            IAppBuilder<AppIF> @this
             , MethodInfo method
             , Func<object> getModule)
         {
@@ -105,12 +105,12 @@ namespace FluentHub.Hub
             @this.Logger.Debug($"done register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App  )");
 
             // シーケンスを登録
-            @this.AddSequence(sequence);
+            @this.Sequences.Add(sequence);
             return true;
         }
 
         public static bool RegisterInitializeSequenceApp<AppIF>(
-            IContextApplication<AppIF> @this
+            IAppBuilder<AppIF> @this
             , MethodInfo method
             , Func<object> getModule)
         {
@@ -129,13 +129,13 @@ namespace FluentHub.Hub
             @this.Logger.Debug($"done register method to {initializeStringForLog} sequence : [{methodStringForLog}] -> [{typeof(AppIF).Name}] App  )");
 
             // シーケンスを登録
-            @this.AddInitializeSequence(sequence);
+            @this.InitializeSequences.Add(sequence);
             return true;
         }
 
 
         private static Action<IIOContext<AppIF>> MakeAppSequence<AppIF>(
-            IContextApplication<AppIF> app
+            IAppBuilder<AppIF> app
             , MethodInfo method
             , Func<object> getModule
             , IModuleInjection moduleInjection
@@ -162,7 +162,7 @@ namespace FluentHub.Hub
             return context =>
             {
                 // contextをDIに登録した子オブジェクトを生成
-                var contextinjection = new ContextModuleInjection<AppIF>(app, context);
+                var contextinjection = new ContextModuleInjection<AppIF>(app.App, context);
                 // DIを解決して
                 var injectioned = MakeAction(method, getModule, contextinjection);
                 // 実行

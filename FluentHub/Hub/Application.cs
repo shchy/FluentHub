@@ -7,17 +7,16 @@ using System.Text;
 using System.Collections;
 using FluentHub.ModelConverter;
 using FluentHub.IO.Extension;
-using FluentHub.Hub.Module;
 using System.Threading.Tasks;
 using System.Threading;
+using FluentHub.Module;
 
 namespace FluentHub.Hub
 {
     public class Application<T> : IContextApplication<T>
     {
-        private List<Action<IIOContext<T>>> sequences;
-        private List<Action<IIOContext<T>>> initializeSequences;
-        private List<IModelConverter<T>> modelConverters;
+        private IEnumerable<Action<IIOContext<T>>> sequences;
+        private IEnumerable<Action<IIOContext<T>>> initializeSequences;
         private ISequenceRunnerFacade<T> sequenceRunnerFacade;
         private IModelContextFactory<T> modelContextFactory;
         private Func<object, ISession> makeSession;
@@ -26,32 +25,34 @@ namespace FluentHub.Hub
         public ILogger Logger { get; }
 
         public IModuleInjection ModuleInjection { get;  }
-        IDictionary<IIOContext<T>, ISession> sessions;
+        IDictionary<IIOContext<T>, ISession> sessionPool;
         public IDictionary<IIOContext<T>, ISession> Sessions
         {
             get
             {
-                lock ((sessions as ICollection).SyncRoot)
+                lock ((sessionPool as ICollection).SyncRoot)
                 {
-                    return sessions;
+                    return sessionPool;
                 }
             }
         }
 
         public Application(
             IContextPool<T> pool
+            , IEnumerable<Action<IIOContext<T>>> sequences
+            , IEnumerable<Action<IIOContext<T>>> initializeSequences
             , IModelContextFactory<T> modelContextFactory
             , ISequenceRunnerFacade<T> sequenceRunnerFacade
             , IModuleInjection moduleInjection
             , ILogger logger
-            , Func<object, ISession> makeSession)
+            , Func<object, ISession> makeSession
+            , IDictionary<IIOContext<T>, ISession> sessionPool)
         {
-            this.sequences = new List<Action<IIOContext<T>>>();
-            this.initializeSequences = new List<Action<IIOContext<T>>>();
+            this.sequences = sequences;
+            this.initializeSequences = initializeSequences;
             this.Pool = pool;
-            this.sessions = new Dictionary<IIOContext<T>, ISession>();
+            this.sessionPool = sessionPool;
             this.modelContextFactory = modelContextFactory;
-            this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
             this.ModuleInjection = moduleInjection;
@@ -63,7 +64,7 @@ namespace FluentHub.Hub
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
             this.modelContextFactory.Maked += ModelContextFactory_Maked;
-            this.modelContextFactory.Run(this.modelConverters);
+            this.modelContextFactory.Run();
             this.modelContextFactory.Maked -= ModelContextFactory_Maked;
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
@@ -72,9 +73,9 @@ namespace FluentHub.Hub
         private void ModelContextFactory_Maked(IIOContext<T> context, object nativeIO)
         {
             this.Pool.Add(context);
-            lock ((sessions as ICollection).SyncRoot)
+            lock ((sessionPool as ICollection).SyncRoot)
             {
-                this.sessions[context] = makeSession(nativeIO);
+                this.sessionPool[context] = makeSession(nativeIO);
             }
         }
 
@@ -112,36 +113,7 @@ namespace FluentHub.Hub
         {
             this.modelContextFactory.Stop();
             this.Pool.Dispose();
-            lock ((sequences as ICollection).SyncRoot)
-            {
-                sequences.Clear();
-            }
-            this.modelConverters = null;
-        }
-
-        public void AddSequence(Action<IIOContext<T>> sequence)
-        {
-            lock ((sequences as ICollection).SyncRoot)
-            {
-                this.sequences.Add(sequence);
-            }
-        }
-
-        public void AddInitializeSequence(Action<IIOContext<T>> initializeSequence)
-        {
-            lock ((initializeSequences as ICollection).SyncRoot)
-            {
-                this.initializeSequences.Add(initializeSequence);
-            }
-        }
-
-        public void AddConverter(IModelConverter<T> converter)
-        {
-            lock ((modelConverters as ICollection).SyncRoot)
-            {
-                modelConverters.Add(converter);
-            }
+            sequences = Enumerable.Empty<Action<IIOContext<T>>>();
         }
     }
-
 }

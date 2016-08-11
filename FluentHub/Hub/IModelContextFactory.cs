@@ -10,7 +10,7 @@ namespace FluentHub.Hub
 {
     public interface IModelContextFactory<AppIF>
     {
-        void Run(IEnumerable<IModelConverter<AppIF>> modelConverters);
+        void Run();
         void Stop();
         event Action<IIOContext<AppIF>, object> Maked;
     }

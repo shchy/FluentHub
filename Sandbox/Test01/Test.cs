@@ -1,9 +1,12 @@
-﻿using FluentHub.Hub;
+﻿using FluentHub;
+using FluentHub.Hub;
 using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using FluentHub.Unity;
+using FluentHub.Validation;
+using FluentValidation;
 using Microsoft.Practices.Unity;
 using System;
 using System.Collections;
@@ -20,6 +23,16 @@ namespace Sandbox.Test01
         public object NativeIO { get; set; }
         public string Test { get; set; }
     }
+
+    class PingValidator : ModelValidator<Ping>
+    {
+        public PingValidator()
+        {
+            RuleFor(m => m.ID).Equal((byte)0x01);
+        }
+
+    }
+
     public class TestServer
     {
         public void Run(string[] args)
@@ -30,29 +43,46 @@ namespace Sandbox.Test01
             // ModuleをUnityに登録しておく
             unityContainer.RegisterType<ServerApp>();
 
-            // アプリケーションコンテナ
-            var appContainer = new ApplicationContainer(moduleInjection:new UnityModuleInjection(unityContainer));
-            // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
+            var bootstrap = new ContainerBootstrap();
+            bootstrap.ModuleInjection = new UnityModuleInjection(unityContainer);
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpServer<IPingPongAppMessage>(nativeIO=>new DebugSession { NativeIO = nativeIO}, 8089, 8090)
+                bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PongModelConverter())
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter());
+            app.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO };
+            app.StreamToModelContext = (c, s) =>
+            {
+                var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
+                var modelContext =
+                    new ModelContext<IPingPongAppMessage>(logger
+                        , app.ModelConverters
+                        , s
+                        , app.Logger);
+                var validationContext =
+                    new ValidationModelContext<IPingPongAppMessage>(modelContext
+                        , app.Logger
+                        , new PingValidator());
+                return validationContext;
+                //return modelContext;
+            };
+
 
 
             // 異なるプロトコルを持つ第3者通信相手を定義
             var thirdApp =
-                appContainer.MakeAppByTcpServer<IThirdAppMessage>(nativeIO => new DebugSession { NativeIO = nativeIO },8099)
+                bootstrap.MakeAppByTcpServer<IThirdAppMessage>(8099)
                 .RegisterConverter(new PangModelConverter());
+            thirdApp.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO };
 
             // シーケンスモジュールを直接登録するスタイル
-            appContainer.RegisterModule<ServerApp>();
+            bootstrap.RegisterModule<ServerApp>();
 
-            appContainer.Run();
+            bootstrap.Run();
         }
     }
 
@@ -61,11 +91,11 @@ namespace Sandbox.Test01
         public void Run(string[] args)
         {
             // アプリケーションコンテナ
-            var appContainer = new ApplicationContainer();
+            var bootstrap = new ContainerBootstrap();
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpClient<IPingPongAppMessage>("localhost", new[] { 8089, 8090 }[DateTime.Now.Millisecond % 2])
+                bootstrap.MakeAppByTcpClient<IPingPongAppMessage>("localhost", new[] { 8089, 8090 }[DateTime.Now.Millisecond % 2])
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義
@@ -73,9 +103,9 @@ namespace Sandbox.Test01
                 // Tunnel電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new TunnelModelConverter())
                 .RegisterConverter(new GomiModelConverter())
-                .RegisterInitializeSequence(( IIOContext<IPingPongAppMessage> c) => PingPongSequence(c, appContainer.Logger));
+                .RegisterInitializeSequence(( IIOContext<IPingPongAppMessage> c) => PingPongSequence(c, bootstrap.Logger));
 
-            Task.Run((Action)appContainer.Run);
+            Task.Run((Action)bootstrap.Run);
 
             while (true)
             {
@@ -85,15 +115,15 @@ namespace Sandbox.Test01
                 if (string.IsNullOrWhiteSpace(line))
                 {
                     // サーバーにPingメッセージを送信
-                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
+                    bootstrap.Container.GetApp<IPingPongAppMessage>().InstantSequence((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
                     {
-                        PingPongSequence(contexts.First(), appContainer.Logger);
+                        PingPongSequence(contexts.First(), bootstrap.Logger);
                     });
                 }
                 else
                 {
                     // サーバーにPingメッセージを送信
-                    appContainer.GetApp<IPingPongAppMessage>().InstantSequence(((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
+                    bootstrap.Container.GetApp<IPingPongAppMessage>().InstantSequence(((IEnumerable<IIOContext<IPingPongAppMessage>> contexts) =>
                     {
                         var server = contexts.FirstOrDefault();
                         if (server == null)
@@ -143,20 +173,20 @@ namespace Sandbox.Test01
         public void Run(string[] args)
         {
             // アプリケーションコンテナ
-            var appContainer = new ApplicationContainer();
+            var bootstrap = new ContainerBootstrap();
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                appContainer.MakeAppByTcpClient<IThirdAppMessage>("localhost", 8099)
+                bootstrap.MakeAppByTcpClient<IThirdAppMessage>("localhost", 8099)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PangModelConverter());
-            appContainer
+            bootstrap
                 .RegisterSequence((IIOContext<IThirdAppMessage> context, Pang model) =>
                 {
-                    appContainer.Logger.Debug("Pang!");
+                    bootstrap.Logger.Debug("Pang!");
                 });
 
-            Task.Run((Action)appContainer.Run);
+            Task.Run((Action)bootstrap.Run);
 
             Console.ReadLine();
         }

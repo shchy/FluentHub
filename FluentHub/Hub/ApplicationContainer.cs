@@ -1,7 +1,7 @@
-﻿using FluentHub.Hub.Module;
-using FluentHub.IO;
+﻿using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
+using FluentHub.Module;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,20 +17,13 @@ namespace FluentHub.Hub
         private Dictionary<Type, IContextApplication> appList;
         private List<Task> runningTasks;
 
-        public ILogger Logger { get; private set; }
-        public IModuleInjection ModuleInjection { get; set; }
+        public ILogger Logger { get; set; }
 
-        public ApplicationContainer(ILogger logger = null, IModuleInjection moduleInjection = null)
+        public ApplicationContainer(ILogger logger)
         {
-            this.Logger = logger ?? new DefaultLogger();
+            this.Logger = logger;
             this.appList = new Dictionary<Type, IContextApplication>();
-            this.ModuleInjection = moduleInjection ?? new ModuleInjection();
-            this.ModuleInjection.Missed += ModuleInjection_Missed;
             this.runningTasks = new List<Task>();
-
-            // DIに登録
-            this.ModuleInjection.Add(() => this as IApplicationContainer);
-            this.ModuleInjection.Add(() => this.Logger as ILogger);
         }
 
         public void Add<T>(IContextApplication<T> app)
@@ -40,9 +33,6 @@ namespace FluentHub.Hub
             {
                 this.appList.Add(tType, app);
             }
-            // DIコンテナに登録
-            this.ModuleInjection.Add(() => app);
-            this.ModuleInjection.Add<IEnumerable<IIOContext<T>>>(() => app.Pool.Get().ToArray());
         }
 
         public IEnumerable<IContextApplication> GetApps()
@@ -66,11 +56,6 @@ namespace FluentHub.Hub
                 return
                     this.appList[tType] as IContextApplication<T>;
             }
-        }
-
-        public virtual IContextPool<T> MakeContextPool<T>()
-        {
-            return new ContextPool<T>(this.Logger);
         }
 
         public void Run()
@@ -125,7 +110,6 @@ namespace FluentHub.Hub
             }
         }
 
-
         void DelTask(Task task)
         {
             lock ((runningTasks as ICollection).SyncRoot)
@@ -145,14 +129,10 @@ namespace FluentHub.Hub
                 appList.Clear();
             }
 
-            
-
             while (IsRunning())
             {
                 Thread.Sleep(10);
             }
-
-            this.ModuleInjection.Missed -= ModuleInjection_Missed;
         }
 
         bool IsRunning()
@@ -162,67 +142,6 @@ namespace FluentHub.Hub
                 return
                     this.runningTasks.Any(t => !t.Wait(0));
             }
-        }
-
-
-        // todo どこかへ移動したい
-        // DIに失敗した時のイベントでそれがIEnumerable<ISessionContext<AppIF,SessionType>>だったら、ここでしか救済できないのでここでする。
-        // どこかに委譲したい
-        private object ModuleInjection_Missed(Type type)
-        {
-            if (typeof(IEnumerable<>) != type.GetGenericTypeDefinition())
-            {
-                return null;
-            }
-            // 
-            var genericType = type.GetGenericArguments()[0];
-            if (typeof(ISessionContext<,>) != genericType.GetGenericTypeDefinition())
-            {
-                return null;
-            }
-
-            // ISessionContext型を求めていたら
-            // APPIFをチェック
-            var appType = genericType.GetGenericArguments()[0];
-            // 一致するアプリを取得
-            var app = this.appList.Values.Where(x => x.GetType().GetGenericArguments()[0] == appType).FirstOrDefault();
-            if (app == null)
-            {
-                return null;
-            }
-
-            // 求められているISessionの実装型を取得
-            var sessionType = genericType.GetGenericArguments()[1];
-
-            // ModelContext達を取得
-            var contexts = app.GetContextsNotTyped();
-
-            var query =
-                from context in contexts
-                let session = app.GetSessionNotTyped(context, sessionType)
-                where session != null
-                select new { context, session };
-            var impl = query.ToArray();
-           
-
-            var sessionContexts = 
-                this.GetType()
-                .GetMethod(nameof(MakeSessionContexts), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .MakeGenericMethod(appType, sessionType)
-                .Invoke(this, new object[] { impl.Select(x => x.context).ToArray(), impl.Select(x => x.session).ToArray() });
-            return sessionContexts;
-        }
-
-        private IEnumerable<ISessionContext<AppIF, SessionType>> MakeSessionContexts<AppIF, SessionType>(IEnumerable<object> contexts, IEnumerable<ISession> sessions)
-            where SessionType : ISession
-        {
-            var query =
-                from c in contexts.Zip(sessions, (c,s)=>new {c,s })
-                let context = c.c
-                let session = c.s
-                let sessionContext = new SessionContext<AppIF, SessionType>((IIOContext<AppIF>)context, (SessionType)session)
-                select sessionContext;
-            return query.ToArray();
         }
     }
 }

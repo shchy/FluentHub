@@ -1,4 +1,5 @@
-﻿using FluentHub.IO;
+﻿using FluentHub.Hub;
+using FluentHub.IO;
 using FluentHub.IO.Extension;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub.Module
+namespace FluentHub.Module
 {
     class ContextModuleInjection<AppIF> : ModuleInjection
     {

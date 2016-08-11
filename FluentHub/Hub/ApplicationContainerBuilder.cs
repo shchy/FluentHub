@@ -4,51 +4,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System.Reflection;
 using FluentHub.IO.Extension;
-using System.Collections;
+using FluentHub.Logger;
+using FluentHub.Module;
 
 namespace FluentHub.Hub
 {
     public static class ApplicationContainerBuilder
     {
-        public static IContextApplication<T> MakeApp<T>(
-            this IApplicationContainer @this
-            , IModelContextFactory<T> modelContextFactory
-            , Func<object, ISession> makeSession)
+        public static IAppBuilder<AppIF> RegisterConverter<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , IModelConverter<AppIF> converter)
         {
-            var app =
-                new Application<T>(
-                    @this.MakeContextPool<T>()
-                    , modelContextFactory
-                    , new SequenceRunnerFacade<T>(@this.Logger) // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
-                    , @this.ModuleInjection
-                    , @this.Logger
-                    , makeSession
-                    );
-            @this.Add(app);
-            return app;
-        }
-
-        public static IContextApplication<T> RegisterConverter<T>(
-            this IContextApplication<T> @this
-            , IModelConverter<T> converter)
-        {
-            @this.AddConverter(converter);
+            @this.ModelConverters.Add(converter);
             return @this;
         }
         
-        public static IContextApplication<T> RegisterConverter<T,U>(
-            this IContextApplication<T> @this)
-            where U : class,T, new()
-            where T : class
+        // todo 廃止したい
+        public static IAppBuilder<AppIF> RegisterConverter<AppIF,U>(
+            this IAppBuilder<AppIF> @this)
+            where U : class, AppIF, new()
+            where AppIF : class
         {
-            var defaultConverter = new DefaultModelConverter<T,U>();
-            @this.AddConverter(defaultConverter);
+            var defaultConverter = new DefaultModelConverter<AppIF, U>();
+            @this.ModelConverters.Add(defaultConverter);
             return @this;
         }
+
 
         public static ISession GetSession<AppIF>(this IContextApplication<AppIF> app
             , IIOContext<AppIF> context
@@ -100,9 +84,5 @@ namespace FluentHub.Hub
             var session = (ISession)typedmethod.Invoke(null, new object[] { app, context, sessionType });
             return session;
         }
-
-
     }
-
-    
 }
