@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class SerialBuilder
     {

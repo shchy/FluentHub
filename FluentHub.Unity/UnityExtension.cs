@@ -7,7 +7,7 @@ using Microsoft.Practices.Unity;
 using FluentHub.Unity;
 using FluentHub.Logger;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class UnityExtension
     {

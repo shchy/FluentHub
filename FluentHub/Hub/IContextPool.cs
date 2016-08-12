@@ -16,5 +16,6 @@ namespace FluentHub.Hub
         IEnumerable<IIOContext<AppIF>> Get();
         event Action<IIOContext<AppIF>> Updated;
         event Action<IIOContext<AppIF>> Added;
+        event Action<IIOContext<AppIF>> Removed;
     }
 }

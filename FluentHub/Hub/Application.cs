@@ -63,11 +63,25 @@ namespace FluentHub.Hub
         {
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
+            this.Pool.Removed += Pool_Removed;
             this.modelContextFactory.Maked += ModelContextFactory_Maked;
             this.modelContextFactory.Run();
             this.modelContextFactory.Maked -= ModelContextFactory_Maked;
+            this.Pool.Removed -= Pool_Removed;
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
+        }
+
+        private void Pool_Removed(IIOContext<AppIF> removeContext)
+        {
+            lock ((this.Sessions as ICollection).SyncRoot)
+            {
+                if(this.Sessions.ContainsKey(removeContext) == false)
+                {
+                    return;
+                }
+                this.Sessions.Remove(removeContext);
+            }
         }
 
         private void ModelContextFactory_Maked(IIOContext<AppIF> context, object nativeIO)
