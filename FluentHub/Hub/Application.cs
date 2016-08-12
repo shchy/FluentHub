@@ -86,11 +86,11 @@ namespace FluentHub.Hub
 
         private void ModelContextFactory_Maked(IIOContext<AppIF> context, object nativeIO)
         {
-            this.Pool.Add(context);
             lock ((sessionPool as ICollection).SyncRoot)
             {
                 this.sessionPool[context] = makeSession(nativeIO);
             }
+            this.Pool.Add(context);
         }
 
         private void AddedContext(IIOContext<AppIF> context)
