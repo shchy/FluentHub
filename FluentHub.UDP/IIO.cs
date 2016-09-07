@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.IO.Extension
+namespace FluentHub.UDP
 {
     public interface IIO : IDisposable
     {

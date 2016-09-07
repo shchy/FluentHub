@@ -10,18 +10,19 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public class ContextPool<T> : IContextPool<T>
+    public class ContextPool<AppIF> : IContextPool<AppIF>
     {
-        private List<IIOContext<T>> pool;
+        private List<IIOContext<AppIF>> pool;
         private ILogger logger;
 
-        public event Action<IIOContext<T>> Updated;
-        public event Action<IIOContext<T>> Added;
+        public event Action<IIOContext<AppIF>> Updated;
+        public event Action<IIOContext<AppIF>> Added;
+        public event Action<IIOContext<AppIF>> Removed;
 
         public ContextPool(ILogger logger)
         {
             this.logger = logger;
-            this.pool = new List<IIOContext<T>>();
+            this.pool = new List<IIOContext<AppIF>>();
         }
 
         public void Dispose()
@@ -35,9 +36,9 @@ namespace FluentHub.Hub
             }
         }
 
-        public void Add(IIOContext<T> modelContext)
+        public void Add(IIOContext<AppIF> modelContext)
         {
-            this.logger.Debug($"add context to pool typeof:{typeof(T).Name}");
+            this.logger.Debug($"add context to pool typeof:{typeof(AppIF).Name}");
             modelContext.Received += ModelContext_Received;
             lock ((pool as ICollection).SyncRoot)
             {
@@ -58,7 +59,7 @@ namespace FluentHub.Hub
             Added(modelContext);
         }
 
-        public void Remove(IIOContext<T> modelContext)
+        public void Remove(IIOContext<AppIF> modelContext)
         {
             lock ((pool as ICollection).SyncRoot)
             {
@@ -66,20 +67,20 @@ namespace FluentHub.Hub
                 {
                     return;
                 }
-                this.logger.Debug($"remove context to pool typeof:{typeof(T).Name}");
+                this.logger.Debug($"remove context to pool typeof:{typeof(AppIF).Name}");
                 modelContext.Received -= ModelContext_Received;
                 modelContext.Dispose();
                 pool.Remove(modelContext);
             }
+            Removed(modelContext);
         }
 
         private void ModelContext_Received(object sender, EventArgs e)
         {
-            OnUpdate(sender as IIOContext<T>);
+            OnUpdate(sender as IIOContext<AppIF>);
         }
 
-
-        void OnUpdate(IIOContext<T> context)
+        void OnUpdate(IIOContext<AppIF> context)
         {
             if (Updated == null)
             {
@@ -88,7 +89,7 @@ namespace FluentHub.Hub
             Updated(context);
         }
 
-        public IEnumerable<IIOContext<T>> Get()
+        public IEnumerable<IIOContext<AppIF>> Get()
         {
             lock ((pool as ICollection).SyncRoot)
             {
@@ -97,7 +98,7 @@ namespace FluentHub.Hub
             }
         }
 
-        private void CleaningPool(List<IIOContext<T>> pool)
+        private void CleaningPool(List<IIOContext<AppIF>> pool)
         {
             var query =
                     from c in pool

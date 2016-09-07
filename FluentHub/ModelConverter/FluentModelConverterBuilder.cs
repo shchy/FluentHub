@@ -13,17 +13,6 @@ namespace FluentHub.ModelConverter
 {
     public static class FluentModelConverterBuilder
     {
-        public static IContextApplication<T> RegisterConverter<T,U>(
-            this IContextApplication<T> @this
-            , Func<IModelBuilder<U>, IModelConverter<U>> makeConverter)
-            where U : class, T, new()
-        {
-            var modelBuilder = ToModelBuilder<U>(()=> new U());
-            var converter = makeConverter(modelBuilder);
-            @this.AddConverter(converter.ToBaseTypeConverter<U,T>());
-            return @this;
-        }
-
         public static IModelBuilder<T> ToModelBuilder<T>(Func<T> defaultModel)
         {
             var builder = new ModelBuilder<T>(defaultModel);

@@ -1,4 +1,5 @@
-﻿using FluentHub.Hub;
+﻿using FluentHub;
+using FluentHub.Hub;
 using FluentHub.IO;
 using FluentHub.ModelConverter;
 using System;
@@ -26,30 +27,29 @@ namespace Sandbox.Test00
 
             Task.Run((Action)appContainer.Run);
 
-            Controller(appContainer);
+            Controller(appContainer.Container);
         }
 
-        public static IApplicationContainer MakeApps(bool isServer)
+        public static ContainerBootstrap MakeApps(bool isServer)
         {
             // アプリケーションコンテナの生成
-            var appContainer = new ApplicationContainer() as IApplicationContainer;
-            var logger = appContainer.Logger;
+            var bootstrap = new ContainerBootstrap();// as IApplicationContainer;
+            var logger = bootstrap.Logger;
 
             // TCPサーバーアプリケーションAを立てる
             var appA =
-                MakeAppUDP<IModelMessageA>(appContainer, isServer, 1244)
+                MakeAppUDP<IModelMessageA>(bootstrap, isServer, 1244)
                 .RegisterConverter(new AMessage0Converter())
                 .RegisterConverter(new AMessage1Converter())
                 .RegisterConverter(new AMessage2Converter());
 
             // TCPサーバーアプリケーションBを立てる
             var appB =
-                MakeAppTCP<IModelMessageB>(appContainer, isServer, 1245)
+                MakeAppTCP<IModelMessageB>(bootstrap, isServer, 1245)
                 .RegisterConverter(new BMessage0Converter())
                 .RegisterConverter(new BMessage1Converter());
-
             // シーケンスの登録
-            appContainer
+            bootstrap
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))
                 // サーバーとクライアントの1:1シーケンスの登録(型指定)
                 .RegisterSequence((IIOContext<IModelMessageA> context, AMessage0 model) =>
@@ -74,24 +74,24 @@ namespace Sandbox.Test00
                         logger.Info($"{res.GetType().Name}を受信");
                     }
                 });
-            return appContainer;
+            return bootstrap;
         }
 
-        private static IContextApplication<T> MakeAppTCP<T>(IApplicationContainer container, bool isServer, int v)
+        private static IAppBuilder<T> MakeAppTCP<T>(ContainerBootstrap container, bool isServer, int v)
         {
-            Func<IContextApplication<T>> f = null;
+            Func<IAppBuilder<T>> f = null;
             // TCP
             f =
                 isServer
-                ? (Func<IContextApplication<T>>)(() => container.MakeAppByTcpServer<T>(v) as IContextApplication<T>)
+                ? (Func<IAppBuilder<T>>)(() => container.MakeAppByTcpServer<T>(v) as IAppBuilder<T>)
                 : () => container.MakeAppByTcpClient<T>("localhost", v);
             return f();
 
         }
 
-        private static IContextApplication<T> MakeAppUDP<T>(IApplicationContainer container, bool isServer, int v)
+        private static IAppBuilder<T> MakeAppUDP<T>(ContainerBootstrap container, bool isServer, int v)
         {
-            Func<IContextApplication<T>> f = null;
+            Func<IAppBuilder<T>> f = null;
             // UDP
             var p1 = v;
             var p2 = v - 100;
@@ -104,9 +104,9 @@ namespace Sandbox.Test00
             f = () => container.MakeAppByUdp<T>("localhost", p1, p2);
             return f();
         }
-        private static IContextApplication<T> MakeAppSerial<T>(IApplicationContainer container, bool isServer, int v)
+        private static IAppBuilder<T> MakeAppSerial<T>(ContainerBootstrap container, bool isServer, int v)
         {
-            Func<IContextApplication<T>> f = null;
+            Func<IAppBuilder<T>> f = null;
             // SerialPort
             var comName = isServer ? $"COM{v}" : $"COM{v + 1}";
             f = () => container.MakeAppBySerialPort<T>(comName, 2400, Parity.None, 8, StopBits.One);

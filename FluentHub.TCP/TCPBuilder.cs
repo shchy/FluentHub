@@ -10,7 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class TCPBuilder
     {
@@ -21,43 +21,37 @@ namespace FluentHub.Hub
         /// <param name="this"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public static IContextApplication<T> MakeAppByTcpServer<T>(
-            this IApplicationContainer @this
-            , Func<object, ISession> makeSession
+        public static IAppBuilder<T> MakeAppByTcpServer<T>(
+            this ContainerBootstrap @this
             , params int[] ports)
         {
+            var appBuilder = new AppBuilder<T, TcpClient>();
+            appBuilder.Logger = @this.Logger;
+            appBuilder.DependencyContainer = @this.DependencyContainer;
+            @this.Builders.Add(appBuilder);
+
+            appBuilder.NativeIOFactory = new TcpServerFactory(ports);
+            appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
+
             return
-                @this.MakeApp<T>(
-                    new ModelContextFactory<T,TcpClient>(
-                        new TcpServerFactory(ports)
-                        , (TcpClient client) => client.BuildContextByTcp()
-                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger
-                        ), makeSession);
+                appBuilder;
         }
 
-        public static IContextApplication<T> MakeAppByTcpServer<T>(
-            this IApplicationContainer @this
-            , params int[] ports)
-        {
-            return
-                @this.MakeAppByTcpServer<T>(null, ports);
-        }
-
-        public static IContextApplication<T> MakeAppByTcpClient<T>(
-            this IApplicationContainer @this
+        public static IAppBuilder<T> MakeAppByTcpClient<T>(
+            this ContainerBootstrap @this
             , string host
-            , int port
-            , Func<object, ISession> makeSession = null)
+            , int port)
         {
+            var appBuilder = new AppBuilder<T, TcpClient>();
+            appBuilder.Logger = @this.Logger;
+            appBuilder.DependencyContainer = @this.DependencyContainer;
+            @this.Builders.Add(appBuilder);
+
+            appBuilder.NativeIOFactory = new TcpClientFactory(host, port);
+            appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
+
             return
-               @this.MakeApp<T>(
-                   new ModelContextFactory<T,TcpClient>(
-                        new TcpClientFactory(host, port)
-                        , (TcpClient client) => client.BuildContextByTcp()
-                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger
-                        ), makeSession);
+                appBuilder;
         }
 
         public static IIOContext<byte[]> BuildContextByTcp(

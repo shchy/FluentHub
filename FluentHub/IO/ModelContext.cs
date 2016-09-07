@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace FluentHub.IO
 {
-    public class ModelContext<T> : IIOContext<T>
+    public class ModelContext<AppIF> : IIOContext<AppIF>
     {
         private IIOContext<byte[]> byteContext;
-        private IEnumerable<IModelConverter<T>> converters;
+        private IEnumerable<IModelConverter<AppIF>> converters;
         private List<byte> bytecache;
-        private List<T> modelcache;
+        private List<AppIF> modelcache;
         private bool isDisposed;
         private object syncObj = new object();
         private ILogger logger;
@@ -37,7 +37,7 @@ namespace FluentHub.IO
 
 
         public ModelContext(IIOContext<byte[]> byteContext
-            , IEnumerable<IModelConverter<T>> converters
+            , IEnumerable<IModelConverter<AppIF>> converters
             , ISuspendedDisposal jammedPacketCleaner
             , ILogger logger)
         {
@@ -46,7 +46,7 @@ namespace FluentHub.IO
             this.byteContext = byteContext;
             this.converters = converters;
             this.bytecache = new List<byte>();
-            this.modelcache = new List<T>();
+            this.modelcache = new List<AppIF>();
             this.byteContext.Received += ByteContext_Received;
             if (this.byteContext.IsAny)
             {
@@ -109,7 +109,7 @@ namespace FluentHub.IO
         }
 
 
-        bool TryBuildModel(List<byte> bytes, IList<T> models)
+        bool TryBuildModel(List<byte> bytes, IList<AppIF> models)
         {
             var result =
                 this.converters.TryToBuild(bytes);
@@ -140,14 +140,14 @@ namespace FluentHub.IO
             this.logger.Debug($"clear jammed packet 0x{string.Join("", jammed.Select(b=>b.ToString("X2")))}");
         }
 
-        public T Read(Func<T, bool> predicate)
+        public AppIF Read(Func<AppIF, bool> predicate)
         {
             lock ((this.modelcache as ICollection).SyncRoot)
             {
                 var items = this.modelcache.Where(predicate).ToArray();
                 if (items.Any() == false)
                 {
-                    return default(T);
+                    return default(AppIF);
                 }
                 var item = items.First();
                 this.modelcache.Remove(item);
@@ -156,13 +156,13 @@ namespace FluentHub.IO
         }
         
 
-        public T Read()
+        public AppIF Read()
         {
             lock ((this.modelcache as ICollection).SyncRoot)
             {
                 if (this.modelcache.Any() == false)
                 {
-                    return default(T);
+                    return default(AppIF);
                 }
                 var item = this.modelcache[0];
                 this.modelcache.Remove(item);
@@ -170,7 +170,7 @@ namespace FluentHub.IO
             }
         }
 
-        public void Write(T model)
+        public void Write(AppIF model)
         {
             lock (this.syncObj)
             {

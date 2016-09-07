@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Hub
 {
-    public interface INativeIOFactory<T> : IDisposable
+    public interface INativeIOFactory<NativeIO> : IDisposable
     {
-        T Make();
+        NativeIO Make();
     }
 }

@@ -44,21 +44,24 @@
     <Compile Include="..\VersionInfo.cs">
       <Link>VersionInfo.cs</Link>
     </Compile>
+    <Compile Include="AppBuilder.cs" />
+    <Compile Include="ContainerBootstrap.cs" />
     <Compile Include="Hub\ApplicationContainer.cs" />
-    <Compile Include="Hub\ApplicationContainerBuilder.cs" />
+    <Compile Include="BuildExtension.cs" />
     <Compile Include="Hub\IModelContextFactory.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />
     <Compile Include="Hub\ISequenceRunner.cs" />
     <Compile Include="Hub\ModelContextFactory.cs" />
-    <Compile Include="Hub\Module\ContextModuleInjection.cs" />
-    <Compile Include="Hub\Module\IModuleInjection.cs" />
-    <Compile Include="Hub\Module\ModuleExtension.cs" />
-    <Compile Include="Hub\Module\ModuleInjection.cs" />
+    <Compile Include="IAppBuilder.cs" />
+    <Compile Include="Module\ContextModuleInjection.cs" />
+    <Compile Include="Module\IModuleDependencyContainer.cs" />
+    <Compile Include="ModuleExtension.cs" />
+    <Compile Include="Module\ModuleDependencyContainer.cs" />
     <Compile Include="Hub\IApplicationContainer.cs" />
     <Compile Include="Hub\IContextApplication.cs" />
     <Compile Include="Hub\Application.cs" />
-    <Compile Include="Hub\RegisterSequenceFromApp.cs" />
-    <Compile Include="Hub\RegisterSequenceFromContainer.cs" />
+    <Compile Include="RegisterSequenceFromApp.cs" />
+    <Compile Include="RegisterSequenceFromContainer.cs" />
     <Compile Include="Hub\SequenceRunner.cs" />
     <Compile Include="Hub\SequenceRunnerFacade.cs" />
     <Compile Include="Hub\TaskExtension.cs" />
@@ -69,8 +72,6 @@
     <Compile Include="IO\Extension\SuspendedDisposalSource.cs" />
     <Compile Include="IO\Extension\SuspendedSentence.cs" />
     <Compile Include="ModelConverter\BinaryConverter.cs" />
-    <Compile Include="IO\Extension\FakeStream.cs" />
-    <Compile Include="IO\Extension\IIO.cs" />
     <Compile Include="Hub\ContextPool.cs" />
     <Compile Include="IO\Extension\IOContextLoggerProxy.cs" />
     <Compile Include="IO\Extension\StreamContext.cs" />
@@ -102,7 +103,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

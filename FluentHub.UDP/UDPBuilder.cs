@@ -14,24 +14,26 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
     public static class UDPBuilder
     {
-        public static IContextApplication<T> MakeAppByUdp<T>(
-            this IApplicationContainer @this
+        public static IAppBuilder<T> MakeAppByUdp<T>(
+            this ContainerBootstrap @this
             , string host
             , int sendPort
-            , int recvPort
-            , Func<object, ISession> makeSession = null)
+            , int recvPort)
         {
+            var appBuilder = new AppBuilder<T, Stream>();
+            appBuilder.Logger = @this.Logger;
+            appBuilder.DependencyContainer = @this.DependencyContainer;
+            @this.Builders.Add(appBuilder);
+
+            appBuilder.NativeIOFactory = new UDPFactory(host, sendPort, recvPort);
+            appBuilder.NativeToStreamContext = (Stream x) => x.BuildContextByStream();
+
             return
-                @this.MakeApp<T>(
-                    new ModelContextFactory<T,Stream>(
-                        new UDPFactory(host, sendPort, recvPort)
-                        , (Stream x) => x.BuildContextByStream()
-                        , new SuspendedDisposalSource(1000) // todo 変更方法を考える
-                        , @this.Logger), makeSession);
+                appBuilder;
         }        
     }
 }

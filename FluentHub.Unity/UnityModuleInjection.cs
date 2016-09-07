@@ -1,14 +1,14 @@
 ﻿using System;
-using FluentHub.Hub.Module;
 using Microsoft.Practices.Unity;
+using FluentHub.Module;
 
 namespace FluentHub.Unity
 {
-    public class UnityModuleInjection : IModuleInjection
+    public class UnityModuleDependencyContainer : IModuleDependencyContainer
     {
         public IUnityContainer Container { get; private set; }
 
-        public UnityModuleInjection(IUnityContainer container)
+        public UnityModuleDependencyContainer(IUnityContainer container)
         {
             this.Container = container;
         }

@@ -17,21 +17,24 @@ namespace FluentHub.Hub
         private ISuspendedDisposalSource suspendedSentenceSource;
         private Func<NativeIO, IIOContext<byte[]>> toStreamContext;
         private bool isRunning;
+        private Func<IIOContext<byte[]>, ISuspendedDisposal, IIOContext<AppIF>> toModelContext;
 
         public event Action<IIOContext<AppIF>, object> Maked;
 
         public ModelContextFactory(
             INativeIOFactory<NativeIO> nativeIOFactory
             , Func<NativeIO, IIOContext<byte[]>> toStreamContext
+            , Func<IIOContext<byte[]>, ISuspendedDisposal, IIOContext<AppIF>> toModelContext
             , ISuspendedDisposalSource suspendedSentenceSource
             , ILogger logger)
         {
             this.nativeIOFactory = nativeIOFactory;
             this.toStreamContext = toStreamContext;
+            this.toModelContext = toModelContext;
             this.suspendedSentenceSource = suspendedSentenceSource;
             this.logger = logger;
         }
-        public void Run(IEnumerable<IModelConverter<AppIF>> modelConverters)
+        public void Run()
         {
             // パケ詰まりを何とかするタイミングを管理する何かを開始
             suspendedSentenceSource.Run();
@@ -49,10 +52,10 @@ namespace FluentHub.Hub
                     }
                     // Nativeな何かをStreamContextに変換
                     var streamContext = this.toStreamContext(nativeIO);
-                    // StreamContextを例外ログとか出力できるように変換
-                    var loggerContext = new IOContextLoggerProxy<byte[]>(streamContext, logger);
+
                     // ↑をModelContextに変換
-                    var modelContext = new ModelContext<AppIF>(loggerContext, modelConverters, suspendedSentenceSource.MakeToken(), logger);
+                    var modelContext = this.toModelContext(streamContext, suspendedSentenceSource.MakeToken());
+
                     // 生成イベントが未登録なら行き場がないので即破棄
                     if (Maked == null)
                     {

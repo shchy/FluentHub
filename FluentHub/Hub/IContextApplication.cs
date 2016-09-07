@@ -1,8 +1,8 @@
-﻿using FluentHub.Hub.Module;
-using FluentHub.IO;
+﻿using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
+using FluentHub.Module;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +16,11 @@ namespace FluentHub.Hub
         void Run();
     }
 
-    public interface IContextApplication<T> : IContextApplication
+    public interface IContextApplication<AppIF> : IContextApplication
     {
-        void AddSequence(Action<IIOContext<T>> sequence);
-        void AddInitializeSequence(Action<IIOContext<T>> initializeSequence);
-        void AddConverter(IModelConverter<T> converter);
-        IContextPool<T> Pool { get; }
-        IDictionary<IIOContext<T>, ISession> Sessions{get;}
+        IContextPool<AppIF> Pool { get; }
+        IDictionary<IIOContext<AppIF>, ISession> Sessions{get;}
         ILogger Logger { get; }
-        IModuleInjection ModuleInjection { get; }
+        IModuleDependencyContainer DependencyContainer { get; }
     }
 }

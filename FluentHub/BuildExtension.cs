@@ -4,44 +4,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System.Reflection;
 using FluentHub.IO.Extension;
-using System.Collections;
+using FluentHub.Logger;
+using FluentHub.Module;
+using FluentHub.Hub;
 
-namespace FluentHub.Hub
+namespace FluentHub
 {
-    public static class ApplicationContainerBuilder
+    public static class BuildExtension
     {
-        public static IContextApplication<T> MakeApp<T>(
-            this IApplicationContainer @this
-            , IModelContextFactory<T> modelContextFactory
-            , Func<object, ISession> makeSession)
+        public static IAppBuilder<AppIF> RegisterConverter<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , IModelConverter<AppIF> converter)
         {
-            var app =
-                new Application<T>(
-                    @this.MakeContextPool<T>()
-                    , modelContextFactory
-                    , new SequenceRunnerFacade<T>(@this.Logger) // todo defaultはこれでいいけどどこかで変更できるようにはしたいよね
-                    , @this.ModuleInjection
-                    , @this.Logger
-                    , makeSession
-                    );
-            @this.Add(app);
-            return app;
-        }
-
-        public static IContextApplication<T> RegisterConverter<T>(
-            this IContextApplication<T> @this
-            , IModelConverter<T> converter)
-        {
-            @this.AddConverter(converter);
+            @this.ModelConverters.Add(converter);
             return @this;
         }
-        
-        
-        public static ISession GetSession<AppIF>(this IContextApplication<AppIF> app
+
+        public static IAppBuilder<AppIF> RegisterSession<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , Func<object,ISession> makeSession)
+        {
+            @this.MakeSession = makeSession;
+            return @this;
+        }
+
+        public static ISession GetSession<AppIF>(
+            this IContextApplication<AppIF> app
             , IIOContext<AppIF> context
             , Type sessionType)
         {
@@ -73,7 +64,7 @@ namespace FluentHub.Hub
             this IContextApplication app)
         {
             var appType = app.GetType().GetGenericArguments()[0];
-            var method = typeof(ApplicationContainerBuilder).GetMethod(nameof(ApplicationContainerBuilder.GetContexts), BindingFlags.Public | BindingFlags.Static);
+            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetContexts), BindingFlags.Public | BindingFlags.Static);
             var typedmethod = method.MakeGenericMethod(new[] { appType });
             var contexts = typedmethod.Invoke(null, new object[] { app });
             return (IEnumerable<object>)contexts;
@@ -86,14 +77,10 @@ namespace FluentHub.Hub
             , Type sessionType)
         {
             var appType = app.GetType().GetGenericArguments()[0];
-            var method = typeof(ApplicationContainerBuilder).GetMethod(nameof(ApplicationContainerBuilder.GetSession), BindingFlags.Public | BindingFlags.Static);
+            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetSession), BindingFlags.Public | BindingFlags.Static);
             var typedmethod = method.MakeGenericMethod(new[] { appType });
             var session = (ISession)typedmethod.Invoke(null, new object[] { app, context, sessionType });
             return session;
         }
-
-
     }
-
-    
 }

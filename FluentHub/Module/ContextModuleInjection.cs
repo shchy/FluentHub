@@ -1,4 +1,5 @@
-﻿using FluentHub.IO;
+﻿using FluentHub.Hub;
+using FluentHub.IO;
 using FluentHub.IO.Extension;
 using System;
 using System.Collections.Generic;
@@ -6,14 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub.Module
+namespace FluentHub.Module
 {
-    class ContextModuleInjection<AppIF> : ModuleInjection
+    class ContextModuleInjection<AppIF> : ModuleDependencyContainer
     {
         private IContextApplication<AppIF> app;
         private IIOContext<AppIF> context;
 
-        public ContextModuleInjection(IContextApplication<AppIF> app, IIOContext<AppIF> context) : base(app.ModuleInjection)
+        public ContextModuleInjection(IContextApplication<AppIF> app, IIOContext<AppIF> context) : base(app.DependencyContainer)
         {
             this.app = app;
             this.context = context;

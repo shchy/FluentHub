@@ -7,54 +7,55 @@ using System.Text;
 using System.Collections;
 using FluentHub.ModelConverter;
 using FluentHub.IO.Extension;
-using FluentHub.Hub.Module;
 using System.Threading.Tasks;
 using System.Threading;
+using FluentHub.Module;
 
 namespace FluentHub.Hub
 {
-    public class Application<T> : IContextApplication<T>
+    public class Application<AppIF> : IContextApplication<AppIF>
     {
-        private List<Action<IIOContext<T>>> sequences;
-        private List<Action<IIOContext<T>>> initializeSequences;
-        private List<IModelConverter<T>> modelConverters;
-        private ISequenceRunnerFacade<T> sequenceRunnerFacade;
-        private IModelContextFactory<T> modelContextFactory;
+        private IEnumerable<Action<IIOContext<AppIF>>> sequences;
+        private IEnumerable<Action<IIOContext<AppIF>>> initializeSequences;
+        private ISequenceRunnerFacade<AppIF> sequenceRunnerFacade;
+        private IModelContextFactory<AppIF> modelContextFactory;
         private Func<object, ISession> makeSession;
 
-        public IContextPool<T> Pool { get;  }
+        public IContextPool<AppIF> Pool { get;  }
         public ILogger Logger { get; }
 
-        public IModuleInjection ModuleInjection { get;  }
-        IDictionary<IIOContext<T>, ISession> sessions;
-        public IDictionary<IIOContext<T>, ISession> Sessions
+        public IModuleDependencyContainer DependencyContainer { get;  }
+        IDictionary<IIOContext<AppIF>, ISession> sessionPool;
+        public IDictionary<IIOContext<AppIF>, ISession> Sessions
         {
             get
             {
-                lock ((sessions as ICollection).SyncRoot)
+                lock ((sessionPool as ICollection).SyncRoot)
                 {
-                    return sessions;
+                    return sessionPool;
                 }
             }
         }
 
         public Application(
-            IContextPool<T> pool
-            , IModelContextFactory<T> modelContextFactory
-            , ISequenceRunnerFacade<T> sequenceRunnerFacade
-            , IModuleInjection moduleInjection
+            IContextPool<AppIF> pool
+            , IEnumerable<Action<IIOContext<AppIF>>> sequences
+            , IEnumerable<Action<IIOContext<AppIF>>> initializeSequences
+            , IModelContextFactory<AppIF> modelContextFactory
+            , ISequenceRunnerFacade<AppIF> sequenceRunnerFacade
+            , IModuleDependencyContainer dependencyContainer
             , ILogger logger
-            , Func<object, ISession> makeSession)
+            , Func<object, ISession> makeSession
+            , IDictionary<IIOContext<AppIF>, ISession> sessionPool)
         {
-            this.sequences = new List<Action<IIOContext<T>>>();
-            this.initializeSequences = new List<Action<IIOContext<T>>>();
+            this.sequences = sequences;
+            this.initializeSequences = initializeSequences;
             this.Pool = pool;
-            this.sessions = new Dictionary<IIOContext<T>, ISession>();
+            this.sessionPool = sessionPool;
             this.modelContextFactory = modelContextFactory;
-            this.modelConverters = new List<IModelConverter<T>>();
             this.Logger = logger;
             this.sequenceRunnerFacade = sequenceRunnerFacade;
-            this.ModuleInjection = moduleInjection;
+            this.DependencyContainer = dependencyContainer;
             this.makeSession = makeSession ?? (nativeIO => new DefaultSession { NativeIO = nativeIO });
         }
 
@@ -62,25 +63,39 @@ namespace FluentHub.Hub
         {
             this.Pool.Updated += UpdatedContext;
             this.Pool.Added += AddedContext;
+            this.Pool.Removed += Pool_Removed;
             this.modelContextFactory.Maked += ModelContextFactory_Maked;
-            this.modelContextFactory.Run(this.modelConverters);
+            this.modelContextFactory.Run();
             this.modelContextFactory.Maked -= ModelContextFactory_Maked;
+            this.Pool.Removed -= Pool_Removed;
             this.Pool.Added -= AddedContext;
             this.Pool.Updated -= UpdatedContext;
         }
 
-        private void ModelContextFactory_Maked(IIOContext<T> context, object nativeIO)
+        private void Pool_Removed(IIOContext<AppIF> removeContext)
         {
-            this.Pool.Add(context);
-            lock ((sessions as ICollection).SyncRoot)
+            lock ((this.Sessions as ICollection).SyncRoot)
             {
-                this.sessions[context] = makeSession(nativeIO);
+                if(this.Sessions.ContainsKey(removeContext) == false)
+                {
+                    return;
+                }
+                this.Sessions.Remove(removeContext);
             }
         }
 
-        private void AddedContext(IIOContext<T> context)
+        private void ModelContextFactory_Maked(IIOContext<AppIF> context, object nativeIO)
         {
-            var xs = Enumerable.Empty<Action<IIOContext<T>>>();
+            lock ((sessionPool as ICollection).SyncRoot)
+            {
+                this.sessionPool[context] = makeSession(nativeIO);
+            }
+            this.Pool.Add(context);
+        }
+
+        private void AddedContext(IIOContext<AppIF> context)
+        {
+            var xs = Enumerable.Empty<Action<IIOContext<AppIF>>>();
             lock ((initializeSequences as ICollection).SyncRoot)
             {
                 xs = initializeSequences.ToArray();
@@ -92,9 +107,9 @@ namespace FluentHub.Hub
             }
         }
 
-        private void UpdatedContext(IIOContext<T> context)
+        private void UpdatedContext(IIOContext<AppIF> context)
         {
-            var ss = null as Action<IIOContext<T>>[];
+            var ss = null as Action<IIOContext<AppIF>>[];
 
             lock ((sequences as ICollection).SyncRoot)
             {
@@ -112,36 +127,7 @@ namespace FluentHub.Hub
         {
             this.modelContextFactory.Stop();
             this.Pool.Dispose();
-            lock ((sequences as ICollection).SyncRoot)
-            {
-                sequences.Clear();
-            }
-            this.modelConverters = null;
-        }
-
-        public void AddSequence(Action<IIOContext<T>> sequence)
-        {
-            lock ((sequences as ICollection).SyncRoot)
-            {
-                this.sequences.Add(sequence);
-            }
-        }
-
-        public void AddInitializeSequence(Action<IIOContext<T>> initializeSequence)
-        {
-            lock ((initializeSequences as ICollection).SyncRoot)
-            {
-                this.initializeSequences.Add(initializeSequence);
-            }
-        }
-
-        public void AddConverter(IModelConverter<T> converter)
-        {
-            lock ((modelConverters as ICollection).SyncRoot)
-            {
-                modelConverters.Add(converter);
-            }
+            sequences = Enumerable.Empty<Action<IIOContext<AppIF>>>();
         }
     }
-
 }

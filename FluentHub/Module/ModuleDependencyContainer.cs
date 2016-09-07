@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentHub.Hub.Module
+namespace FluentHub.Module
 {
-    public class ModuleInjection : IModuleInjection
+    public class ModuleDependencyContainer : IModuleDependencyContainer
     {
-        private IModuleInjection parent;
+        private IModuleDependencyContainer parent;
         private Dictionary<Type, Func<object>> resolvers;
 
-        public ModuleInjection(): this(null)
+        public ModuleDependencyContainer(): this(null)
         {
         }
 
-        public ModuleInjection(IModuleInjection parent)
+        public ModuleDependencyContainer(IModuleDependencyContainer parent)
         {
             this.parent = parent;
             this.resolvers = new Dictionary<Type, Func<object>>();
