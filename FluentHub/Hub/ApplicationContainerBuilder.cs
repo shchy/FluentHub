@@ -40,16 +40,7 @@ namespace FluentHub.Hub
             return @this;
         }
         
-        public static IContextApplication<T> RegisterConverter<T,U>(
-            this IContextApplication<T> @this)
-            where U : class,T, new()
-            where T : class
-        {
-            var defaultConverter = new DefaultModelConverter<T,U>();
-            @this.AddConverter(defaultConverter);
-            return @this;
-        }
-
+        
         public static ISession GetSession<AppIF>(this IContextApplication<AppIF> app
             , IIOContext<AppIF> context
             , Type sessionType)

@@ -69,7 +69,6 @@
     <Compile Include="IO\Extension\SuspendedDisposalSource.cs" />
     <Compile Include="IO\Extension\SuspendedSentence.cs" />
     <Compile Include="ModelConverter\BinaryConverter.cs" />
-    <Compile Include="ModelConverter\DefaultModelConverter.cs" />
     <Compile Include="IO\Extension\FakeStream.cs" />
     <Compile Include="IO\Extension\IIO.cs" />
     <Compile Include="Hub\ContextPool.cs" />

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public class ArrayBuildItem<T, VModel> : IBuildItem<T>
-        where VModel : class, new()
     {
         private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;

@@ -40,14 +40,14 @@ namespace Sandbox.Test00
                 MakeAppUDP<IModelMessageA>(appContainer, isServer, 1244)
                 .RegisterConverter(new AMessage0Converter())
                 .RegisterConverter(new AMessage1Converter())
-                .RegisterConverter<IModelMessageA, AMessage2>();
-            
+                .RegisterConverter(new AMessage2Converter());
+
             // TCPサーバーアプリケーションBを立てる
             var appB =
                 MakeAppTCP<IModelMessageB>(appContainer, isServer, 1245)
-                .RegisterConverter<IModelMessageB, BMessage0>()
-                .RegisterConverter<IModelMessageB, BMessage1>();
-            
+                .RegisterConverter(new BMessage0Converter())
+                .RegisterConverter(new BMessage1Converter());
+
             // シーケンスの登録
             appContainer
                 .RegisterSequence((IIOContext<IModelMessageA> context) => logger.Info($"Aから何かを受信"))

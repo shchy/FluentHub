@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public interface IModelBuilder<TModel> : IBuildItemChain<TModel, IBuildItem<TModel>>
-        where TModel : class, new()
     {
         void RegisterInit(Action<TModel> init);
         bool CanToModel(BinaryReader r, IDictionary<string, object> context = null);
@@ -17,9 +16,9 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     }
 
     public class ModelBuilder<TModel> : IModelBuilder<TModel>
-        where TModel : class, new()
     {
         private Action<TModel> init;
+        private Func<TModel> defaultModel;
 
         public IBinaryConverter Converter { get; set; }
 
@@ -31,10 +30,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         public IChain<IBuildItem<TModel>> Next { get; set; }
         #endregion
 
-        public ModelBuilder()
+        public ModelBuilder(Func<TModel> defaultModel)
         {
             // default converter
             this.Converter = new BinaryConverter() as IBinaryConverter;
+            this.defaultModel = defaultModel;
             this.init = _ => { };
         }
 
@@ -87,7 +87,8 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             {
                 context = new Dictionary<string, object>();
             }
-            var model = new TModel();
+
+            var model = this.defaultModel();
             // ここでメンバのインナークラスなどを初期化してもらう
             this.init(model);
 

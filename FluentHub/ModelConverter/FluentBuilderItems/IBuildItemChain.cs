@@ -8,7 +8,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public interface IBuildItemChain<T, out BuildItem> : IChain<IBuildItem<T>>
         where BuildItem : IBuildItem<T>
-        where T : class, new()
     {
         IBinaryConverter Converter { get; }
         IModelBuilder<T> Builder { get; }
