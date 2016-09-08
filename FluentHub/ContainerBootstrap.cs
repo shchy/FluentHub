@@ -26,7 +26,7 @@ namespace FluentHub
             this.DependencyContainer = new ModuleDependencyContainer();
         }
 
-        public void Run()
+        public void Build()
         {
             this.Container = new ApplicationContainer(this.Logger, this.DependencyContainer);
 
@@ -34,8 +34,23 @@ namespace FluentHub
             {
                 builder.Build(Container);
             }
+        }
 
+        public void Run()
+        {
+            Build();
+            ContainerRun();
+        }
 
+        public Task RunAsync()
+        {
+            Build();
+
+            return Task.Run((Action)ContainerRun);
+        }
+
+        private void ContainerRun()
+        {
             this.DependencyContainer.Missed += ModuleInjection_Missed;
 
             Container.Run();
