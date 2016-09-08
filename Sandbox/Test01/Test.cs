@@ -48,7 +48,7 @@ namespace Sandbox.Test01
                 bootstrap.DependencyContainer = new UnityModuleDependencyContainer(unityContainer);
                 var app =
                     // 待ち受けポートは8089
-                    bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8089, 8090)
+                    bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8090)
                     // Ping電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new PingModelConverter())
                     // Pong電文のbyte[] <=> Model変換定義
@@ -98,7 +98,7 @@ namespace Sandbox.Test01
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                bootstrap.MakeAppByTcpClient<IPingPongAppMessage>("localhost", new[] { 8089, 8090 }[DateTime.Now.Millisecond % 2])
+                bootstrap.MakeAppByTcpClient<IPingPongAppMessage>("localhost", 8089, "localhost", 8090, 1000 * 60)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義

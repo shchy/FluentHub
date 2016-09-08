@@ -44,6 +44,13 @@ namespace FluentHub.Hub
             {
                 try
                 {
+                    // すでに必要な接続が確立されている場合
+                    if (this.nativeIOFactory.IsAlreadyEnough())
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                        continue;
+                    }
+
                     // Nativeな何かを取得
                     var nativeIO = this.nativeIOFactory.Make();
                     if (nativeIO == null)

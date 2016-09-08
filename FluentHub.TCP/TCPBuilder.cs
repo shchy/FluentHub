@@ -42,12 +42,36 @@ namespace FluentHub
             , string host
             , int port)
         {
+            var factory = new TcpClientFactory(host, port);
+            return
+                MakeAppByTcpClient<T>(@this, factory );
+        }
+
+        public static IAppBuilder<T> MakeAppByTcpClient<T>(
+            this ContainerBootstrap @this
+            , string host
+            , int port
+            , string secondaryHost
+            , int secondaryPort
+            , int switchMillisecond)
+        {
+            var primaryFactory = new TcpClientFactory(host, port);
+            var secondaryFactory = new TcpClientFactory(secondaryHost, secondaryPort);
+            var dual = new DualNativeIOFactory<TcpClient>(primaryFactory, secondaryFactory, switchMillisecond);
+            return
+                MakeAppByTcpClient<T>(@this, dual);
+        }
+
+        static IAppBuilder<T> MakeAppByTcpClient<T>(
+            ContainerBootstrap @this
+            , INativeIOFactory<TcpClient> nativeFactory)
+        {
             var appBuilder = new AppBuilder<T, TcpClient>();
             appBuilder.Logger = @this.Logger;
             appBuilder.DependencyContainer = @this.DependencyContainer;
             @this.Builders.Add(appBuilder);
 
-            appBuilder.NativeIOFactory = new TcpClientFactory(host, port);
+            appBuilder.NativeIOFactory = nativeFactory;
             appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
 
             return

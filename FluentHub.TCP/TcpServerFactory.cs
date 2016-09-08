@@ -35,6 +35,11 @@ namespace FluentHub.TCP
             this.isDisposed = true;
         }
 
+        public bool IsAlreadyEnough()
+        {
+            return false;
+        }
+
         public TcpClient Make()
         {
             if (this.isDisposed)

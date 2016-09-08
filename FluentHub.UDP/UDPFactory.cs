@@ -33,6 +33,13 @@ namespace FluentHub.UDP
             }
         }
 
+        public bool IsAlreadyEnough()
+        {
+            return this.connected != null
+                && connected.CanRead
+                && connected.CanWrite;
+        }
+
         public Stream Make()
         {
             if (this.isDisposed)
@@ -41,9 +48,7 @@ namespace FluentHub.UDP
             }
 
             // 接続済だったら接続しない
-            if (this.connected != null 
-                && connected.CanRead 
-                && connected.CanWrite)
+            if (IsAlreadyEnough())
             {
                 Thread.Sleep(1000);
                 return null;
