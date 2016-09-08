@@ -10,7 +10,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
     {
         public static IBuildItemChain<T, BuildItemTo> SetNext<T, BuildItemTo>(this IBuildItemChain<T, IBuildItem<T>> @this, BuildItemTo v)
             where BuildItemTo : IBuildItem<T>
-            where T : class, new()
         {
             var chain = new BuildItemChain<T, BuildItemTo>
             {

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public class ProxyModelBuildItem<T, V> : IBuildItem<T>
-        where V : class, new()
     {
         private Func<T, V> getter;
         private Action<T, V> setter;

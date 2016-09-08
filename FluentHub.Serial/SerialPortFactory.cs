@@ -22,6 +22,12 @@ namespace FluentHub.Serial
             this.isDisposed = true;
         }
 
+        public bool IsAlreadyEnough()
+        {
+            return this.connectedPort != null
+                && connectedPort.IsOpen;
+        }
+
         public SerialPort Make()
         {
             if (this.isDisposed)
@@ -30,8 +36,7 @@ namespace FluentHub.Serial
             }
 
             // 接続済だったら接続しない
-            if (this.connectedPort != null 
-                && connectedPort.IsOpen)
+            if (IsAlreadyEnough())
             {
                 Thread.Sleep(1000);
                 return null;

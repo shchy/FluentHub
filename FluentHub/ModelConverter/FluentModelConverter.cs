@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter
 {
     public class FluentModelConverter<T> : IModelConverter<T>
-        where T : class, new()
     {
         private IModelBuilder<T> builder;
 

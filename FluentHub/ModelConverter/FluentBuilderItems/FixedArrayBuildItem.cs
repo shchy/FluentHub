@@ -8,22 +8,24 @@ using System.Threading.Tasks;
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public class FixedArrayBuildItem<T, VModel> : IBuildItem<T>
-        where VModel : class, new()
     {
         private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
         private int loopCount;
+        private Func<VModel> defaultModel;
 
         public FixedArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
-            , int loopCount)
+            , int loopCount
+            , Func<VModel> defaultModel)
         {
             this.childBuilder = childBuilder;
             this.getter = getter;
             this.setter = setter;
             this.loopCount = loopCount;
+            this.defaultModel = defaultModel;
         }
 
         public void Write(T model, BinaryWriter w)
@@ -33,7 +35,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             var array = query.ToArray();
             for (int i = 0; i < loopCount; i++)
             {
-                var item = null as VModel;
+                var item = default(VModel);
                 if (array.Length > i)
                 {
                     item = array[i];
@@ -41,7 +43,7 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
                 else
                 {
                     // 要素数が足りなかったらデフォルト
-                    item = new VModel();
+                    item = this.defaultModel();
                 }
                 this.childBuilder.ToBytes(w, item);
             }

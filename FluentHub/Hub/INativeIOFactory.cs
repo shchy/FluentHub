@@ -8,6 +8,7 @@ namespace FluentHub.Hub
 {
     public interface INativeIOFactory<NativeIO> : IDisposable
     {
+        bool IsAlreadyEnough();
         NativeIO Make();
     }
 }

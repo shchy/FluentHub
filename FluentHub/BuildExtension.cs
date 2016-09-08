@@ -22,17 +22,6 @@ namespace FluentHub
             @this.ModelConverters.Add(converter);
             return @this;
         }
-        
-        // todo 廃止したい
-        public static IAppBuilder<AppIF> RegisterConverter<AppIF,U>(
-            this IAppBuilder<AppIF> @this)
-            where U : class, AppIF, new()
-            where AppIF : class
-        {
-            var defaultConverter = new DefaultModelConverter<AppIF, U>();
-            @this.ModelConverters.Add(defaultConverter);
-            return @this;
-        }
 
         public static IAppBuilder<AppIF> RegisterSession<AppIF>(
             this IAppBuilder<AppIF> @this

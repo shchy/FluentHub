@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.ModelConverter.FluentBuilderItems
 {
-    public interface IBuildItem<T>
+    public interface IBuildItem<in T>
     {
         void Write(T model, BinaryWriter w);
         bool CanRead(BinaryReader r, IDictionary<string, object> _context);

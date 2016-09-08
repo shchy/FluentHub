@@ -48,6 +48,7 @@
     <Compile Include="ContainerBootstrap.cs" />
     <Compile Include="Hub\ApplicationContainer.cs" />
     <Compile Include="BuildExtension.cs" />
+    <Compile Include="Hub\DualNativeIOFactory.cs" />
     <Compile Include="Hub\IModelContextFactory.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />
     <Compile Include="Hub\ISequenceRunner.cs" />
@@ -72,7 +73,6 @@
     <Compile Include="IO\Extension\SuspendedDisposalSource.cs" />
     <Compile Include="IO\Extension\SuspendedSentence.cs" />
     <Compile Include="ModelConverter\BinaryConverter.cs" />
-    <Compile Include="ModelConverter\DefaultModelConverter.cs" />
     <Compile Include="Hub\ContextPool.cs" />
     <Compile Include="IO\Extension\IOContextLoggerProxy.cs" />
     <Compile Include="IO\Extension\StreamContext.cs" />
@@ -104,7 +104,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

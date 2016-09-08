@@ -8,7 +8,6 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
 {
     public class BuildItemChain<T, BuildItem> : IBuildItemChain<T, BuildItem>
         where BuildItem : IBuildItem<T>
-        where T : class, new()
     {
         public IModelBuilder<T> Builder { get; set; }
 

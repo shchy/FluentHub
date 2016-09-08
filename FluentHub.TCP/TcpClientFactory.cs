@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub.TCP
 {
+    
     public class TcpClientFactory : INativeIOFactory<TcpClient>
     {
         private int port;
@@ -31,7 +32,7 @@ namespace FluentHub.TCP
         public TcpClient Make()
         {
             // 接続済だったら接続しない
-            if (this.connectedClient != null && this.connectedClient.Connected)
+            if (IsAlreadyEnough())
             {
                 Thread.Sleep(1000);
                 return null;
@@ -59,6 +60,11 @@ namespace FluentHub.TCP
 
             this.connectedClient = client;
             return client;
+        }
+
+        public bool IsAlreadyEnough()
+        {
+            return this.connectedClient != null && this.connectedClient.Connected;
         }
     }
 }
