@@ -16,7 +16,8 @@ namespace FluentHub
         {
             var unity = @this.DependencyContainer as UnityModuleDependencyContainer;
             var container = unity.Container;
-            return @this.RegisterModule<Module>(()=> container.Resolve<Module>());
+            var module = container.Resolve<Module>();
+            return @this.RegisterModule<Module>(()=> module);
         }
     }
 }
