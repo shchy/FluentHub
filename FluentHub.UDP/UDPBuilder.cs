@@ -27,7 +27,7 @@ namespace FluentHub
             var appBuilder = new AppBuilder<T, Stream>();
             appBuilder.Logger = @this.Logger;
             appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.Builders.Add(appBuilder);
+            @this.AppBuilders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = new UDPFactory(host, sendPort, recvPort);
             appBuilder.NativeToStreamContext = (Stream x) => x.BuildContextByStream();

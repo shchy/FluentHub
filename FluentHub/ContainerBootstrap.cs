@@ -19,7 +19,9 @@ namespace FluentHub
 
         public IModuleDependencyContainer DependencyContainer { get; set; }
 
-        public List<IAppBuilder> Builders { get; set; } = new List<IAppBuilder>();
+        public IList<IBuilder> AppBuilders { get; private set; } = new List<IBuilder>();
+
+        public IList<IBuilder> OtherBuilders { get; private set; } = new List<IBuilder>();
 
         public ContainerBootstrap()
         {
@@ -30,7 +32,12 @@ namespace FluentHub
         {
             this.Container = new ApplicationContainer(this.Logger, this.DependencyContainer);
 
-            foreach (var builder in Builders)
+            foreach (var builder in AppBuilders)
+            {
+                builder.Build(Container);
+            }
+
+            foreach (var builder in OtherBuilders)
             {
                 builder.Build(Container);
             }

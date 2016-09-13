@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub
 {
-    public interface IAppBuilder
+    public interface IBuilder
     {
         void Build(IApplicationContainer container);
     }

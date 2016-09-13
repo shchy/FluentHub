@@ -101,8 +101,16 @@ namespace FluentHub
                 ? nameof(ModuleExtension.RegisterInitializeSequenceApp)
                 : nameof(ModuleExtension.RegisterSequenceApp);
             
-            foreach (var appBuilder in @this.Builders.ToArray())
+            // 全アプリのタイプでシーケンス登録を試みる
+            foreach (var appBuilder in @this.AppBuilders.ToArray())
             {
+                // 素のIBuilderは無視
+                var apptype = appBuilder.GetType().GetGenericArguments();
+                if (apptype.Any() == false)
+                {
+                    continue;
+                }
+
                 var appType = appBuilder.GetType().GetGenericArguments()[0];
                 var registerSequence = typeof(ModuleExtension).GetMethod(normalSequenceOrInitializeSequenceRegisterMethodName, BindingFlags.Public | BindingFlags.Static);
                 var typedRegisterSequence = registerSequence.MakeGenericMethod(new[] { appType });

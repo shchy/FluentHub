@@ -28,7 +28,7 @@ namespace FluentHub
             var appBuilder = new AppBuilder<T, TcpClient>();
             appBuilder.Logger = @this.Logger;
             appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.Builders.Add(appBuilder);
+            @this.AppBuilders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = new TcpServerFactory(ports);
             appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
@@ -69,7 +69,7 @@ namespace FluentHub
             var appBuilder = new AppBuilder<T, TcpClient>();
             appBuilder.Logger = @this.Logger;
             appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.Builders.Add(appBuilder);
+            @this.AppBuilders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = nativeFactory;
             appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();

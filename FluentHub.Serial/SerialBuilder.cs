@@ -23,7 +23,7 @@ namespace FluentHub
             var appBuilder = new AppBuilder<T, SerialPort>();
             appBuilder.Logger = @this.Logger;
             appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.Builders.Add(appBuilder);
+            @this.AppBuilders.Add(appBuilder);
 
             appBuilder.NativeIOFactory = new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits));
             appBuilder.NativeToStreamContext = (SerialPort x) => x.BuildContextBySerialPort();

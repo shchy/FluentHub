@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FluentHub
 {
-    public class AppBuilder<AppIF, NativeIO> : IAppBuilder, IAppBuilder<AppIF>
+    public class AppBuilder<AppIF, NativeIO> : IBuilder, IAppBuilder<AppIF>
     {
         public ILogger Logger { get; set; }
 

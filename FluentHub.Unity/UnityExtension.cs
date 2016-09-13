@@ -15,7 +15,7 @@ namespace FluentHub
         public static ContainerBootstrap RegisterModule<Module>(
             this ContainerBootstrap @this)
         {
-            @this.Builders.Add(new FakeAppBuilder(() =>
+            @this.OtherBuilders.Add(new FakeBuilder(() =>
             {
                 var unity = @this.DependencyContainer as UnityModuleDependencyContainer;
                 var container = unity.Container;
@@ -26,11 +26,11 @@ namespace FluentHub
         }
     }
 
-    class FakeAppBuilder : IAppBuilder
+    class FakeBuilder : IBuilder
     {
         private Action build;
 
-        public FakeAppBuilder(Action build)
+        public FakeBuilder(Action build)
         {
             this.build = build;
         }
