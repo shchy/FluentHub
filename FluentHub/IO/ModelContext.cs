@@ -94,11 +94,9 @@ namespace FluentHub.IO
                 {
                     // モデル変換できたということは疑いが晴れたので解放
                     this.jammedPacketCleaner.Cancel();
-
-                    if (Received != null)
-                    {
-                        Received(this, EventArgs.Empty);
-                    }
+                    
+                    Received?.Invoke(this, EventArgs.Empty);
+                    
                 }
 
             }
@@ -120,9 +118,11 @@ namespace FluentHub.IO
                 return false;
             }
             
+            models.Add(result.Item1);
+            
+            var usedBytes = bytes.Take(result.Item2);
             this.logger.Debug($"recv {result.Item1.GetType().Name}");
 
-            models.Add(result.Item1);
             bytes.RemoveRange(0, result.Item2);
 
             return true;

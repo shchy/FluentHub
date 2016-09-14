@@ -72,7 +72,7 @@ namespace FluentHub.Hub
                 modelContext.Dispose();
                 pool.Remove(modelContext);
             }
-            Removed(modelContext);
+            Removed?.Invoke(modelContext);
         }
 
         private void ModelContext_Received(object sender, EventArgs e)
