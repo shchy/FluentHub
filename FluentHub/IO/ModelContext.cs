@@ -64,13 +64,19 @@ namespace FluentHub.IO
         {
             try
             {
-                // 何か追加で受信したということは疑惑解消の可能性が高まったので執行猶予を伸ばす為にいったん開放
-                this.jammedPacketCleaner.Cancel();
 
                 var isBuilded = false;
                 lock (this.syncObj)
                 {
                     var bytes = this.byteContext.Read().ToArray();
+                    if (bytes.Any() == false)
+                    {
+                        return;
+                    }
+
+                    // 何か追加で受信したということは疑惑解消の可能性が高まったので執行猶予を伸ばす為にいったん開放
+                    this.jammedPacketCleaner.Cancel();
+
                     lock ((this.bytecache as ICollection).SyncRoot)
                     {
                         this.bytecache.AddRange(bytes);
@@ -94,11 +100,8 @@ namespace FluentHub.IO
                 {
                     // モデル変換できたということは疑いが晴れたので解放
                     this.jammedPacketCleaner.Cancel();
-                    
                     Received?.Invoke(this, EventArgs.Empty);
-                    
                 }
-
             }
             catch (Exception ex)
             {
