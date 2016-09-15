@@ -12,17 +12,18 @@ namespace FluentHub.Validation
     {
         private IIOContext<AppIF> context;
         private ILogger logger;
-        private Dictionary<Type, IModelValidator> validators;
+        //private Dictionary<Type, IModelValidator<AppIF>> validators;
         private object syncObject = new object();
+        private IModelValidator<AppIF>[] validators;
 
         public ValidationModelContext(
             IIOContext<AppIF> context
             , ILogger logger
-            , params IModelValidator[] validators)
+            , params IModelValidator<AppIF>[] validators)
         {
             this.context = context;
             this.logger = logger;
-            this.validators = validators.ToDictionary(x=>x.GetType().BaseType.GetGenericArguments()[0],x=>x);
+            this.validators = validators;//.ToDictionary(x=>x.GetType().GetGenericArguments()[0],x=>x);
             this.context.Received += Context_Received;
         }
 
@@ -76,19 +77,20 @@ namespace FluentHub.Validation
                 }
 
                 var modelType = model.GetType();
-                if (this.validators.ContainsKey(modelType) == false)
+                var validator = this.validators.FirstOrDefault(x => x.CanValidate(model));
+                if (validator == null)
                 {
                     break;
                 }
 
-                var validator = validators[modelType];
+                //var validator = validators[modelType];
                 var result = validator.Validate(model);
                 if (result)
                 {
                     break;
                 }
 
-                this.logger.Info($"not validate {modelType.Name} message");
+                this.logger.Info($"not validate message : {modelType.Name} ");
             }
             while (true);
             return model;

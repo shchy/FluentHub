@@ -51,6 +51,7 @@
     <Compile Include="IModelValidator.cs" />
     <Compile Include="ModelValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ValidationBuilder.cs" />
     <Compile Include="ValidationContext.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -24,7 +24,7 @@ namespace Sandbox.Test01
         public string Test { get; set; }
     }
 
-    class PingValidator : ModelValidator<Ping>
+    class PingValidator : ModelValidator<Ping, IPingPongAppMessage>
     {
         public PingValidator()
         {
@@ -48,30 +48,31 @@ namespace Sandbox.Test01
                 bootstrap.DependencyContainer = new UnityModuleDependencyContainer(unityContainer);
                 var app =
                     // 待ち受けポートは8089
-                    bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8090)
+                    bootstrap.MakeAppByTcpServer<IPingPongAppMessage>(8089,8090)
                     // Ping電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new PingModelConverter())
                     // Pong電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new PongModelConverter())
                     // Tunnel電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new TunnelModelConverter())
-                    .RegisterSession(nativeIO => new DebugSession { NativeIO = nativeIO });
+                    .RegisterSession(nativeIO => new DebugSession { NativeIO = nativeIO })
+                    .AddValidators(new PingValidator());
 
-                app.StreamToModelContext = (c, s) =>
-                {
-                    var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
-                    var modelContext =
-                        new ModelContext<IPingPongAppMessage>(logger
-                            , app.ModelConverters
-                            , s
-                            , app.Logger);
-                    var validationContext =
-                        new ValidationModelContext<IPingPongAppMessage>(modelContext
-                            , app.Logger
-                            , new PingValidator());
-                    return validationContext;
-                //return modelContext;
-            };
+                //app.StreamToModelContext = (c, s) =>
+                //{
+                //    var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
+                //    var modelContext =
+                //        new ModelContext<IPingPongAppMessage>(logger
+                //            , app.ModelConverters
+                //            , s
+                //            , app.Logger);
+                //    var validationContext =
+                //        new ValidationModelContext<IPingPongAppMessage>(modelContext
+                //            , app.Logger
+                //            , new PingValidator());
+                //    return validationContext;
+                ////return modelContext;
+                //};
 
 
 

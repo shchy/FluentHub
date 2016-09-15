@@ -9,6 +9,7 @@ namespace FluentHub.Validation
 {
     public interface IModelValidator
     {
+        bool CanValidate(object model);
         bool Validate(object model);
     }
 

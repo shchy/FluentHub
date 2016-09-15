@@ -7,16 +7,22 @@ using System.Threading.Tasks;
 
 namespace FluentHub.Validation
 {
-    public class ModelValidator<Model> : AbstractValidator<Model>, IModelValidator<Model>
+    public class ModelValidator<Model, ModelIF> : AbstractValidator<Model>, IModelValidator<ModelIF>
+        where Model : ModelIF
     {
-        public bool Validate(object model)
+        public bool CanValidate(object model)
         {
-            return (this as IModelValidator<Model>).Validate((Model)model);
+            return typeof(Model).IsInstanceOfType(model);
         }
 
-        bool IModelValidator<Model>.Validate(Model model)
+        public bool Validate(object model)
         {
-            var result = base.Validate(model);
+            return (this as IModelValidator<ModelIF>).Validate((ModelIF)model);
+        }
+
+        bool IModelValidator<ModelIF>.Validate(ModelIF model)
+        {
+            var result = base.Validate((Model)model);
             return result.IsValid;
         }
     }
