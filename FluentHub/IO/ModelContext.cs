@@ -113,7 +113,7 @@ namespace FluentHub.IO
         bool TryBuildModel(List<byte> bytes, IList<AppIF> models)
         {
             var result =
-                this.converters.TryToBuild(bytes);
+                this.converters.TryToBuild(bytes, logger);
                 
             // 現在のパケットキャッシュからどのコンバーターもモデルへ変換できなかった
             if (result == null || result.Item1 == null)
@@ -201,14 +201,30 @@ namespace FluentHub.IO
 
     public static class ModelConverterExtension
     {
-        public static Tuple<Model, int> TryToBuild<Model>(this IEnumerable<IModelConverter<Model>> @this, IEnumerable<byte> bytes)
+        public static Tuple<Model, int> TryToBuild<Model>(this IEnumerable<IModelConverter<Model>> @this, IEnumerable<byte> bytes, ILogger logger)
         {
-            return
-                @this
-                .Where(c => c.CanBytesToModel(bytes))
-                .Select(c => c.ToModel(bytes))
-                .Where(r => r.Item1 != null)
-                .FirstOrDefault();
+            foreach (var converter in @this)
+            {
+                if (converter.CanBytesToModel(bytes) == false)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var result = converter.ToModel(bytes);
+                    if (result.Item1 == null)
+                    {
+                        continue;
+                    }
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"failud to convert converterType={converter.GetType().Name} message={ex.Message}");
+                }
+            }
+            return null;
         }
     }
 }
