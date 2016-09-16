@@ -58,7 +58,7 @@ namespace FluentHub.Hub
                 // todo こっちがあるから上はいらなくなった？
                 // memo IsAnyは必要。同じ電文が2つ連続で来たとき、1つ目の電文だけ拾って終わるパターンあるよね
                 // hack でも処理されない電文（タイムアウト後の応答とか）が残ってるとCPUギュンギュン回るよね。
-                while (context.IsAny)
+                if (context.IsAny)
                 {
                     System.Threading.Thread.Sleep(1);
                     continue;
