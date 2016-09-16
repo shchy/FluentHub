@@ -80,8 +80,8 @@ namespace FluentHub.IO.Extension
 
         private IEnumerable<ISuspendedDisposalToken> GetTargets(IEnumerable<ISuspendedDisposalToken> list)
         {
-            while (this.isRunning)
-            {
+            //while (this.isRunning)
+            //{
                 var arrayed = null as IEnumerable<ISuspendedDisposalToken>;
                 lock ((list as ICollection).SyncRoot)
                 {
@@ -92,14 +92,14 @@ namespace FluentHub.IO.Extension
                     where x.WaitHandle.WaitOne(0)
                     select x;
                 var impl = query.ToArray();
-                if (impl.Any() == false)
-                {
-                    Thread.Sleep(1);
-                    continue;
-                }
+                //if (impl.Any() == false)
+                //{
+                //    Thread.Sleep(1);
+                //    continue;
+                //}
                 return impl;
-            }
-            return Enumerable.Empty<ISuspendedDisposalToken>();
+            //}
+            //return Enumerable.Empty<ISuspendedDisposalToken>();
         }
 
         public ISuspendedDisposal MakeToken()
