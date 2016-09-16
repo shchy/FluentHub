@@ -64,7 +64,6 @@ namespace FluentHub.Validation
             }
         }
 
-
         AppIF ReadWithValidate(Func<AppIF> read)
         {
             var model = default(AppIF);

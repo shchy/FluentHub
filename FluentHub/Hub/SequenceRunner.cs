@@ -40,7 +40,7 @@ namespace FluentHub.Hub
 
         private void Running()
         {
-            do
+            while(true)
             {
                 this.logger.TrySafe(() => sequence(context));
                 lock (syncObject)
@@ -53,7 +53,13 @@ namespace FluentHub.Hub
                 }
 
                 // memo IsAnyは必要。同じ電文が2つ連続で来たとき、1つ目の電文だけ拾って終わるパターンあるよね
-            } while (context.IsAny);
+                // hack でも処理されない電文（タイムアウト後の応答とか）が残ってるとCPUギュンギュン回るよね。
+                while (context.IsAny == false)
+                {
+                    break;
+                }
+                System.Threading.Thread.Sleep(0);
+            } 
 
             lock (syncObject)
             {
