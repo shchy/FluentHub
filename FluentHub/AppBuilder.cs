@@ -13,9 +13,11 @@ using FluentHub.Hub.ModelValidator;
 
 namespace FluentHub
 {
-    public class AppBuilder<AppIF, NativeIO> : IBuilder, IAppBuilder<AppIF>
+    public class AppBuilder<AppIF, NativeIO> : IBuilder, IAppBuilder<AppIF,NativeIO>
     {
-        public ILogger Logger { get; set; }
+        public ILogger Logger { get;  }
+
+        public IModuleDependencyContainer DependencyContainer { get; }
 
         public Func<IIOContext<byte[]>, ISuspendedDisposal, IIOContext<AppIF>> StreamToModelContext { get; set; }
         
@@ -25,23 +27,29 @@ namespace FluentHub
 
         public Func<IDictionary<IIOContext<AppIF>, ISession>> MakeSessionPool { get; set; }
 
-        public IModuleDependencyContainer DependencyContainer { get; set; }
+        public IList<IModelConverter<AppIF>> ModelConverters { get; set; } = new List<IModelConverter<AppIF>>();
 
-        public List<IModelConverter<AppIF>> ModelConverters { get; set; } = new List<IModelConverter<AppIF>>();
+        public IList<IModelValidator<AppIF>> ModelValidators { get; set; } = new List<IModelValidator<AppIF>>();
 
-        public List<IModelValidator<AppIF>> ModelValidators { get; set; } = new List<IModelValidator<AppIF>>();
+        public IList<Action<IIOContext<AppIF>>> Sequences { get; set; } = new List<Action<IIOContext<AppIF>>>();
 
-        public List<Action<IIOContext<AppIF>>> Sequences { get; set; } = new List<Action<IIOContext<AppIF>>>();
-
-        public List<Action<IIOContext<AppIF>>> InitializeSequences { get; set; } = new List<Action<IIOContext<AppIF>>>();
+        public IList<Action<IIOContext<AppIF>>> InitializeSequences { get; set; } = new List<Action<IIOContext<AppIF>>>();
 
         public IContextApplication<AppIF> App { get; set; }
-        public INativeIOFactory<NativeIO> NativeIOFactory { get; set; }
+
         public Func<NativeIO, IIOContext<byte[]>> NativeToStreamContext { get; set; }
+        private INativeIOFactory<NativeIO> NativeIOFactory { get; set; }
 
 
-        public AppBuilder()
+
+        public AppBuilder(
+            ILogger logger
+            , IModuleDependencyContainer dependencyContainer
+            , INativeIOFactory<NativeIO> nativeIOFactory)
         {
+            this.Logger = logger;
+            this.DependencyContainer = dependencyContainer;
+            this.NativeIOFactory = nativeIOFactory;
             this.MakeContextPool = () => new ContextPool<AppIF>(this.Logger);
             this.Logger = new DefaultLogger();
             this.MakeSession = (nativeIO => new DefaultSession { NativeIO = nativeIO });

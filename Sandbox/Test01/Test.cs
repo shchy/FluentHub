@@ -54,14 +54,15 @@ namespace Sandbox.Test01
                     .RegisterConverter(new PongModelConverter())
                     // Tunnel電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new TunnelModelConverter())
-                    .RegisterSession(nativeIO => new DebugSession { NativeIO = nativeIO })
+                    .Use(builder => builder.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO })
                     .RegisterValidator(new PingValidator());
 
                 // 異なるプロトコルを持つ第3者通信相手を定義
                 var thirdApp =
                     bootstrap.MakeAppByTcpServer<IThirdAppMessage>(8099)
                     .RegisterConverter(new PangModelConverter())
-                    .RegisterSession(x => new DebugSession { NativeIO = x });
+                    .Use(builder => builder.MakeSession = nativeIO => new DebugSession { NativeIO = nativeIO });
+
 
                 // シーケンスモジュールを直接登録するスタイル
                 bootstrap.RegisterModule<ServerApp>();

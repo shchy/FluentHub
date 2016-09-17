@@ -16,16 +16,16 @@ namespace FluentHub
 {
     public static class SerialBuilder
     {
-        public static IAppBuilder<T> MakeAppBySerialPort<T>(
+        public static IAppBuilder<T, SerialPort> MakeAppBySerialPort<T>(
             this ContainerBootstrap @this
             , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
-            var appBuilder = new AppBuilder<T, SerialPort>();
-            appBuilder.Logger = @this.Logger;
-            appBuilder.DependencyContainer = @this.DependencyContainer;
+            var appBuilder = 
+                new AppBuilder<T, SerialPort>(
+                    @this.Logger
+                    , @this.DependencyContainer
+                    , new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits)));
             @this.AppBuilders.Add(appBuilder);
-
-            appBuilder.NativeIOFactory = new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits));
             appBuilder.NativeToStreamContext = (SerialPort x) => x.BuildContextBySerialPort();
 
             return

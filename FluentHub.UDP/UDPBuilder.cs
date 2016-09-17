@@ -18,20 +18,19 @@ namespace FluentHub
 {
     public static class UDPBuilder
     {
-        public static IAppBuilder<T> MakeAppByUdp<T>(
+        public static IAppBuilder<T, Stream> MakeAppByUdp<T>(
             this ContainerBootstrap @this
             , string host
             , int sendPort
             , int recvPort)
         {
-            var appBuilder = new AppBuilder<T, Stream>();
-            appBuilder.Logger = @this.Logger;
-            appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.AppBuilders.Add(appBuilder);
-
-            appBuilder.NativeIOFactory = new UDPFactory(host, sendPort, recvPort);
+            var appBuilder = 
+                new AppBuilder<T, Stream>(
+                    @this.Logger
+                    , @this.DependencyContainer
+                    , new UDPFactory(host, sendPort, recvPort));
             appBuilder.NativeToStreamContext = (Stream x) => x.BuildContextByStream();
-
+            @this.AppBuilders.Add(appBuilder);
             return
                 appBuilder;
         }        

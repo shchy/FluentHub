@@ -44,16 +44,18 @@ namespace FluentHub
             return @this;
         }
 
-        public static IAppBuilder<AppIF> RegisterModule<AppIF,Module>(
-            this IAppBuilder<AppIF> @this
+        public static Builder RegisterModule<AppIF, Builder,Module>(
+            this Builder @this
             , Module module)
+            where Builder : IAppBuilder<AppIF>
         {
-            return @this.RegisterModule<AppIF, Module>(() => module);
+            return @this.RegisterModule<AppIF, Builder, Module>(() => module);
         }
 
-        public static IAppBuilder<AppIF> RegisterModule<AppIF,Module>(
-            this IAppBuilder<AppIF> @this
+        public static Builder RegisterModule<AppIF, Builder,Module>(
+            this Builder @this
             , Func<object> getModule)
+            where Builder : IAppBuilder<AppIF>
         {
             // シーケンスモジュールのpublicメソッドを取り出す
             var methods =

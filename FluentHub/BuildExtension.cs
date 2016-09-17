@@ -16,29 +16,40 @@ namespace FluentHub
 {
     public static class BuildExtension
     {
-        public static IAppBuilder<AppIF> RegisterConverter<AppIF>(
-            this IAppBuilder<AppIF> @this
+        public static Builder RegisterConverter<AppIF, Builder>(
+            this Builder @this
             , IModelConverter<AppIF> converter)
+            where Builder : IAppBuilder<AppIF>
         {
             @this.ModelConverters.Add(converter);
             return @this;
         }
 
-        public static IAppBuilder<AppIF> RegisterValidator<AppIF>(
-            this IAppBuilder<AppIF> @this
+        public static Builder RegisterValidator<AppIF,Builder>(
+            this Builder @this
             , IModelValidator<AppIF> validator)
+            where Builder : IAppBuilder<AppIF>
         {
             @this.ModelValidators.Add(validator);
             return @this;
         }
 
-        public static IAppBuilder<AppIF> RegisterSession<AppIF>(
+        public static IAppBuilder<AppIF> Use<AppIF>(
             this IAppBuilder<AppIF> @this
-            , Func<object,ISession> makeSession)
+            , Action<IAppBuilder<AppIF>> configure)
         {
-            @this.MakeSession = makeSession;
+            configure(@this);
             return @this;
         }
+
+        public static IAppBuilder<AppIF, NativeIO> Use<AppIF, NativeIO>(
+            this IAppBuilder<AppIF, NativeIO> @this
+            , Action<IAppBuilder<AppIF, NativeIO>> configure)
+        {
+            configure(@this);
+            return @this;
+        }
+
 
         public static ISession GetSession<AppIF>(
             this IContextApplication<AppIF> app

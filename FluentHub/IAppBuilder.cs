@@ -18,6 +18,8 @@ namespace FluentHub
         void Build(IApplicationContainer container);
     }
 
+    
+
     public interface IAppBuilder<AppIF>
     {
         ILogger Logger { get; }
@@ -28,16 +30,26 @@ namespace FluentHub
 
         Func<object, ISession> MakeSession { get; set; }
 
-        List<IModelConverter<AppIF>> ModelConverters { get; }
+        Func<IContextPool<AppIF>> MakeContextPool { get; set; }
 
-        List<IModelValidator<AppIF>> ModelValidators { get; }
+        Func<IDictionary<IIOContext<AppIF>, ISession>> MakeSessionPool { get; set; }
 
-        List<Action<IIOContext<AppIF>>> Sequences { get; }
 
-        List<Action<IIOContext<AppIF>>> InitializeSequences { get; }
+        IList<IModelConverter<AppIF>> ModelConverters { get; }
 
-        Func<IContextPool<AppIF>> MakeContextPool { get; }
+        IList<IModelValidator<AppIF>> ModelValidators { get; }
 
-        IContextApplication<AppIF> App { get; set; }
+        IList<Action<IIOContext<AppIF>>> Sequences { get; }
+
+        IList<Action<IIOContext<AppIF>>> InitializeSequences { get; }
+
+        IContextApplication<AppIF> App { get; }
     }
+
+    public interface IAppBuilder<AppIF, NativeIO> : IAppBuilder<AppIF>
+    {
+        Func<NativeIO, IIOContext<byte[]>> NativeToStreamContext { get; set; }
+    }
+
+
 }

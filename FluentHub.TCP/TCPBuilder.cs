@@ -21,23 +21,22 @@ namespace FluentHub
         /// <param name="this"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public static IAppBuilder<T> MakeAppByTcpServer<T>(
+        public static IAppBuilder<T, TcpClient> MakeAppByTcpServer<T>(
             this ContainerBootstrap @this
             , params int[] ports)
         {
-            var appBuilder = new AppBuilder<T, TcpClient>();
-            appBuilder.Logger = @this.Logger;
-            appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.AppBuilders.Add(appBuilder);
-
-            appBuilder.NativeIOFactory = new TcpServerFactory(ports);
+            var appBuilder = 
+                new AppBuilder<T, TcpClient>(
+                    @this.Logger
+                    , @this.DependencyContainer
+                    , new TcpServerFactory(ports));
             appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
-
+            @this.AppBuilders.Add(appBuilder);
             return
                 appBuilder;
         }
 
-        public static IAppBuilder<T> MakeAppByTcpClient<T>(
+        public static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
             this ContainerBootstrap @this
             , string host
             , int port)
@@ -47,7 +46,7 @@ namespace FluentHub
                 MakeAppByTcpClient<T>(@this, factory );
         }
 
-        public static IAppBuilder<T> MakeAppByTcpClient<T>(
+        public static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
             this ContainerBootstrap @this
             , string host
             , int port
@@ -62,17 +61,17 @@ namespace FluentHub
                 MakeAppByTcpClient<T>(@this, dual);
         }
 
-        static IAppBuilder<T> MakeAppByTcpClient<T>(
+        static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
             ContainerBootstrap @this
             , INativeIOFactory<TcpClient> nativeFactory)
         {
-            var appBuilder = new AppBuilder<T, TcpClient>();
-            appBuilder.Logger = @this.Logger;
-            appBuilder.DependencyContainer = @this.DependencyContainer;
-            @this.AppBuilders.Add(appBuilder);
-
-            appBuilder.NativeIOFactory = nativeFactory;
+            var appBuilder = 
+                new AppBuilder<T, TcpClient>(
+                    @this.Logger
+                    , @this.DependencyContainer
+                    , nativeFactory);
             appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
+            @this.AppBuilders.Add(appBuilder);
 
             return
                 appBuilder;
