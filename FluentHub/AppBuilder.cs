@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentHub.Hub.ModelValidator;
 
 namespace FluentHub
 {
@@ -25,8 +26,10 @@ namespace FluentHub
         public Func<IDictionary<IIOContext<AppIF>, ISession>> MakeSessionPool { get; set; }
 
         public IModuleDependencyContainer DependencyContainer { get; set; }
-        
+
         public List<IModelConverter<AppIF>> ModelConverters { get; set; } = new List<IModelConverter<AppIF>>();
+
+        public List<IModelValidator<AppIF>> ModelValidators { get; set; } = new List<IModelValidator<AppIF>>();
 
         public List<Action<IIOContext<AppIF>>> Sequences { get; set; } = new List<Action<IIOContext<AppIF>>>();
 
@@ -35,6 +38,7 @@ namespace FluentHub
         public IContextApplication<AppIF> App { get; set; }
         public INativeIOFactory<NativeIO> NativeIOFactory { get; set; }
         public Func<NativeIO, IIOContext<byte[]>> NativeToStreamContext { get; set; }
+
 
         public AppBuilder()
         {
@@ -51,7 +55,12 @@ namespace FluentHub
             var loggerContext = new IOContextLoggerProxy<byte[]>(streamContext, Logger);
 
             return
-                new ModelContext<AppIF>(loggerContext, ModelConverters, suspendedDisposal, Logger);
+                new ModelContext<AppIF>(
+                    loggerContext
+                    , ModelConverters
+                    , ModelValidators
+                    , suspendedDisposal
+                    , Logger);
         }
 
         public void Build(IApplicationContainer container)

@@ -1,4 +1,5 @@
 ﻿using FluentHub.Hub;
+using FluentHub.Hub.ModelValidator;
 using FluentHub.IO;
 using FluentHub.IO.Extension;
 using FluentHub.Logger;
@@ -28,6 +29,8 @@ namespace FluentHub
         Func<object, ISession> MakeSession { get; set; }
 
         List<IModelConverter<AppIF>> ModelConverters { get; }
+
+        List<IModelValidator<AppIF>> ModelValidators { get; }
 
         List<Action<IIOContext<AppIF>>> Sequences { get; }
 

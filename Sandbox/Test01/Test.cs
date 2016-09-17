@@ -30,7 +30,6 @@ namespace Sandbox.Test01
         {
             RuleFor(m => m.ID).Equal((byte)0x01);
         }
-
     }
 
     public class TestServer
@@ -56,25 +55,7 @@ namespace Sandbox.Test01
                     // Tunnel電文のbyte[] <=> Model変換定義
                     .RegisterConverter(new TunnelModelConverter())
                     .RegisterSession(nativeIO => new DebugSession { NativeIO = nativeIO })
-                    .AddValidators(new PingValidator());
-
-                //app.StreamToModelContext = (c, s) =>
-                //{
-                //    var logger = new IOContextLoggerProxy<byte[]>(c, app.Logger);
-                //    var modelContext =
-                //        new ModelContext<IPingPongAppMessage>(logger
-                //            , app.ModelConverters
-                //            , s
-                //            , app.Logger);
-                //    var validationContext =
-                //        new ValidationModelContext<IPingPongAppMessage>(modelContext
-                //            , app.Logger
-                //            , new PingValidator());
-                //    return validationContext;
-                ////return modelContext;
-                //};
-
-
+                    .RegisterValidator(new PingValidator());
 
                 // 異なるプロトコルを持つ第3者通信相手を定義
                 var thirdApp =

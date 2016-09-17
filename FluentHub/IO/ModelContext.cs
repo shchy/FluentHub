@@ -1,4 +1,5 @@
-﻿using FluentHub.IO.Extension;
+﻿using FluentHub.Hub.ModelValidator;
+using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.ModelConverter;
 using System;
@@ -21,6 +22,7 @@ namespace FluentHub.IO
         private object syncObj = new object();
         private ILogger logger;
         private ISuspendedDisposal jammedPacketCleaner;
+        private IEnumerable<IModelValidator<AppIF>> validators;
 
         public event EventHandler Received;
         public bool IsAny
@@ -38,6 +40,7 @@ namespace FluentHub.IO
 
         public ModelContext(IIOContext<byte[]> byteContext
             , IEnumerable<IModelConverter<AppIF>> converters
+            , IEnumerable<IModelValidator<AppIF>> validators
             , ISuspendedDisposal jammedPacketCleaner
             , ILogger logger)
         {
@@ -45,6 +48,7 @@ namespace FluentHub.IO
             this.logger = logger;
             this.byteContext = byteContext;
             this.converters = converters;
+            this.validators = validators;
             this.bytecache = new List<byte>();
             this.modelcache = new List<AppIF>();
             this.byteContext.Received += ByteContext_Received;
@@ -53,7 +57,6 @@ namespace FluentHub.IO
                 ReceivedHandler();
             }
         }
-
 
         private void ByteContext_Received(object sender, EventArgs e)
         {
@@ -120,15 +123,37 @@ namespace FluentHub.IO
             {
                 return false;
             }
-            
-            models.Add(result.Item1);
-            
+
+            // 受信ログ
             var usedBytes = bytes.Take(result.Item2);
-            this.logger.Debug($"recv {result.Item1.GetType().Name}");
+            
+
+            // 検証
+            if (Validate(result.Item1))
+            {
+                models.Add(result.Item1);
+                this.logger.Debug(
+                    $@"recv message {result.Item1.GetType().Name} bytes={BitConverter.ToString(usedBytes.ToArray())}");
+            }
+            else
+            {
+                this.logger.Debug(
+                    $@"not validated message {result.Item1.GetType().Name} bytes={BitConverter.ToString(usedBytes.ToArray())}");
+            }
 
             bytes.RemoveRange(0, result.Item2);
 
             return true;
+        }
+
+        private bool Validate(AppIF model)
+        {
+            var validator = this.validators.FirstOrDefault(x => x.CanValidate(model));
+            if (validator == null)
+            {
+                return true;
+            }
+            return validator.Validate(model);
         }
 
         void ClearJammedPacket()

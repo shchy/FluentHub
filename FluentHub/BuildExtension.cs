@@ -10,6 +10,7 @@ using FluentHub.IO.Extension;
 using FluentHub.Logger;
 using FluentHub.Module;
 using FluentHub.Hub;
+using FluentHub.Hub.ModelValidator;
 
 namespace FluentHub
 {
@@ -23,12 +24,28 @@ namespace FluentHub
             return @this;
         }
 
+        public static IAppBuilder<AppIF> RegisterValidator<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , IModelValidator<AppIF> validator)
+        {
+            @this.ModelValidators.Add(validator);
+            return @this;
+        }
+
         public static IAppBuilder<AppIF> RegisterSession<AppIF>(
             this IAppBuilder<AppIF> @this
             , Func<object,ISession> makeSession)
         {
             @this.MakeSession = makeSession;
             return @this;
+        }
+
+        public static ISession GetSession<AppIF>(
+            this IContextApplication<AppIF> app
+            , IIOContext<AppIF> context)
+        {
+            return
+                app.GetSession(context, typeof(ISession));
         }
 
         public static ISession GetSession<AppIF>(

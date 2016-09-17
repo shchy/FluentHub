@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using FluentHub.Hub.ModelValidator;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;

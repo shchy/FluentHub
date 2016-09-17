@@ -54,6 +54,7 @@
     <Compile Include="Hub\ISequenceRunner.cs" />
     <Compile Include="Hub\ModelContextFactory.cs" />
     <Compile Include="IAppBuilder.cs" />
+    <Compile Include="ModelValidator\IModelValidator.cs" />
     <Compile Include="Module\ContextModuleInjection.cs" />
     <Compile Include="Module\IModuleDependencyContainer.cs" />
     <Compile Include="ModuleExtension.cs" />
