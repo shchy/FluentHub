@@ -16,6 +16,24 @@ namespace FluentHub
 {
     public static class BuildExtension
     {
+
+        #region work for intellisence
+        public static IAppBuilder<AppIF> RegisterConverter<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , IModelConverter<AppIF> converter)
+        {
+            return @this.RegisterConverter<AppIF, IAppBuilder<AppIF>>(converter);
+        }
+
+
+        public static IAppBuilder<AppIF> RegisterValidator<AppIF>(
+            this IAppBuilder<AppIF> @this
+            , IModelValidator<AppIF> validator)
+        {
+            return @this.RegisterValidator<AppIF, IAppBuilder<AppIF>>(validator);
+        } 
+        #endregion
+
         public static Builder RegisterConverter<AppIF, Builder>(
             this Builder @this
             , IModelConverter<AppIF> converter)

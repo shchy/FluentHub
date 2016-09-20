@@ -12,6 +12,23 @@ namespace FluentHub
 {
     public static class ModuleExtension
     {
+
+        #region work for intellisence
+        public static IAppBuilder<AppIF> RegisterModule<AppIF, Module>(
+            this IAppBuilder<AppIF> @this
+            , Module module)
+        {
+            return @this.RegisterModule<AppIF, IAppBuilder<AppIF>, Module>(module);
+        }
+
+        public static IAppBuilder<AppIF> RegisterModule<AppIF, Module>(
+            this IAppBuilder<AppIF> @this
+            , Func<object> getModule)
+        {
+            return @this.RegisterModule<AppIF, IAppBuilder<AppIF>, Module>(getModule);
+        }
+        #endregion
+
         /// <summary>
         /// Module型のクラスが持っているPublicメソッドをAppのシーケンスメソッドとして登録する
         /// </summary>
@@ -43,6 +60,7 @@ namespace FluentHub
             }
             return @this;
         }
+
 
         public static Builder RegisterModule<AppIF, Builder,Module>(
             this Builder @this
