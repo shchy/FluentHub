@@ -131,9 +131,20 @@ namespace FluentHub.ModelConverter
             return @this.Property(getterExpression, childModelBuilderFactory, () => new V());
         }
 
-        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+        /// <summary>
+        /// 参照型配列の変換
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="getLoopCount"></param>
+        /// <param name="getterExpression"></param>
+        /// <param name="childModelBuilderFactory"></param>
+        /// <param name="defaultModel"></param>
+        /// <returns></returns>
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayPropertyX<T, V>(
             this IBuildItemChain<T, IBuildItem<T>> @this
-            , string loopCountName
+            , Func<IDictionary<string, object>, int> getLoopCount
             , Expression<Func<T, IEnumerable<V>>> getterExpression
             , Action<IModelBuilder<V>> childModelBuilderFactory
             , Func<V> defaultModel)
@@ -150,9 +161,68 @@ namespace FluentHub.ModelConverter
                     childModelBuilder
                     , getter
                     , (m, xs) => setter(m, tryArrayConvert(xs))
-                    , loopCountName);
+                    , getLoopCount);
             return @this.SetNext(item);
         }
+
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , string loopCountName
+            , Expression<Func<T, IEnumerable<V>>> getterExpression
+            , Action<IModelBuilder<V>> childModelBuilderFactory
+            , Func<V> defaultModel)
+        {
+            return
+                @this.ArrayPropertyX(
+                    context=> context.GetLoopCount(loopCountName)
+                    , getterExpression
+                    , childModelBuilderFactory
+                    , defaultModel
+                    );
+        }
+
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , string loopCountName
+            , int loopCountDiff
+            , Expression<Func<T, IEnumerable<V>>> getterExpression
+            , Action<IModelBuilder<V>> childModelBuilderFactory
+            , Func<V> defaultModel)
+        {
+            return
+                @this.ArrayPropertyX(
+                    context => context.GetLoopCount(loopCountName) + loopCountDiff
+                    , getterExpression
+                    , childModelBuilderFactory
+                    , defaultModel
+                    );
+        }
+
+        /// <summary>
+        /// 参照型配列の変換
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="getLoopCount"></param>
+        /// <param name="getterExpression"></param>
+        /// <param name="childModelBuilderFactory"></param>
+        /// <returns></returns>
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayPropertyX<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , Func<IDictionary<string, object>, int> getLoopCount
+            , Expression<Func<T, IEnumerable<V>>> getterExpression
+            , Action<IModelBuilder<V>> childModelBuilderFactory)
+            where V : class, new()
+        {
+            return 
+                @this.ArrayPropertyX(
+                    getLoopCount
+                    , getterExpression
+                    , childModelBuilderFactory
+                    , () => new V());
+        }
+
         public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
             this IBuildItemChain<T, IBuildItem<T>> @this
             , string loopCountName
@@ -160,12 +230,42 @@ namespace FluentHub.ModelConverter
             , Action<IModelBuilder<V>> childModelBuilderFactory)
             where V : class, new()
         {
-            return @this.ArrayProperty(loopCountName, getterExpression, childModelBuilderFactory, () => new V());
+            return
+                @this.ArrayPropertyX(
+                    context=>context.GetLoopCount(loopCountName)
+                    , getterExpression
+                    , childModelBuilderFactory
+                    );
         }
 
         public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
             this IBuildItemChain<T, IBuildItem<T>> @this
             , string loopCountName
+            , int loopCountDiff
+            , Expression<Func<T, IEnumerable<V>>> getterExpression
+            , Action<IModelBuilder<V>> childModelBuilderFactory)
+            where V : class, new()
+        {
+            return
+                @this.ArrayPropertyX(
+                    context => context.GetLoopCount(loopCountName) + loopCountDiff
+                    , getterExpression
+                    , childModelBuilderFactory
+                    );
+        }
+
+        /// <summary>
+        /// 値型の配列の変換
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="getLoopCount"></param>
+        /// <param name="getterExpression"></param>
+        /// <returns></returns>
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayPropertyX<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , Func<IDictionary<string, object>, int> getLoopCount
             , Expression<Func<T, IEnumerable<V>>> getterExpression)
             where V : struct
         {
@@ -184,9 +284,54 @@ namespace FluentHub.ModelConverter
                     childModelBuilder
                     , m => getter(m).Select(x=>new Box<V> { Value = x })
                     , (m, xs) => setter(m, tryArrayConvert(xs.Select(x=>x.Value).ToArray()))
-                    , loopCountName);
+                    , getLoopCount);
             return @this.SetNext(item);
         }
+
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , string loopCountName
+            , Expression<Func<T, IEnumerable<V>>> getterExpression)
+            where V : struct
+        {
+            return
+                @this.ArrayPropertyX(
+                    context => context.GetLoopCount(loopCountName)
+                    , getterExpression
+                    );
+        }
+
+        public static IBuildItemChain<T, IBuildItem<T>> ArrayProperty<T, V>(
+            this IBuildItemChain<T, IBuildItem<T>> @this
+            , string loopCountName
+            , int loopCountDiff
+            , Expression<Func<T, IEnumerable<V>>> getterExpression)
+            where V : struct
+        {
+            return
+                @this.ArrayPropertyX(
+                    context => context.GetLoopCount(loopCountName) + loopCountDiff
+                    , getterExpression
+                    );
+        }
+
+        public static int GetLoopCount(
+            this IDictionary<string, object> context
+            , string keyName )
+        {
+            if (context.ContainsKey(keyName) == false)
+            {
+                throw new Exception($"{keyName} is not found");
+            }
+            var contextValue = context[keyName];
+            var loopcount = 0;
+            if (int.TryParse(contextValue.ToString(), out loopcount) == false)
+            {
+                throw new Exception($"{contextValue} is not unsigned number");
+            }
+            return loopcount;
+        }
+
 
         class Box<T>
             where T : struct

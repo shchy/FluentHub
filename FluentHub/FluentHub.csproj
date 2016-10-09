@@ -48,6 +48,7 @@
     <Compile Include="ContainerBootstrap.cs" />
     <Compile Include="Hub\ApplicationContainer.cs" />
     <Compile Include="BuildExtension.cs" />
+    <Compile Include="Hub\MultiNativeIOFactory.cs" />
     <Compile Include="Hub\DualNativeIOFactory.cs" />
     <Compile Include="Hub\IModelContextFactory.cs" />
     <Compile Include="Hub\INativeIOFactory.cs" />

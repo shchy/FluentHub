@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace FluentHub
 {
     public static class SerialBuilder
@@ -20,16 +21,10 @@ namespace FluentHub
             this ContainerBootstrap @this
             , string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
-            var appBuilder = 
-                new AppBuilder<T, SerialPort>(
-                    @this.Logger
-                    , @this.DependencyContainer
-                    , new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits)));
-            @this.AppBuilders.Add(appBuilder);
-            appBuilder.NativeToStreamContext = (SerialPort x) => x.BuildContextBySerialPort();
-
             return
-                appBuilder;
+                @this.MakeApp<T, SerialPort>(
+                    new SerialPortFactory(() => new SerialPort(portName, baudRate, parity, dataBits, stopBits))
+                    , (SerialPort x) => x.BuildContextBySerialPort());
         }
 
         public static IIOContext<byte[]> BuildContextBySerialPort(

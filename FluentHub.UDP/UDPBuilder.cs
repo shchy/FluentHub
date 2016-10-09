@@ -24,15 +24,10 @@ namespace FluentHub
             , int sendPort
             , int recvPort)
         {
-            var appBuilder = 
-                new AppBuilder<T, Stream>(
-                    @this.Logger
-                    , @this.DependencyContainer
-                    , new UDPFactory(host, sendPort, recvPort));
-            appBuilder.NativeToStreamContext = (Stream x) => x.BuildContextByStream();
-            @this.AppBuilders.Add(appBuilder);
             return
-                appBuilder;
+                @this.MakeApp<T, Stream>(
+                    new UDPFactory(host, sendPort, recvPort)
+                    , x => x.BuildContextByStream());
         }        
     }
 }

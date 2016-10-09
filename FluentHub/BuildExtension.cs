@@ -68,16 +68,57 @@ namespace FluentHub
             return @this;
         }
 
+        public static IAppBuilder<AppIF, NativeIO> MakeApp<AppIF, NativeIO>(
+            this ContainerBootstrap @this
+            , INativeIOFactory<NativeIO> nativeFactory
+            , Func<NativeIO, IIOContext<byte[]>> nativeToStreamContext)
+        {
+            var appBuilder =
+                new AppBuilder<AppIF, NativeIO>(
+                    @this.Logger
+                    , @this.DependencyContainer
+                    , nativeFactory);
+            appBuilder.NativeToStreamContext = nativeToStreamContext;
+            @this.AppBuilders.Add(appBuilder);
+
+            return
+                appBuilder;
+        }
+
+        public static IAppBuilder<AppIF, NativeIO> MakeApp<AppIF, NativeIO>(
+            this ContainerBootstrap @this
+            , INativeIOFactory<NativeIO> primary
+            , INativeIOFactory<NativeIO> secondary
+            , int switchMillisecond
+            , Func<NativeIO, IIOContext<byte[]>> nativeToStreamContext)
+        {
+            return
+                @this.MakeApp<AppIF, NativeIO>(
+                    new DualNativeIOFactory<NativeIO>(primary, secondary, switchMillisecond)
+                    , nativeToStreamContext);
+        }
+
+        public static IAppBuilder<AppIF, NativeIO> MakeApp<AppIF, NativeIO>(
+            this ContainerBootstrap @this
+            , IEnumerable<INativeIOFactory<NativeIO>> nativeIOFactorys
+            , Func<NativeIO, IIOContext<byte[]>> nativeToStreamContext)
+        {
+            return
+                @this.MakeApp<AppIF, NativeIO>(
+                    new MultiNativeIOFactory<NativeIO>(nativeIOFactorys)
+                    , nativeToStreamContext);
+            
+        }
 
         public static ISession GetSession<AppIF>(
             this IContextApplication<AppIF> app
             , IIOContext<AppIF> context)
         {
             return
-                app.GetSession(context, typeof(ISession));
+                app.GetTypedSession(context, typeof(ISession));
         }
 
-        public static ISession GetSession<AppIF>(
+        public static ISession GetTypedSession<AppIF>(
             this IContextApplication<AppIF> app
             , IIOContext<AppIF> context
             , Type sessionType)
@@ -123,7 +164,7 @@ namespace FluentHub
             , Type sessionType)
         {
             var appType = app.GetType().GetGenericArguments()[0];
-            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetSession), BindingFlags.Public | BindingFlags.Static);
+            var method = typeof(BuildExtension).GetMethod(nameof(BuildExtension.GetTypedSession), BindingFlags.Public | BindingFlags.Static);
             var typedmethod = method.MakeGenericMethod(new[] { appType });
             var session = (ISession)typedmethod.Invoke(null, new object[] { app, context, sessionType });
             return session;

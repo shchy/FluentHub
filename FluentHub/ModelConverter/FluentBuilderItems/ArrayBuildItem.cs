@@ -12,17 +12,17 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         private IModelBuilder<VModel> childBuilder;
         private Func<T, IEnumerable<VModel>> getter;
         private Action<T, IEnumerable<VModel>> setter;
-        private string loopCountName;
+        private Func<IDictionary<string, object>, int> getLoopCount;
 
         public ArrayBuildItem(IModelBuilder<VModel> childBuilder
             , Func<T, IEnumerable<VModel>> getter
             , Action<T, IEnumerable<VModel>> setter
-            , string loopCountName)
+            , Func<IDictionary<string, object>, int> getLoopCount)
         {
             this.childBuilder = childBuilder;
             this.getter = getter;
             this.setter = setter;
-            this.loopCountName = loopCountName;
+            this.getLoopCount = getLoopCount;
         }
 
         public void Write(T model, BinaryWriter w)
@@ -37,9 +37,10 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
         
         public void Read(T model, BinaryReader r, IDictionary<string, object> context)
         {
-            var loopCount = GetLoopCount(this.loopCountName, context);
+            var loopCount = getLoopCount(context);
+                //GetLoopCount(this.loopCountName, context);
             var list = new List<VModel>();
-            for (var i = 0ul; i < loopCount; i++)
+            for (var i = 0; i < loopCount; i++)
             {
                 var vModel = this.childBuilder.ToModel(r);
                 list.Add(vModel);
@@ -47,25 +48,11 @@ namespace FluentHub.ModelConverter.FluentBuilderItems
             setter(model, list);
         }
 
-        ulong GetLoopCount(string keyName, IDictionary<string, object> _context)
-        {
-            if (_context.ContainsKey(keyName) == false)
-            {
-                throw new Exception($"{keyName} is not found");
-            }
-            var contextValue = _context[keyName];
-            var loopcount = 0uL;
-            if (ulong.TryParse(contextValue.ToString(), out loopcount) == false)
-            {
-                throw new Exception($"{contextValue} is not unsigned number");
-            }
-            return loopcount;
-        }
-
         public bool CanRead(BinaryReader r, IDictionary<string, object> context)
         {
-            var loopCount = GetLoopCount(this.loopCountName, context);
-            for (var i = 0ul; i < loopCount; i++)
+            var loopCount = getLoopCount(context);
+            //GetLoopCount(this.loopCountName, context);
+            for (var i = 0; i < loopCount; i++)
             {
                 var result = this.childBuilder.CanToModel(r, context);
                 if (result == false)

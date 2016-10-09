@@ -81,7 +81,7 @@ namespace Sandbox.Test01
             // IPingPongAppMessage型の電文をやり取りするサーバーアプリケーションを生成
             var app =
                 // 待ち受けポートは8089
-                bootstrap.MakeAppByTcpClient<IPingPongAppMessage>("localhost", 8089, "localhost", 8090, 1000 * 60)
+                bootstrap.MakeAppByTcpClientDual<IPingPongAppMessage>("localhost", 8089, "localhost", 8090, 1000 * 60)
                 // Ping電文のbyte[] <=> Model変換定義
                 .RegisterConverter(new PingModelConverter())
                 // Pong電文のbyte[] <=> Model変換定義
@@ -324,8 +324,8 @@ namespace Sandbox.Test01
                                     // さらにStructArrayCountを配列復元する時に使いたいよね
                                     .ArrayProperty("StructArrayCount", m => m.StructArray)
                                     // メンバを持つ型の可変長配列
-                                    .GetProperty(m => m.Array.Count()).AsTag("InnerCount")
-                                    .ArrayProperty("InnerCount", m => m.Array
+                                    .GetProperty(m => m.Array.Count() + 1).AsTag("InnerCount")
+                                    .ArrayProperty("InnerCount", -1, m => m.Array
                                         // Arrayメンバの要素の型InnerModelのModelBuilderを入れ子で
                                         , b => b.Property(mi => mi.Value1)
                                                 .Property(mi => mi.Value2))

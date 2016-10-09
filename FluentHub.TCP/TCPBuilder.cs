@@ -25,15 +25,10 @@ namespace FluentHub
             this ContainerBootstrap @this
             , params int[] ports)
         {
-            var appBuilder = 
-                new AppBuilder<T, TcpClient>(
-                    @this.Logger
-                    , @this.DependencyContainer
-                    , new TcpServerFactory(ports));
-            appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
-            @this.AppBuilders.Add(appBuilder);
             return
-                appBuilder;
+                @this.MakeApp<T, TcpClient>(
+                    new TcpServerFactory(ports)
+                    , (TcpClient client) => client.BuildContextByTcp());
         }
 
         public static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
@@ -41,12 +36,13 @@ namespace FluentHub
             , string host
             , int port)
         {
-            var factory = new TcpClientFactory(host, port);
             return
-                MakeAppByTcpClient<T>(@this, factory );
+                @this.MakeApp<T, TcpClient>(
+                    new TcpClientFactory(host, port)
+                    , client => client.BuildContextByTcp());
         }
 
-        public static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
+        public static IAppBuilder<T, TcpClient> MakeAppByTcpClientDual<T>(
             this ContainerBootstrap @this
             , string host
             , int port
@@ -56,25 +52,22 @@ namespace FluentHub
         {
             var primaryFactory = new TcpClientFactory(host, port);
             var secondaryFactory = new TcpClientFactory(secondaryHost, secondaryPort);
-            var dual = new DualNativeIOFactory<TcpClient>(primaryFactory, secondaryFactory, switchMillisecond);
             return
-                MakeAppByTcpClient<T>(@this, dual);
+                @this.MakeApp<T, TcpClient>(
+                    primaryFactory
+                    , secondaryFactory
+                    , switchMillisecond
+                    , client => client.BuildContextByTcp());
         }
 
-        static IAppBuilder<T, TcpClient> MakeAppByTcpClient<T>(
-            ContainerBootstrap @this
-            , INativeIOFactory<TcpClient> nativeFactory)
+        public static IAppBuilder<T, TcpClient> MakeAppByTcpClients<T>(
+            this ContainerBootstrap @this
+            , IEnumerable<Tuple<string, int>> serverInfos)
         {
-            var appBuilder = 
-                new AppBuilder<T, TcpClient>(
-                    @this.Logger
-                    , @this.DependencyContainer
-                    , nativeFactory);
-            appBuilder.NativeToStreamContext = (TcpClient client) => client.BuildContextByTcp();
-            @this.AppBuilders.Add(appBuilder);
-
             return
-                appBuilder;
+                @this.MakeApp<T, TcpClient>(
+                    serverInfos.Select(ci => new TcpClientFactory(ci.Item1, ci.Item2)).ToArray()
+                    , client => client.BuildContextByTcp());
         }
 
         public static IIOContext<byte[]> BuildContextByTcp(

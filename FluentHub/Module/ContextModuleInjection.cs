@@ -37,7 +37,7 @@ namespace FluentHub.Module
             else if (typeof(ISession).IsAssignableFrom(type))
             {
                 // ISessionを求めていたらこの文脈のContextに紐づくSessionを返す
-                var session = app.GetSession(context, type);
+                var session = app.GetTypedSession(context, type);
                 return session;
             }
             else if (typeof(ISessionContext<,>) == type.GetGenericTypeDefinition())
@@ -51,7 +51,7 @@ namespace FluentHub.Module
                 }
 
                 var sessionType = type.GetGenericArguments()[1];
-                var session = app.GetSession(context, sessionType);
+                var session = app.GetTypedSession(context, sessionType);
                 var sessionContextType = typeof(SessionContext<,>).MakeGenericType(typeof(AppIF), sessionType);
                 var sessionContext = Activator.CreateInstance(sessionContextType, context, session);
                 return sessionContext;
