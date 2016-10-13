@@ -51,7 +51,6 @@ namespace FluentHub
             this.DependencyContainer = dependencyContainer;
             this.NativeIOFactory = nativeIOFactory;
             this.MakeContextPool = () => new ContextPool<AppIF>(this.Logger);
-            this.Logger = new DefaultLogger();
             this.MakeSession = (nativeIO => new DefaultSession { NativeIO = nativeIO });
             this.MakeSessionPool = () => new Dictionary<IIOContext<AppIF>, ISession>();
             this.StreamToModelContext = ToModelContext;
