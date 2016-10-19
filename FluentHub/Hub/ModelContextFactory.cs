@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentHub.Hub
@@ -55,6 +56,7 @@ namespace FluentHub.Hub
                     var nativeIO = this.nativeIOFactory.Make();
                     if (nativeIO == null)
                     {
+                        Thread.Sleep(500);
                         continue;
                     }
                     // Nativeな何かをStreamContextに変換

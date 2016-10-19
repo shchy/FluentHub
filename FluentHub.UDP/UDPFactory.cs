@@ -6,20 +6,21 @@ using System.Threading;
 using FluentHub.IO.Extension;
 using FluentHub.UDP;
 using System.IO;
+using System.Net;
 
 namespace FluentHub.UDP
 {
-    public class UDPFactory : INativeIOFactory<Stream>
+    public class UDPFactory : INativeIOFactory<FakeStream>
     {
         private Stream connected;
         private bool isDisposed;
         private int recvPort;
-        private string sendHost;
+        private IPAddress sendHost;
         private int sendPort;
 
-        public UDPFactory(string sendHost, int sendPort, int recvPort)
+        public UDPFactory(IPAddress host, int sendPort, int recvPort)
         {
-            this.sendHost = sendHost;
+            this.sendHost = host;
             this.sendPort = sendPort;
             this.recvPort = recvPort;
         }
@@ -40,7 +41,7 @@ namespace FluentHub.UDP
                 && connected.CanWrite;
         }
 
-        public Stream Make()
+        public FakeStream Make()
         {
             if (this.isDisposed)
             {
@@ -56,7 +57,12 @@ namespace FluentHub.UDP
 
             try
             {
-                var stream = new FakeStream(new UDPIO(sendHost, sendPort, recvPort));
+                var localPoint = new IPEndPoint(IPAddress.Any, recvPort);
+                var remotePoint = new IPEndPoint(sendHost, sendPort);
+                var stream = new FakeStream(
+                    new UDPIO(localPoint, remotePoint)
+                    , localPoint
+                    , remotePoint);
                 this.connected = stream;
                 return stream;
             }

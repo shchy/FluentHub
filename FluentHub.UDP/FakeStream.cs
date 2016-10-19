@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,10 +14,14 @@ namespace FluentHub.UDP
         private List<byte> cache;
         private bool isDisposed;
         private IIO real;
+        public IPEndPoint RemotePoint { get; private set; }
+        public IPEndPoint LocalPoint { get; private set; }
 
-        public FakeStream(IIO real)
+        public FakeStream(IIO real, IPEndPoint localPoint, IPEndPoint remotePoint)
         {
             this.cache = new List<byte>();
+            this.LocalPoint = localPoint;
+            this.RemotePoint = remotePoint;
             this.real = real;
         }
 

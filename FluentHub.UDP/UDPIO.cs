@@ -14,30 +14,31 @@ namespace FluentHub.UDP
     public class UDPIO : IIO
     {
         private UdpClient client;
-        private string sendHost;
-        private int sendPort;
-        private int recvPort;
+        private IPAddress remote;
+        public IPEndPoint LocalPoint { get; private set; }
+        public IPEndPoint RemotePoint { get; private set; }
+        
 
-
-        public UDPIO(string host, int port)
-            :this(host, port, port)
-        {
-        }
-
-
-        public UDPIO(string host, int sendPort, int recvPort)
+        public UDPIO(
+            IPEndPoint localPoint
+            , IPEndPoint remotePoint)
         {
             // memo sendPortとrecvPortを分けなくてもいいんだけど１PCでテストできるように分けることも可能にしておく
-            this.client = new UdpClient(new IPEndPoint(IPAddress.Any, recvPort));
-            this.sendHost = host;
-            this.sendPort = sendPort;
-            this.recvPort = recvPort;
+            this.LocalPoint = LocalPoint;
+            this.RemotePoint = remotePoint;
+            this.client = new UdpClient(this.LocalPoint);
         }
 
         public byte[] Read()
         {
-            var remote = new IPEndPoint(IPAddress.Any, recvPort);
-            return client.Receive(ref remote);
+            var _ = null as IPEndPoint;
+            var bytes = client.Receive(ref _);
+            if (_.Address.Equals(this.remote) == false 
+                && this.remote.Equals(IPAddress.Any) == false)
+            {
+                throw new Exception($"Received from an unexpected IP listen={this.remote} recv={_.Address}");
+            }
+            return bytes;
         }
 
         public int Write(byte[] data) 
@@ -45,7 +46,7 @@ namespace FluentHub.UDP
             var sended = 0;
             do
             {
-                sended += client.Send(data, data.Length - sended, sendHost, sendPort);
+                sended += client.Send(data, data.Length - sended, RemotePoint);
                 if (sended < data.Length)
                 {
                     Buffer.BlockCopy(data, sended, data, 0, data.Length - sended);
