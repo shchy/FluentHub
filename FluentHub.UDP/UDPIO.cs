@@ -14,7 +14,6 @@ namespace FluentHub.UDP
     public class UDPIO : IIO
     {
         private UdpClient client;
-        private IPAddress remote;
         public IPEndPoint LocalPoint { get; private set; }
         public IPEndPoint RemotePoint { get; private set; }
         
@@ -24,7 +23,7 @@ namespace FluentHub.UDP
             , IPEndPoint remotePoint)
         {
             // memo sendPortとrecvPortを分けなくてもいいんだけど１PCでテストできるように分けることも可能にしておく
-            this.LocalPoint = LocalPoint;
+            this.LocalPoint = localPoint;
             this.RemotePoint = remotePoint;
             this.client = new UdpClient(this.LocalPoint);
         }
@@ -33,10 +32,10 @@ namespace FluentHub.UDP
         {
             var _ = null as IPEndPoint;
             var bytes = client.Receive(ref _);
-            if (_.Address.Equals(this.remote) == false 
-                && this.remote.Equals(IPAddress.Any) == false)
+            if (_.Address.Equals(this.RemotePoint.Address) == false 
+                && this.RemotePoint.Address.Equals(IPAddress.Any) == false)
             {
-                throw new Exception($"Received from an unexpected IP listen={this.remote} recv={_.Address}");
+                throw new Exception($"Received from an unexpected IP listen={this.RemotePoint.Address} recv={_.Address}");
             }
             return bytes;
         }
