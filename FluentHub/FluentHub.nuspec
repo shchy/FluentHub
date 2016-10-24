@@ -15,4 +15,7 @@
     <tags>Server Tcp</tags>
     <dependencies />
   </metadata>
+  <files>
+    <file src="bin\$configuration$\$id$.pdb" target="lib\net45\" />
+  </files>
 </package>

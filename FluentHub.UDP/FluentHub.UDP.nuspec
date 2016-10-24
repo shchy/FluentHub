@@ -17,4 +17,7 @@
       <dependency id="FluentHub" version="$version$" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="bin\$configuration$\$id$.pdb" target="lib\net45\" />
+  </files>
 </package>
