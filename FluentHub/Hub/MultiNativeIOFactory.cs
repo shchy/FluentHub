@@ -31,7 +31,7 @@ namespace FluentHub.Hub
 
         public NativeIO Make()
         {
-            var factory = factorys.FirstOrDefault(f => f.IsAlreadyEnough());
+            var factory = factorys.FirstOrDefault(f => f.IsAlreadyEnough() == false);
 
             // すでに必要な接続を確立できている場合
             if (factory == null)
