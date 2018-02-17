@@ -27,7 +27,7 @@ namespace FluentHub.IO.Extension
     {
         private IIOContext<AppIF> context;
 
-        public event EventHandler Received;
+        public event EventHandler Received { add { context.Received += value; } remove { context.Received -= value; } }
 
         public SessionType Session { get; private set; }
 
@@ -38,18 +38,8 @@ namespace FluentHub.IO.Extension
         {
             this.context = context;
             this.Session = session;
-            this.context.Received += Context_Received;
         }
-
-        private void Context_Received(object sender, EventArgs e)
-        {
-            if (Received == null)
-            {
-                return;
-            }
-            Received(this, EventArgs.Empty);
-        }
-
+        
         public void Write(AppIF model)
         {
             context.Write(model);
@@ -68,7 +58,6 @@ namespace FluentHub.IO.Extension
         public void Dispose()
         {
             context.Dispose();
-            this.context.Received -= Context_Received;
             Session = default(SessionType);
             context = null;
         }
